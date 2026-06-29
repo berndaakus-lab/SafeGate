@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { Shield, LayoutDashboard, Users, UserCheck, QrCode, LogOut, ChevronDown } from "lucide-react";
+import { Shield, LayoutDashboard, Users, UserCheck, QrCode, LogOut, ChevronDown, Settings } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +12,7 @@ const links = [
   { href: "/parent/children", label: "My Children", icon: Users },
   { href: "/parent/authorized", label: "Pickup Persons", icon: UserCheck },
   { href: "/parent/generate", label: "Generate QR", icon: QrCode },
+  { href: "/parent/account", label: "Account", icon: Settings },
 ];
 
 export default function ParentNav() {

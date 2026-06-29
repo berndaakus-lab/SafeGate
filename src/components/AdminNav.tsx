@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { Shield, LayoutDashboard, Users, UserCheck, ClipboardList, LogOut } from "lucide-react";
+import { Shield, LayoutDashboard, Users, UserCheck, ClipboardList, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -11,6 +11,7 @@ const links = [
   { href: "/admin/staff", label: "Staff", icon: UserCheck },
   { href: "/admin/parents", label: "Parents", icon: Users },
   { href: "/admin/logs", label: "Pickup Logs", icon: ClipboardList },
+  { href: "/admin/account", label: "Account", icon: Settings },
 ];
 
 export default function AdminNav() {
