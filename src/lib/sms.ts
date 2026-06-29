@@ -1,11 +1,45 @@
-import AfricasTalking from "africastalking";
+// Nkomo SMS Gateway — SafeGate
+// Sender ID: register "SafeGate" at https://app.nkomosms.com
 
-const at = AfricasTalking({
-  username: process.env.AT_USERNAME!,
-  apiKey: process.env.AT_API_KEY!,
-});
+function toInternational(phone: string): string {
+  const clean = phone.replace(/\D/g, "");
+  if (clean.startsWith("233")) return clean;
+  if (clean.startsWith("0")) return "233" + clean.slice(1);
+  return clean;
+}
 
-const sms = at.SMS;
+async function sendSMS({ to, message }: { to: string; message: string }) {
+  const apiKey = process.env.NKOMO_API_KEY;
+  const senderId = process.env.NKOMO_SENDER_ID || "SafeGate";
+
+  if (!apiKey) {
+    console.warn("[sms] NKOMO_API_KEY not set — skipping SMS");
+    return;
+  }
+
+  try {
+    const res = await fetch("https://app.nkomosms.com/api/v3/sms/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        sender_id: senderId,
+        message,
+        recipient: toInternational(to),
+      }),
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      console.error("[sms] Nkomo error:", res.status, body);
+    }
+  } catch (err: any) {
+    // SMS failure should never block pickup confirmation
+    console.error("[sms] Network error:", err.message);
+  }
+}
 
 export async function sendPickupSMS({
   parentPhone,
@@ -27,26 +61,5 @@ export async function sendPickupSMS({
     `SafeGate: ${studentName} was picked up by ${collectedBy} at ${time} from ${schoolName}. ` +
     `If this was not authorised, call the school immediately.`;
 
-  // Ensure phone is in international format for Ghana (+233)
-  const phone = normalizeGhanaPhone(parentPhone);
-  if (!phone) return;
-
-  try {
-    await sms.send({
-      to: [phone],
-      message,
-      from: process.env.AT_SENDER_ID || "SafeGate",
-    });
-  } catch (err) {
-    // SMS failure should never block the pickup confirmation
-    console.error("SMS send failed:", err);
-  }
-}
-
-function normalizeGhanaPhone(phone: string): string | null {
-  const digits = phone.replace(/\D/g, "");
-  if (digits.startsWith("233") && digits.length === 12) return `+${digits}`;
-  if (digits.startsWith("0") && digits.length === 10) return `+233${digits.slice(1)}`;
-  if (digits.length === 9) return `+233${digits}`;
-  return null;
+  await sendSMS({ to: parentPhone, message });
 }
