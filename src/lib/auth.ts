@@ -3,6 +3,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { supabaseAdmin } from "@/lib/supabase";
 import bcrypt from "bcryptjs";
 
+const SUPERADMIN_EMAIL = process.env.SUPERADMIN_EMAIL!;
+const SUPERADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD!;
+
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
@@ -17,6 +20,23 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password || !credentials?.role) return null;
 
+        // Superadmin — env-based, no DB lookup
+        if (credentials.role === "superadmin") {
+          if (
+            credentials.email !== SUPERADMIN_EMAIL ||
+            credentials.password !== SUPERADMIN_PASSWORD
+          ) return null;
+          return {
+            id: "superadmin",
+            email: SUPERADMIN_EMAIL,
+            name: "Super Admin",
+            role: "superadmin",
+            schoolId: null,
+            schoolName: null,
+          };
+        }
+
+        // Parent
         if (credentials.role === "parent") {
           const { data: parent } = await supabaseAdmin
             .from("parents")
@@ -38,6 +58,7 @@ export const authOptions: NextAuthOptions = {
           };
         }
 
+        // Staff (admin, guard, teacher)
         if (credentials.role === "staff") {
           const { data: staff } = await supabaseAdmin
             .from("staff")
