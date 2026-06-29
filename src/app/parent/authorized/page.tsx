@@ -1,17 +1,18 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import AddPersonForm from "./AddPersonForm";
-import { UserCheck, Phone, Heart } from "lucide-react";
+import { Phone, Heart } from "lucide-react";
 
 export default async function AuthorizedPage() {
   const session = await getServerSession(authOptions);
   const parentId = (session?.user as any)?.id;
 
-  const people = await prisma.authorizedPerson.findMany({
-    where: { parentId },
-    orderBy: { name: "asc" },
-  });
+  const { data: people } = await supabaseAdmin
+    .from("authorized_persons")
+    .select("*")
+    .eq("parent_id", parentId)
+    .order("name");
 
   return (
     <div className="p-6 max-w-2xl">
@@ -20,10 +21,10 @@ export default async function AuthorizedPage() {
         <p className="text-slate-500 mt-1">People you trust to pick up your children.</p>
       </div>
 
-      {people.length > 0 && (
+      {people && people.length > 0 && (
         <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden mb-6">
           <div className="divide-y divide-slate-50">
-            {people.map((person) => (
+            {people.map((person: any) => (
               <div key={person.id} className="flex items-center gap-4 px-6 py-4">
                 <div className="w-11 h-11 bg-purple-100 rounded-full flex items-center justify-center font-bold text-purple-700">
                   {person.name[0].toUpperCase()}

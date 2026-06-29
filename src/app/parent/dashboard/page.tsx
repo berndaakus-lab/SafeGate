@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import Link from "next/link";
 import { Users, UserCheck, QrCode, Clock, ArrowRight, CheckCircle2 } from "lucide-react";
 import { formatDate, formatTime } from "@/lib/utils";
@@ -9,21 +9,21 @@ export default async function ParentDashboard() {
   const session = await getServerSession(authOptions);
   const parentId = (session?.user as any)?.id;
 
-  const [children, authorizedPeople, recentPickups] = await Promise.all([
-    prisma.student.findMany({ where: { parentId } }),
-    prisma.authorizedPerson.findMany({ where: { parentId } }),
-    prisma.pickupLog.findMany({
-      where: { student: { parentId } },
-      include: { student: true, authorizedPerson: true },
-      orderBy: { pickedUpAt: "desc" },
-      take: 5,
-    }),
+  const [{ data: children }, { data: authorizedPeople }, { data: recentPickups }] = await Promise.all([
+    supabaseAdmin.from("students").select("*").eq("parent_id", parentId),
+    supabaseAdmin.from("authorized_persons").select("*").eq("parent_id", parentId),
+    supabaseAdmin
+      .from("pickup_logs")
+      .select("*, students(name), authorized_persons(name)")
+      .eq("students.parent_id", parentId)
+      .order("picked_up_at", { ascending: false })
+      .limit(5),
   ]);
 
   const stats = [
-    { label: "Children", value: children.length, icon: Users, href: "/parent/children", color: "bg-blue-50 text-blue-600" },
-    { label: "Pickup Persons", value: authorizedPeople.length, icon: UserCheck, href: "/parent/authorized", color: "bg-purple-50 text-purple-600" },
-    { label: "Total Pickups", value: recentPickups.length, icon: CheckCircle2, href: "#", color: "bg-green-50 text-green-600" },
+    { label: "Children", value: children?.length ?? 0, icon: Users, href: "/parent/children", color: "bg-blue-50 text-blue-600" },
+    { label: "Pickup Persons", value: authorizedPeople?.length ?? 0, icon: UserCheck, href: "/parent/authorized", color: "bg-purple-50 text-purple-600" },
+    { label: "Total Pickups", value: recentPickups?.length ?? 0, icon: CheckCircle2, href: "#", color: "bg-green-50 text-green-600" },
   ];
 
   return (
@@ -48,7 +48,7 @@ export default async function ParentDashboard() {
         ))}
       </div>
 
-      {/* Quick actions */}
+      {/* Quick action */}
       <div className="bg-blue-600 rounded-2xl p-6 mb-8 text-white">
         <h2 className="font-semibold text-lg mb-1">Generate a Pickup Code</h2>
         <p className="text-blue-100 text-sm mb-4">
@@ -66,13 +66,13 @@ export default async function ParentDashboard() {
 
       {/* Recent pickups */}
       <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-50">
+        <div className="flex items-center px-6 py-4 border-b border-slate-50">
           <h2 className="font-semibold text-slate-900 flex items-center gap-2">
             <Clock className="w-4 h-4 text-slate-400" />
             Recent Pickups
           </h2>
         </div>
-        {recentPickups.length === 0 ? (
+        {!recentPickups?.length ? (
           <div className="px-6 py-12 text-center">
             <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
               <Clock className="w-6 h-6 text-slate-400" />
@@ -82,22 +82,22 @@ export default async function ParentDashboard() {
           </div>
         ) : (
           <div className="divide-y divide-slate-50">
-            {recentPickups.map((log) => (
+            {recentPickups.map((log: any) => (
               <div key={log.id} className="flex items-center justify-between px-6 py-4">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 bg-green-100 rounded-full flex items-center justify-center">
                     <CheckCircle2 className="w-4 h-4 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-900">{log.student.name}</p>
+                    <p className="text-sm font-medium text-slate-900">{log.students?.name}</p>
                     <p className="text-xs text-slate-400">
-                      Picked up by <span className="font-medium text-slate-600">{log.authorizedPerson.name}</span>
+                      Picked up by <span className="font-medium text-slate-600">{log.authorized_persons?.name}</span>
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-medium text-slate-700">{formatTime(log.pickedUpAt)}</p>
-                  <p className="text-xs text-slate-400">{formatDate(log.pickedUpAt)}</p>
+                  <p className="text-xs font-medium text-slate-700">{formatTime(log.picked_up_at)}</p>
+                  <p className="text-xs text-slate-400">{formatDate(log.picked_up_at)}</p>
                 </div>
               </div>
             ))}

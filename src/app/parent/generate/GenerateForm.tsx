@@ -4,7 +4,7 @@ import { useState } from "react";
 import { QrCode, Loader2, Share2, Download, RefreshCw } from "lucide-react";
 import Image from "next/image";
 
-type Child = { id: string; name: string; className: string | null };
+type Child = { id: string; name: string; class_name: string | null };
 type Person = { id: string; name: string; relation: string | null };
 
 export default function GenerateForm({
@@ -89,7 +89,7 @@ export default function GenerateForm({
             <option value="">Select a child...</option>
             {children.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name}{c.className ? ` — ${c.className}` : ""}
+                {c.name}{c.class_name ? ` — ${c.class_name}` : ""}
               </option>
             ))}
           </select>

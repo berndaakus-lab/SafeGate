@@ -1,13 +1,11 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
-  pages: {
-    signIn: "/login",
-  },
+  pages: { signIn: "/login" },
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -17,43 +15,47 @@ export const authOptions: NextAuthOptions = {
         role: { label: "Role", type: "text" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password || !credentials?.role) {
-          return null;
-        }
+        if (!credentials?.email || !credentials?.password || !credentials?.role) return null;
 
         if (credentials.role === "parent") {
-          const parent = await prisma.parent.findUnique({
-            where: { email: credentials.email },
-            include: { school: true },
-          });
+          const { data: parent } = await supabaseAdmin
+            .from("parents")
+            .select("*, schools(name)")
+            .eq("email", credentials.email)
+            .single();
+
           if (!parent) return null;
           const valid = await bcrypt.compare(credentials.password, parent.password);
           if (!valid) return null;
+
           return {
             id: parent.id,
             email: parent.email,
             name: parent.name,
             role: "parent",
-            schoolId: parent.schoolId,
-            schoolName: parent.school.name,
+            schoolId: parent.school_id,
+            schoolName: parent.schools?.name,
           };
         }
 
         if (credentials.role === "staff") {
-          const staff = await prisma.staff.findUnique({
-            where: { email: credentials.email },
-            include: { school: true },
-          });
+          const { data: staff } = await supabaseAdmin
+            .from("staff")
+            .select("*, schools(name)")
+            .eq("email", credentials.email)
+            .single();
+
           if (!staff) return null;
           const valid = await bcrypt.compare(credentials.password, staff.password);
           if (!valid) return null;
+
           return {
             id: staff.id,
             email: staff.email,
             name: staff.name,
-            role: staff.role.toLowerCase(),
-            schoolId: staff.schoolId,
-            schoolName: staff.school.name,
+            role: staff.role,
+            schoolId: staff.school_id,
+            schoolName: staff.schools?.name,
           };
         }
 
