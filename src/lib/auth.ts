@@ -15,17 +15,14 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
-        role: { label: "Role", type: "text" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password || !credentials?.role) return null;
+        if (!credentials?.email || !credentials?.password) return null;
 
-        // Superadmin — env-based, no DB lookup
-        if (credentials.role === "superadmin") {
-          if (
-            credentials.email !== SUPERADMIN_EMAIL ||
-            credentials.password !== SUPERADMIN_PASSWORD
-          ) return null;
+        const { email, password } = credentials;
+
+        // 1. Check superadmin first
+        if (email === SUPERADMIN_EMAIL && password === SUPERADMIN_PASSWORD) {
           return {
             id: "superadmin",
             email: SUPERADMIN_EMAIL,
@@ -36,40 +33,16 @@ export const authOptions: NextAuthOptions = {
           };
         }
 
-        // Parent
-        if (credentials.role === "parent") {
-          const { data: parent } = await supabaseAdmin
-            .from("parents")
-            .select("*, schools(name)")
-            .eq("email", credentials.email)
-            .single();
+        // 2. Check staff table
+        const { data: staff } = await supabaseAdmin
+          .from("staff")
+          .select("*, schools(name)")
+          .eq("email", email)
+          .single();
 
-          if (!parent) return null;
-          const valid = await bcrypt.compare(credentials.password, parent.password);
+        if (staff) {
+          const valid = await bcrypt.compare(password, staff.password);
           if (!valid) return null;
-
-          return {
-            id: parent.id,
-            email: parent.email,
-            name: parent.name,
-            role: "parent",
-            schoolId: parent.school_id,
-            schoolName: parent.schools?.name,
-          };
-        }
-
-        // Staff (admin, guard, teacher)
-        if (credentials.role === "staff") {
-          const { data: staff } = await supabaseAdmin
-            .from("staff")
-            .select("*, schools(name)")
-            .eq("email", credentials.email)
-            .single();
-
-          if (!staff) return null;
-          const valid = await bcrypt.compare(credentials.password, staff.password);
-          if (!valid) return null;
-
           return {
             id: staff.id,
             email: staff.email,
@@ -77,6 +50,26 @@ export const authOptions: NextAuthOptions = {
             role: staff.role,
             schoolId: staff.school_id,
             schoolName: staff.schools?.name,
+          };
+        }
+
+        // 3. Check parents table
+        const { data: parent } = await supabaseAdmin
+          .from("parents")
+          .select("*, schools(name)")
+          .eq("email", email)
+          .single();
+
+        if (parent) {
+          const valid = await bcrypt.compare(password, parent.password);
+          if (!valid) return null;
+          return {
+            id: parent.id,
+            email: parent.email,
+            name: parent.name,
+            role: "parent",
+            schoolId: parent.school_id,
+            schoolName: parent.schools?.name,
           };
         }
 

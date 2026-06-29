@@ -2,26 +2,12 @@
 
 import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Shield, Eye, EyeOff, Loader2 } from "lucide-react";
 
-type Role = "parent" | "staff" | "superadmin";
-
-const roles: { value: Role; label: string }[] = [
-  { value: "parent", label: "Parent" },
-  { value: "staff", label: "School Staff" },
-  { value: "superadmin", label: "Super Admin" },
-];
-
 function LoginForm() {
   const router = useRouter();
-  const params = useSearchParams();
-  const defaultRole: Role =
-    params.get("role") === "staff" ? "staff" :
-    params.get("role") === "superadmin" ? "superadmin" : "parent";
-
-  const [role, setRole] = useState<Role>(defaultRole);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -34,15 +20,22 @@ function LoginForm() {
     setLoading(true);
 
     const result = await signIn("credentials", {
-      email, password, role, redirect: false,
+      email,
+      password,
+      redirect: false,
     });
 
     setLoading(false);
 
     if (result?.error) {
-      setError("Invalid email or password. Please try again.");
+      setError("Invalid email or password.");
       return;
     }
+
+    // Fetch session to get role and redirect accordingly
+    const res = await fetch("/api/auth/session");
+    const session = await res.json();
+    const role = session?.user?.role;
 
     if (role === "superadmin") router.push("/superadmin/dashboard");
     else if (role === "parent") router.push("/parent/dashboard");
@@ -51,7 +44,8 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-sm">
+        {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-4">
             <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
@@ -62,39 +56,28 @@ function LoginForm() {
           <p className="text-slate-500 text-sm">Sign in to your account</p>
         </div>
 
+        {/* Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-          {/* Role tabs */}
-          <div className="flex rounded-xl bg-slate-100 p-1 mb-6">
-            {roles.map((r) => (
-              <button
-                key={r.value}
-                onClick={() => setRole(r.value)}
-                className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
-                  role === r.value
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                {r.label}
-              </button>
-            ))}
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Email address</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                Email address
+              </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoFocus
                 placeholder="you@example.com"
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                Password
+              </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -123,7 +106,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2 mt-2"
+              className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               {loading ? "Signing in..." : "Sign In"}
