@@ -48,11 +48,12 @@ export default function QRScanner() {
 
   return (
     <div>
+      {/* Must always be in DOM for iOS Safari camera to initialise */}
       <div
         id="qr-reader"
         ref={containerRef}
-        className={`rounded-2xl overflow-hidden bg-slate-800 ${status === "scanning" ? "block" : "hidden"}`}
-        style={{ width: "100%" }}
+        className="rounded-2xl overflow-hidden bg-slate-800"
+        style={{ width: "100%", display: status === "scanning" ? "block" : "none" }}
       />
 
       {status !== "scanning" && (
