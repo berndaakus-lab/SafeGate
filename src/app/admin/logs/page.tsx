@@ -8,12 +8,22 @@ export default async function LogsPage() {
   const session = await getServerSession(authOptions);
   const schoolId = (session?.user as any)?.schoolId;
 
-  const { data: logs } = await supabaseAdmin
-    .from("pickup_logs")
-    .select("*, students(name, class_name, school_id), authorized_persons(name, relation), parents(name)")
-    .eq("students.school_id", schoolId)
-    .order("picked_up_at", { ascending: false })
-    .limit(100);
+  // Get student IDs for this school first, then fetch logs
+  const { data: schoolStudents } = await supabaseAdmin
+    .from("students")
+    .select("id")
+    .eq("school_id", schoolId);
+
+  const studentIds = schoolStudents?.map((s: any) => s.id) ?? [];
+
+  const { data: logs } = studentIds.length
+    ? await supabaseAdmin
+        .from("pickup_logs")
+        .select("*, students(name, class_name), authorized_persons(name, relation), parents(name)")
+        .in("student_id", studentIds)
+        .order("picked_up_at", { ascending: false })
+        .limit(100)
+    : { data: [] };
 
   return (
     <div className="p-6 max-w-4xl">
