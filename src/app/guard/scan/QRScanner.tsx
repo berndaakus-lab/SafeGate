@@ -6,7 +6,6 @@ import { Camera, Loader2, AlertCircle } from "lucide-react";
 
 export default function QRScanner() {
   const scannerRef = useRef<any>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "starting" | "scanning" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -23,10 +22,9 @@ export default function QRScanner() {
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 250, height: 250 } },
         (decodedText: string) => {
-          scanner.stop();
-          // Extract code from URL or use raw value
+          scanner.stop().catch(() => {});
           const match = decodedText.match(/\/guard\/verify\/([^/?#]+)/);
-          const code = match ? match[1] : decodedText;
+          const code = match ? match[1] : decodedText.trim();
           router.push(`/guard/verify/${code}`);
         },
         () => {}
@@ -34,69 +32,83 @@ export default function QRScanner() {
       setStatus("scanning");
     } catch {
       setStatus("error");
-      setErrorMsg("Camera access denied. Please allow camera access and try again.");
+      setErrorMsg("Camera access denied or not available. Use the manual code entry below.");
     }
   }
 
   useEffect(() => {
     return () => {
-      if (scannerRef.current) {
-        scannerRef.current.stop().catch(() => {});
-      }
+      scannerRef.current?.stop().catch(() => {});
     };
   }, []);
 
   return (
     <div>
-      {/* Must always be in DOM for iOS Safari camera to initialise */}
-      <div
-        id="qr-reader"
-        ref={containerRef}
-        className="rounded-2xl overflow-hidden bg-slate-800"
-        style={{ width: "100%", display: status === "scanning" ? "block" : "none" }}
-      />
+      {/* Camera viewport — always in DOM so html5-qrcode can render into it */}
+      <div className="relative rounded-2xl overflow-hidden bg-slate-800" style={{ minHeight: 300 }}>
+        <div id="qr-reader" style={{ width: "100%" }} />
 
-      {status !== "scanning" && (
-        <div className="bg-slate-800 rounded-2xl p-8 flex flex-col items-center gap-6">
-          <div className="w-32 h-32 border-2 border-dashed border-slate-600 rounded-2xl flex items-center justify-center">
-            <Camera className="w-12 h-12 text-slate-500" />
-          </div>
-
-          {status === "error" && (
-            <div className="flex items-start gap-2 bg-red-900/30 text-red-400 border border-red-800/50 px-4 py-3 rounded-xl text-sm w-full">
-              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-              {errorMsg}
+        {/* Overlay shown before scanning starts */}
+        {status !== "scanning" && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-slate-800 p-8">
+            {/* Viewfinder graphic */}
+            <div className="relative w-44 h-44">
+              <span className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-blue-400 rounded-tl-xl" />
+              <span className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-blue-400 rounded-tr-xl" />
+              <span className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-blue-400 rounded-bl-xl" />
+              <span className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-blue-400 rounded-br-xl" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Camera className="w-14 h-14 text-slate-600" />
+              </div>
             </div>
-          )}
 
-          <button
-            onClick={startScanner}
-            disabled={status === "starting"}
-            className="flex items-center gap-2 bg-blue-600 text-white px-8 py-3.5 rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60 w-full justify-center"
-          >
-            {status === "starting" ? (
-              <><Loader2 className="w-5 h-5 animate-spin" /> Starting camera...</>
-            ) : (
-              <><Camera className="w-5 h-5" /> Start Scanning</>
+            {status === "error" && (
+              <div className="flex items-start gap-2 bg-red-900/40 text-red-400 border border-red-800/50 px-4 py-3 rounded-xl text-sm w-full max-w-xs">
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                {errorMsg}
+              </div>
             )}
-          </button>
-        </div>
-      )}
 
-      <div className="mt-6 bg-slate-800/50 rounded-2xl p-5">
+            <button
+              onClick={startScanner}
+              disabled={status === "starting"}
+              className="flex items-center gap-2 bg-blue-600 text-white px-8 py-3.5 rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60 w-full max-w-xs justify-center"
+            >
+              {status === "starting" ? (
+                <><Loader2 className="w-5 h-5 animate-spin" /> Starting camera...</>
+              ) : (
+                <><Camera className="w-5 h-5" /> {status === "error" ? "Try Again" : "Start Scanning"}</>
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* Scanning hint shown while active */}
+        {status === "scanning" && (
+          <div className="absolute bottom-3 inset-x-0 flex justify-center pointer-events-none">
+            <span className="bg-black/60 text-white text-xs px-3 py-1.5 rounded-full">
+              Point camera at QR code
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Manual code entry */}
+      <div className="mt-4 bg-slate-800/50 rounded-2xl p-5">
         <p className="text-slate-400 text-sm text-center mb-3">Or enter code manually</p>
         <form
           onSubmit={(e) => {
             e.preventDefault();
             const code = (e.currentTarget.elements.namedItem("code") as HTMLInputElement).value;
-            if (code.trim()) router.push(`/guard/verify/${code.trim()}`);
+            if (code.trim()) router.push(`/guard/verify/${code.trim().toUpperCase()}`);
           }}
           className="flex gap-2"
         >
           <input
             name="code"
-            placeholder="Enter pickup code"
-            className="flex-1 px-4 py-3 rounded-xl bg-slate-700 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            placeholder="e.g. K7MX3P"
+            autoCapitalize="characters"
+            className="flex-1 px-4 py-3 rounded-xl bg-slate-700 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono tracking-widest uppercase"
           />
           <button
             type="submit"
