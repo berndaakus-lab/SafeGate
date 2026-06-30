@@ -38,8 +38,10 @@ function LoginForm() {
     const role = session?.user?.role;
 
     if (role === "superadmin") router.push("/superadmin/dashboard");
+    else if (role === "admin") router.push("/admin/dashboard");
     else if (role === "parent") router.push("/parent/dashboard");
-    else router.push("/admin/dashboard");
+    else if (role === "guard" || role === "teacher") router.push("/guard/scan");
+    else router.push("/login");
   }
 
   return (
