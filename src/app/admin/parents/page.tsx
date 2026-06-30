@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import AddParentForm from "./AddParentForm";
 import AddChildInline from "./AddChildInline";
+import EditParentModal from "./EditParentModal";
 import { GraduationCap, UserPlus } from "lucide-react";
 
 export default async function ParentsPage() {
@@ -34,7 +35,10 @@ export default async function ParentsPage() {
                   {parent.name[0].toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-slate-900">{parent.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-slate-900">{parent.name}</p>
+                    <EditParentModal parent={parent} />
+                  </div>
                   <p className="text-xs text-slate-400 truncate">
                     {parent.email}{parent.phone ? ` · ${parent.phone}` : ""}
                   </p>
