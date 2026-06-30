@@ -146,11 +146,11 @@ export default function GenerateForm({
             />
           </div>
 
-          <p className="text-xs text-slate-400 mb-2">Pickup code (for manual entry)</p>
+          <p className="text-xs text-slate-400 mb-2">Pickup code (tap to copy)</p>
           <button
-            onClick={() => { navigator.clipboard.writeText(qrData.code); }}
+            onClick={() => navigator.clipboard.writeText(qrData.code)}
             title="Tap to copy"
-            className="font-mono text-sm font-bold text-slate-800 mb-6 bg-slate-50 px-4 py-2 rounded-xl inline-block break-all hover:bg-slate-100 transition-colors cursor-copy"
+            className="font-mono text-3xl font-bold tracking-[0.3em] text-slate-800 mb-6 bg-slate-50 px-6 py-3 rounded-xl inline-block hover:bg-slate-100 transition-colors cursor-copy"
           >
             {qrData.code}
           </button>

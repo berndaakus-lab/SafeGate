@@ -4,6 +4,13 @@ import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import QRCode from "qrcode";
 
+function shortCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I confusion
+  let code = "";
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -38,9 +45,24 @@ export async function POST(req: NextRequest) {
     const expiresAt = new Date();
     expiresAt.setHours(23, 59, 59, 999);
 
+    // Generate a unique short code
+    let code = shortCode();
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const { data: existing } = await supabaseAdmin
+        .from("pickup_codes")
+        .select("id")
+        .eq("code", code)
+        .eq("used", false)
+        .gte("expires_at", new Date().toISOString())
+        .maybeSingle();
+      if (!existing) break;
+      code = shortCode();
+    }
+
     const { data: pickupCode, error } = await supabaseAdmin
       .from("pickup_codes")
       .insert({
+        code,
         student_id: studentId,
         parent_id: parentId,
         authorized_person_id: authorizedPersonId,
