@@ -59,7 +59,7 @@ export async function sendPickupSMS({
 
   const message =
     `SafeGate: ${studentName} was picked up by ${collectedBy} at ${time} from ${schoolName}. ` +
-    `If this was not authorised, call the school immediately.`;
+    `If this was not authorised, call the school immediately!`;
 
   await sendSMS({ to: parentPhone, message });
 }
