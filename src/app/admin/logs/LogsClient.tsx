@@ -124,7 +124,7 @@ export default function LogsClient({ logs }: { logs: Log[] }) {
             {/* Desktop header */}
             <div className="hidden md:grid grid-cols-[1fr_1fr_1fr_auto] px-6 py-3 bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-400 uppercase tracking-wider gap-4">
               <span>Student</span>
-              <span>Collected by</span>
+              <span>Picked by</span>
               <span>Parent</span>
               <span className="text-right">Time</span>
             </div>
@@ -158,7 +158,7 @@ export default function LogsClient({ logs }: { logs: Log[] }) {
                       <p className="text-sm font-semibold text-slate-900">{log.studentName}
                         {log.className && <span className="font-normal text-slate-400"> · {log.className}</span>}
                       </p>
-                      <p className="text-xs text-slate-500 mt-0.5">Collected by <strong>{log.collectedBy}</strong>{log.relation ? ` (${log.relation})` : ""}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Picked by <strong>{log.collectedBy}</strong>{log.relation ? ` (${log.relation})` : ""}</p>
                       <p className="text-xs text-slate-400">Parent: {log.parentName}</p>
                     </div>
                     <div className="text-right shrink-0">

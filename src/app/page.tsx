@@ -78,7 +78,7 @@ export default function Home() {
                 step: "02",
                 icon: <QrCode className="w-6 h-6 text-blue-600" />,
                 title: "Guard scans at the gate",
-                desc: "The security guard scans the QR code. The child's photo and the authorized person's details appear instantly.",
+                desc: "The security guard scans the QR code. The child's name, class, and the authorised person's full details appear instantly.",
               },
               {
                 step: "03",
