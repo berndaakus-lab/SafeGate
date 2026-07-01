@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Shield, QrCode, Bell, ClipboardList } from "lucide-react";
+import { Shield, QrCode, Bell, ClipboardList, CheckCircle2, ArrowRight } from "lucide-react";
+import SiteFooter from "@/components/SiteFooter";
 
 export default function Home() {
   return (
@@ -12,19 +13,30 @@ export default function Home() {
           </div>
           <span className="font-bold text-xl text-slate-900">SafeGate</span>
         </div>
-        <Link
-          href="/login"
-          className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-        >
-          Sign In
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/pricing" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors hidden sm:block">
+            Pricing
+          </Link>
+          <Link
+            href="/get-started"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+          >
+            Get Started
+          </Link>
+          <Link
+            href="/login"
+            className="border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
+          >
+            Sign In
+          </Link>
+        </div>
       </nav>
 
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-6 pt-20 pb-24 text-center">
         <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
           <Shield className="w-4 h-4" />
-          Trusted by schools across Ghana
+          Built for schools in Ghana 🇬🇭
         </div>
         <h1 className="text-5xl font-bold text-slate-900 leading-tight mb-6">
           Every child leaves school<br />
@@ -37,35 +49,26 @@ export default function Home() {
         </p>
         <div className="flex items-center justify-center gap-4 flex-wrap">
           <Link
-            href="/login?role=parent"
-            className="bg-blue-600 text-white px-8 py-3.5 rounded-xl font-semibold text-lg hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+            href="/get-started"
+            className="bg-blue-600 text-white px-8 py-3.5 rounded-xl font-semibold text-lg hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 inline-flex items-center gap-2"
           >
-            I&apos;m a Parent
+            Get Your School Onboarded <ArrowRight className="w-5 h-5" />
           </Link>
           <Link
-            href="/login?role=staff"
-            className="bg-slate-900 text-white px-8 py-3.5 rounded-xl font-semibold text-lg hover:bg-slate-700 transition-colors"
-          >
-            I&apos;m a School Admin
-          </Link>
-          <Link
-            href="/guard/scan"
+            href="/login"
             className="border-2 border-slate-200 text-slate-700 px-8 py-3.5 rounded-xl font-semibold text-lg hover:border-blue-600 hover:text-blue-600 transition-colors"
           >
-            Guard Scanner
+            Sign In
           </Link>
         </div>
+        <p className="text-sm text-slate-400 mt-4">First month free · No setup fee · Cancel anytime</p>
       </section>
 
       {/* How it works */}
       <section className="bg-slate-50 py-20">
         <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-slate-900 text-center mb-4">
-            How SafeGate works
-          </h2>
-          <p className="text-slate-500 text-center mb-14 text-lg">
-            Three simple steps. Zero confusion at the gate.
-          </p>
+          <h2 className="text-3xl font-bold text-slate-900 text-center mb-4">How SafeGate works</h2>
+          <p className="text-slate-500 text-center mb-14 text-lg">Three simple steps. Zero confusion at the gate.</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
@@ -84,15 +87,13 @@ export default function Home() {
                 step: "03",
                 icon: <Bell className="w-6 h-6 text-blue-600" />,
                 title: "Parent is notified",
-                desc: "The moment your child leaves school, you receive a notification: who picked them up and at what time.",
+                desc: "The moment your child leaves school, you receive an SMS: who picked them up and at what time.",
               },
             ].map((item) => (
               <div key={item.step} className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
                 <div className="flex items-center gap-3 mb-4">
                   <span className="text-4xl font-black text-slate-100">{item.step}</span>
-                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-                    {item.icon}
-                  </div>
+                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">{item.icon}</div>
                 </div>
                 <h3 className="text-lg font-semibold text-slate-900 mb-2">{item.title}</h3>
                 <p className="text-slate-500 leading-relaxed">{item.desc}</p>
@@ -104,17 +105,15 @@ export default function Home() {
 
       {/* Features */}
       <section className="py-20 max-w-6xl mx-auto px-6">
-        <h2 className="text-3xl font-bold text-slate-900 text-center mb-14">
-          Everything your school needs
-        </h2>
+        <h2 className="text-3xl font-bold text-slate-900 text-center mb-14">Everything your school needs</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
-            { title: "QR Code Verification", desc: "One scan confirms the child, the authorized person, and logs the pickup." },
-            { title: "Parent Notifications", desc: "Instant alerts when a child is picked up. Peace of mind, always." },
-            { title: "Pickup Audit Trail", desc: "Every pickup is logged with time, date, guard name, and person." },
-            { title: "Multiple Authorized Persons", desc: "Add grandparents, uncles, drivers — anyone you trust." },
+            { title: "QR Code Verification", desc: "One scan confirms the child, the authorized person, and logs the pickup instantly." },
+            { title: "SMS Notifications", desc: "Instant SMS alert to parents the moment their child is picked up. No app needed." },
+            { title: "Pickup Audit Trail", desc: "Every pickup is logged with time, date, and the person who collected the child." },
+            { title: "Multiple Authorised Persons", desc: "Add grandparents, aunts, uncles, drivers — anyone the parent trusts." },
             { title: "Works on any device", desc: "No app to install. Open a link on any phone, tablet, or computer." },
-            { title: "School Admin Dashboard", desc: "Manage students, parents, staff, and view all pickup history." },
+            { title: "School Admin Dashboard", desc: "Manage students, parents, staff, and view all pickup history in one place." },
           ].map((f) => (
             <div key={f.title} className="p-6 rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-sm transition-all">
               <div className="w-2 h-2 bg-blue-600 rounded-full mb-4" />
@@ -125,28 +124,32 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* CTA banner */}
       <section className="bg-blue-600 py-20">
         <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">
-            Ready to secure your school gate?
-          </h2>
-          <p className="text-blue-100 text-lg mb-8">
-            Join schools in Ghana using SafeGate to protect their students every day.
+          <h2 className="text-3xl font-bold text-white mb-4">Get onboarded today</h2>
+          <p className="text-blue-100 text-lg mb-3">
+            Your first month is completely free. After that, our plans are among the most affordable school safety tools in Ghana.
           </p>
-          <Link
-            href="/login?role=staff"
-            className="bg-white text-blue-600 px-8 py-3.5 rounded-xl font-semibold text-lg hover:bg-blue-50 transition-colors inline-block"
-          >
-            Get Started Free
-          </Link>
+          <p className="text-blue-200 text-sm mb-8">No setup fees. No contracts. Cancel anytime.</p>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <Link
+              href="/get-started"
+              className="bg-white text-blue-600 px-8 py-3.5 rounded-xl font-semibold text-lg hover:bg-blue-50 transition-colors inline-flex items-center gap-2"
+            >
+              Request a Demo <ArrowRight className="w-5 h-5" />
+            </Link>
+            <Link
+              href="/pricing"
+              className="border-2 border-blue-400 text-white px-8 py-3.5 rounded-xl font-semibold text-lg hover:bg-blue-700 transition-colors"
+            >
+              View Pricing
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-8 text-center text-slate-400 text-sm border-t border-slate-100">
-        <p>© {new Date().getFullYear()} SafeGate. Built for schools in Ghana. 🇬🇭</p>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
