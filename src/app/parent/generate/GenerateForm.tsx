@@ -65,13 +65,27 @@ export default function GenerateForm({
   }
 
   const hasData = children.length > 0 && authorizedPeople.length > 0;
+  const missingChild = children.length === 0;
+  const missingPerson = authorizedPeople.length === 0;
 
   return (
     <div>
-      {!hasData && (
-        <div className="bg-amber-50 border border-amber-100 text-amber-700 px-5 py-4 rounded-2xl text-sm mb-6">
-          <p className="font-medium mb-1">Setup needed</p>
-          <p>Please add at least one child and one authorized pickup person before generating a code.</p>
+      {missingChild && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 rounded-2xl text-sm mb-4">
+          <p className="font-semibold mb-1">No children added yet</p>
+          <p className="mb-3">Your school admin needs to add your child to your account, or you can add them yourself.</p>
+          <a href="/parent/children" className="inline-flex items-center gap-1 font-semibold underline underline-offset-2">
+            Go to My Children →
+          </a>
+        </div>
+      )}
+      {!missingChild && missingPerson && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 rounded-2xl text-sm mb-4">
+          <p className="font-semibold mb-1">No pickup persons added yet</p>
+          <p className="mb-3">Add the people who are authorised to collect your child — family members, drivers, etc.</p>
+          <a href="/parent/authorized" className="inline-flex items-center gap-1 font-semibold underline underline-offset-2">
+            Add Pickup Persons →
+          </a>
         </div>
       )}
 
