@@ -25,7 +25,8 @@ export default function QRScanner() {
           scanner.stop().catch(() => {});
           const match = decodedText.match(/\/guard\/verify\/([^/?#]+)/);
           const code = match ? match[1] : decodedText.trim();
-          router.push(`/guard/verify/${code}`);
+          // Hard navigate — avoids race between scanner teardown and Next.js router
+          window.location.href = `/guard/verify/${code}`;
         },
         () => {}
       );
