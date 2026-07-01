@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       .single();
     if (existing) return NextResponse.json({ error: "Already used" }, { status: 409 });
 
-    // Fetch SMS data BEFORE creating log (while we have the code data)
+    // Fetch all data needed for SMS before creating log
     const { data: codeData } = await supabaseAdmin
       .from("pickup_codes")
       .select(`
@@ -29,18 +29,21 @@ export async function POST(req: NextRequest) {
       .eq("id", pickupCodeId)
       .single();
 
-    // Create pickup log
+    // Create pickup log — only columns that exist in the table
     const { data: log, error } = await supabaseAdmin
       .from("pickup_logs")
       .insert({
         pickup_code_id: pickupCodeId,
         student_id: studentId,
         authorized_person_id: authorizedPersonId,
-        parent_id: codeData?.parent_id ?? null,
       })
       .select()
       .single();
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    if (error) {
+      console.error("[confirm] insert error:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 
     // Mark code as used
     await supabaseAdmin
@@ -48,14 +51,14 @@ export async function POST(req: NextRequest) {
       .update({ used_at: new Date().toISOString() })
       .eq("id", pickupCodeId);
 
-    // Send SMS — awaited so Vercel doesn't kill it before it fires
+    // Send SMS — awaited so Vercel doesn't shut down the function before it fires
     if (codeData) {
       const parent = Array.isArray(codeData.parents) ? codeData.parents[0] : codeData.parents as any;
       const student = Array.isArray(codeData.students) ? codeData.students[0] : codeData.students as any;
       const person = Array.isArray(codeData.authorized_persons) ? codeData.authorized_persons[0] : codeData.authorized_persons as any;
       const school = Array.isArray(student?.schools) ? student.schools[0] : student?.schools as any;
 
-      console.log("[confirm] parent:", parent?.name, "phone:", parent?.phone);
+      console.log("[sms] parent:", parent?.name, "| phone:", parent?.phone, "| student:", student?.name);
 
       if (parent?.phone) {
         await sendPickupSMS({
@@ -65,12 +68,13 @@ export async function POST(req: NextRequest) {
           schoolName: school?.name ?? "school",
         });
       } else {
-        console.warn("[confirm] No parent phone — SMS skipped. parent_id:", codeData.parent_id);
+        console.warn("[sms] skipped — no phone. parent_id:", codeData.parent_id);
       }
     }
 
     return NextResponse.json(log, { status: 201 });
-  } catch {
+  } catch (err: any) {
+    console.error("[confirm] unexpected error:", err?.message);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
