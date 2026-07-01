@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { Shield, LayoutDashboard, Users, UserCheck, ClipboardList, LogOut, Settings } from "lucide-react";
+import { Shield, LayoutDashboard, Users, UserCheck, ClipboardList, LogOut, Settings, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/staff", label: "Staff", icon: UserCheck },
   { href: "/admin/parents", label: "Parents", icon: Users },
+  { href: "/admin/import", label: "Bulk Import", icon: Upload },
   { href: "/admin/logs", label: "Pickup Logs", icon: ClipboardList },
   { href: "/admin/account", label: "Account", icon: Settings },
 ];
