@@ -3,6 +3,8 @@ import { Shield, MessageCircle, Mail, CheckCircle2, ArrowLeft, Phone } from "luc
 import ContactForm from "./ContactForm";
 import { getSettings, s } from "@/lib/settings";
 
+export const dynamic = "force-dynamic";
+
 export default async function GetStartedPage() {
   const settings = await getSettings();
   const whatsapp = s(settings, "whatsapp", "233XXXXXXXXX");

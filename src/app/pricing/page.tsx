@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Shield, CheckCircle2, ArrowRight, ArrowLeft } from "lucide-react";
 import { getSettings, s } from "@/lib/settings";
 
+export const dynamic = "force-dynamic";
+
 export default async function PricingPage() {
   const settings = await getSettings();
 
