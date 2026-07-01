@@ -2,6 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import ConfirmPickup from "./ConfirmPickup";
 import { Shield, Clock, XCircle } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { formatTime } from "@/lib/utils";
 
@@ -12,7 +13,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
     .from("pickup_codes")
     .select(`
       *,
-      students(name, class_name, schools(name)),
+      students(name, class_name, photo_url, schools(name)),
       authorized_persons(name, phone, relation),
       parents(name),
       pickup_logs(id, picked_up_at)
@@ -72,8 +73,18 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
               <div className="bg-slate-800 rounded-2xl p-5 mb-4">
                 <p className="text-xs text-slate-500 uppercase tracking-widest mb-3">Child</p>
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center text-2xl font-bold text-blue-400">
-                    {pickupCode.students?.name?.[0]?.toUpperCase()}
+                  <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 bg-blue-600/20 flex items-center justify-center text-2xl font-bold text-blue-400">
+                    {pickupCode.students?.photo_url ? (
+                      <Image
+                        src={pickupCode.students.photo_url}
+                        alt={pickupCode.students.name}
+                        width={64}
+                        height={64}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      pickupCode.students?.name?.[0]?.toUpperCase()
+                    )}
                   </div>
                   <div>
                     <p className="text-xl font-bold text-white">{pickupCode.students?.name}</p>
