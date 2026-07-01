@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Shield, QrCode, Bell, ClipboardList, CheckCircle2, ArrowRight } from "lucide-react";
+import SiteFooter from "@/components/SiteFooter";
 
 export default function Home() {
   return (
@@ -148,23 +149,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-10 border-t border-slate-100">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-blue-600 rounded-md flex items-center justify-center">
-              <Shield className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="font-bold text-slate-900">SafeGate</span>
-          </div>
-          <div className="flex items-center gap-6 text-sm text-slate-400">
-            <Link href="/pricing" className="hover:text-slate-600">Pricing</Link>
-            <Link href="/get-started" className="hover:text-slate-600">Get Started</Link>
-            <Link href="/login" className="hover:text-slate-600">Sign In</Link>
-          </div>
-          <p className="text-slate-400 text-sm">© {new Date().getFullYear()} SafeGate 🇬🇭</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

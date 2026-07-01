@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Shield, LayoutDashboard, School, LogOut } from "lucide-react";
+import { Shield, LayoutDashboard, School, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/superadmin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/superadmin/schools", label: "Schools", icon: School },
+  { href: "/superadmin/settings", label: "Settings", icon: Settings },
 ];
 
 export default function SuperAdminNav() {

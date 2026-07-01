@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { Shield, MessageCircle, Mail, CheckCircle2, ArrowLeft, Phone } from "lucide-react";
 import ContactForm from "./ContactForm";
+import { getSettings, s } from "@/lib/settings";
 
-const WHATSAPP_NUMBER = "233XXXXXXXXX"; // Replace with your real WhatsApp number
-const WHATSAPP_MSG = encodeURIComponent("Hi SafeGate! I'd like to learn more about getting my school onboarded.");
+export default async function GetStartedPage() {
+  const settings = await getSettings();
+  const whatsapp = s(settings, "whatsapp", "233XXXXXXXXX");
+  const email = s(settings, "email", "hello@safegate.app");
+  const phone = s(settings, "phone", "");
+  const waMsg = encodeURIComponent("Hi SafeGate! I'd like to learn more about getting my school onboarded.");
 
-export default function GetStartedPage() {
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Nav */}
       <nav className="bg-white border-b border-slate-100 px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
@@ -24,14 +27,11 @@ export default function GetStartedPage() {
       </nav>
 
       <div className="max-w-5xl mx-auto px-6 py-16">
-        {/* Header */}
         <div className="text-center mb-14">
           <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
             🎉 First month completely free
           </div>
-          <h1 className="text-4xl font-bold text-slate-900 mb-4">
-            Get your school onboarded today
-          </h1>
+          <h1 className="text-4xl font-bold text-slate-900 mb-4">Get your school onboarded today</h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto">
             Join schools across Ghana using SafeGate to make every pickup safe, verified, and logged.
             We set everything up for you — your school can be live within 24 hours.
@@ -58,7 +58,13 @@ export default function GetStartedPage() {
               </div>
             ))}
           </div>
-          <p className="text-blue-200 text-sm mt-6">After your free month, plans start from as low as <strong className="text-white">GHS 150/month</strong> — less than GHS 5 a day.</p>
+          <p className="text-blue-200 text-sm mt-6">
+            After your free month, plans start from as low as{" "}
+            <strong className="text-white">
+              {s(settings, "plan_school_price", "GHS 150")}/{s(settings, "plan_school_note", "month")}
+            </strong>{" "}
+            — less than GHS 5 a day.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -71,11 +77,10 @@ export default function GetStartedPage() {
             <ContactForm />
           </div>
 
-          {/* Quick contact options */}
+          {/* Quick contact */}
           <div className="space-y-4">
-            {/* WhatsApp */}
             <a
-              href={`https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MSG}`}
+              href={`https://wa.me/${whatsapp}?text=${waMsg}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-5 bg-green-500 hover:bg-green-600 transition-colors text-white rounded-2xl p-6"
@@ -89,9 +94,8 @@ export default function GetStartedPage() {
               </div>
             </a>
 
-            {/* Email */}
             <a
-              href="mailto:hello@safegate.app"
+              href={`mailto:${email}`}
               className="flex items-center gap-5 bg-white hover:bg-slate-50 transition-colors border border-slate-100 rounded-2xl p-6"
             >
               <div className="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
@@ -99,25 +103,25 @@ export default function GetStartedPage() {
               </div>
               <div>
                 <p className="font-bold text-slate-900 text-lg">Send an email</p>
-                <p className="text-slate-400 text-sm">hello@safegate.app</p>
+                <p className="text-slate-400 text-sm">{email}</p>
               </div>
             </a>
 
-            {/* Call */}
-            <a
-              href="tel:+233XXXXXXXXX"
-              className="flex items-center gap-5 bg-white hover:bg-slate-50 transition-colors border border-slate-100 rounded-2xl p-6"
-            >
-              <div className="w-14 h-14 bg-purple-50 rounded-xl flex items-center justify-center shrink-0">
-                <Phone className="w-7 h-7 text-purple-600" />
-              </div>
-              <div>
-                <p className="font-bold text-slate-900 text-lg">Call us</p>
-                <p className="text-slate-400 text-sm">Mon – Fri, 8am – 6pm</p>
-              </div>
-            </a>
+            {phone && (
+              <a
+                href={`tel:${phone}`}
+                className="flex items-center gap-5 bg-white hover:bg-slate-50 transition-colors border border-slate-100 rounded-2xl p-6"
+              >
+                <div className="w-14 h-14 bg-purple-50 rounded-xl flex items-center justify-center shrink-0">
+                  <Phone className="w-7 h-7 text-purple-600" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900 text-lg">Call us</p>
+                  <p className="text-slate-400 text-sm">{phone} · Mon–Fri, 8am–6pm</p>
+                </div>
+              </a>
+            )}
 
-            {/* Pricing teaser */}
             <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
               <p className="text-sm text-slate-500 mb-2">Wondering about cost?</p>
               <Link href="/pricing" className="text-blue-600 font-semibold hover:underline text-sm">
