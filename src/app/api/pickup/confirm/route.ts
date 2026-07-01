@@ -17,10 +17,27 @@ export async function POST(req: NextRequest) {
       .single();
     if (existing) return NextResponse.json({ error: "Already used" }, { status: 409 });
 
-    // Create log
+    // Fetch SMS data BEFORE creating log (while we have the code data)
+    const { data: codeData } = await supabaseAdmin
+      .from("pickup_codes")
+      .select(`
+        parent_id,
+        parents(name, phone),
+        students(name, schools(name)),
+        authorized_persons(name)
+      `)
+      .eq("id", pickupCodeId)
+      .single();
+
+    // Create pickup log
     const { data: log, error } = await supabaseAdmin
       .from("pickup_logs")
-      .insert({ pickup_code_id: pickupCodeId, student_id: studentId, authorized_person_id: authorizedPersonId })
+      .insert({
+        pickup_code_id: pickupCodeId,
+        student_id: studentId,
+        authorized_person_id: authorizedPersonId,
+        parent_id: codeData?.parent_id ?? null,
+      })
       .select()
       .single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -31,31 +48,26 @@ export async function POST(req: NextRequest) {
       .update({ used_at: new Date().toISOString() })
       .eq("id", pickupCodeId);
 
-    // Fetch details needed for SMS (non-blocking)
-    supabaseAdmin
-      .from("pickup_codes")
-      .select(`
-        parents(name, phone),
-        students(name, schools(name)),
-        authorized_persons(name)
-      `)
-      .eq("id", pickupCodeId)
-      .single()
-      .then(({ data }) => {
-        if (!data) return;
-        const parent = Array.isArray(data.parents) ? data.parents[0] : data.parents as any;
-        const student = Array.isArray(data.students) ? data.students[0] : data.students as any;
-        const person = Array.isArray(data.authorized_persons) ? data.authorized_persons[0] : data.authorized_persons as any;
-        const school = Array.isArray(student?.schools) ? student.schools[0] : student?.schools as any;
-        if (parent?.phone) {
-          sendPickupSMS({
-            parentPhone: parent.phone,
-            studentName: student?.name ?? "Your child",
-            collectedBy: person?.name ?? "an authorised person",
-            schoolName: school?.name ?? "school",
-          });
-        }
-      });
+    // Send SMS — awaited so Vercel doesn't kill it before it fires
+    if (codeData) {
+      const parent = Array.isArray(codeData.parents) ? codeData.parents[0] : codeData.parents as any;
+      const student = Array.isArray(codeData.students) ? codeData.students[0] : codeData.students as any;
+      const person = Array.isArray(codeData.authorized_persons) ? codeData.authorized_persons[0] : codeData.authorized_persons as any;
+      const school = Array.isArray(student?.schools) ? student.schools[0] : student?.schools as any;
+
+      console.log("[confirm] parent:", parent?.name, "phone:", parent?.phone);
+
+      if (parent?.phone) {
+        await sendPickupSMS({
+          parentPhone: parent.phone,
+          studentName: student?.name ?? "Your child",
+          collectedBy: person?.name ?? "an authorised person",
+          schoolName: school?.name ?? "school",
+        });
+      } else {
+        console.warn("[confirm] No parent phone — SMS skipped. parent_id:", codeData.parent_id);
+      }
+    }
 
     return NextResponse.json(log, { status: 201 });
   } catch {
