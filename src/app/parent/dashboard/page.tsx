@@ -9,21 +9,33 @@ export default async function ParentDashboard() {
   const session = await getServerSession(authOptions);
   const parentId = (session?.user as any)?.id;
 
-  const [{ data: children }, { data: authorizedPeople }, { data: recentPickups }] = await Promise.all([
+  const [{ data: children }, { data: authorizedPeople }] = await Promise.all([
     supabaseAdmin.from("students").select("*").eq("parent_id", parentId),
     supabaseAdmin.from("authorized_persons").select("*").eq("parent_id", parentId),
-    supabaseAdmin
-      .from("pickup_logs")
-      .select("*, students(name), authorized_persons(name)")
-      .eq("students.parent_id", parentId)
-      .order("picked_up_at", { ascending: false })
-      .limit(5),
   ]);
+
+  const studentIds = children?.map((c: any) => c.id) ?? [];
+
+  const { data: recentPickups } = studentIds.length
+    ? await supabaseAdmin
+        .from("pickup_logs")
+        .select("*, students(name), authorized_persons(name)")
+        .in("student_id", studentIds)
+        .order("picked_up_at", { ascending: false })
+        .limit(5)
+    : { data: [] };
+
+  const { count: totalPickups } = studentIds.length
+    ? await supabaseAdmin
+        .from("pickup_logs")
+        .select("id", { count: "exact", head: true })
+        .in("student_id", studentIds)
+    : { count: 0 };
 
   const stats = [
     { label: "Children", value: children?.length ?? 0, icon: Users, href: "/parent/children", color: "bg-blue-50 text-blue-600" },
     { label: "Pickup Persons", value: authorizedPeople?.length ?? 0, icon: UserCheck, href: "/parent/authorized", color: "bg-purple-50 text-purple-600" },
-    { label: "Total Pickups", value: recentPickups?.length ?? 0, icon: CheckCircle2, href: "#", color: "bg-green-50 text-green-600" },
+    { label: "Total Pickups", value: totalPickups ?? 0, icon: CheckCircle2, href: "#", color: "bg-green-50 text-green-600" },
   ];
 
   return (
