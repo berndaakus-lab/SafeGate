@@ -31,7 +31,8 @@ export default function ConfirmPickup({
     setLoading(false);
 
     if (!res.ok) {
-      setError("Failed to confirm pickup. Please try again.");
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Failed to confirm pickup. Please try again.");
       return;
     }
 
