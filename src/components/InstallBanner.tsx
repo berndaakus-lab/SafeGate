@@ -56,7 +56,7 @@ export default function InstallBanner() {
             <Shield className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-slate-900 text-sm">Install SafeGate</p>
+            <p className="font-semibold text-slate-900 text-sm">Install VerifyGate</p>
             {isIOS ? (
               <p className="text-xs text-slate-500 mt-0.5">
                 Tap <strong>Share</strong> then <strong>"Add to Home Screen"</strong> to install.

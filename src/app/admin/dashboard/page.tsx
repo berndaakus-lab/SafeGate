@@ -78,7 +78,7 @@ export default async function AdminDashboard() {
                 <>
                   <p className="font-semibold text-red-800">Your free trial has ended</p>
                   <p className="text-sm text-red-600 mt-0.5">
-                    Upgrade to keep SafeGate running for your school.
+                    Upgrade to keep VerifyGate running for your school.
                   </p>
                 </>
               ) : atLimit ? (

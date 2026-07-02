@@ -29,7 +29,7 @@ export default async function SuperAdminDashboard() {
     <div className="p-6 max-w-5xl">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900">Super Admin</h1>
-        <p className="text-slate-500 mt-1">Overview of all schools on SafeGate.</p>
+        <p className="text-slate-500 mt-1">Overview of all schools on VerifyGate.</p>
       </div>
 
       {/* Stats */}

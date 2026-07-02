@@ -33,7 +33,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <Shield className="w-5 h-5 text-white" />
           </div>
-          <span className="font-bold text-white">SafeGate</span>
+          <span className="font-bold text-white">VerifyGate</span>
         </Link>
         <Link href="/guard/scan" className="text-slate-400 text-sm hover:text-white">← Scan again</Link>
       </header>

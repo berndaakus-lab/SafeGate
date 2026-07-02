@@ -1,5 +1,5 @@
-// Nkomo SMS Gateway — SafeGate
-// Sender ID: register "SafeGate" at https://app.nkomosms.com
+// Nkomo SMS Gateway — VerifyGate
+// Sender ID: register "VerifyGate" at https://app.nkomosms.com
 
 function toInternational(phone: string): string {
   const clean = phone.replace(/\D/g, "");
@@ -10,7 +10,7 @@ function toInternational(phone: string): string {
 
 async function sendSMS({ to, message }: { to: string; message: string }) {
   const apiKey = process.env.NKOMO_API_KEY;
-  const senderId = process.env.NKOMO_SENDER_ID || "SafeGate";
+  const senderId = process.env.NKOMO_SENDER_ID || "VerifyGate";
 
   if (!apiKey) {
     console.warn("[sms] NKOMO_API_KEY not set — skipping SMS");
@@ -58,7 +58,7 @@ export async function sendPickupSMS({
   });
 
   const message =
-    `SafeGate: ${studentName} was picked up by ${collectedBy} at ${time} from ${schoolName}. ` +
+    `VerifyGate: ${studentName} was picked up by ${collectedBy} at ${time} from ${schoolName}. ` +
     `If this was not authorised, call the school immediately!`;
 
   await sendSMS({ to: parentPhone, message });

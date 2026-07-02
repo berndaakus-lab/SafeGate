@@ -46,7 +46,7 @@ export default function ImportClient({ schoolId }: { schoolId: string }) {
     const blob = new Blob([TEMPLATE], { type: "text/csv" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "safegate-students-template.csv";
+    a.download = "verifygate-students-template.csv";
     a.click();
   }
 
@@ -113,7 +113,7 @@ export default function ImportClient({ schoolId }: { schoolId: string }) {
           <p>Akosua Mensah, KG 2, another@example.com</p>
         </div>
         <p className="text-xs text-amber-600 mt-2">
-          ⚠ Parent accounts must already exist in SafeGate. Students are matched by parent email.
+          ⚠ Parent accounts must already exist in VerifyGate. Students are matched by parent email.
         </p>
       </div>
 

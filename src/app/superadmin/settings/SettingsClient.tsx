@@ -106,7 +106,7 @@ export default function SettingsClient({ settings }: { settings: Settings }) {
             placeholder="233244123456"
             prefix="+"
           />
-          <Field label="Email address" value={data.email ?? ""} onChange={set("email")} placeholder="hello@safegate.app" />
+          <Field label="Email address" value={data.email ?? ""} onChange={set("email")} placeholder="hello@verifygate.app" />
           <Field label="Phone number" value={data.phone ?? ""} onChange={set("phone")} placeholder="+233 24 412 3456" />
         </div>
       </section>
@@ -120,10 +120,10 @@ export default function SettingsClient({ settings }: { settings: Settings }) {
           <h2 className="font-semibold text-slate-900">Social Links</h2>
         </div>
         <div className="space-y-4">
-          <Field label="Facebook" value={data.facebook ?? ""} onChange={set("facebook")} placeholder="https://facebook.com/safegate" prefix="fb" />
-          <Field label="Instagram" value={data.instagram ?? ""} onChange={set("instagram")} placeholder="https://instagram.com/safegate" prefix="ig" />
-          <Field label="Twitter / X" value={data.twitter ?? ""} onChange={set("twitter")} placeholder="https://x.com/safegate" prefix="x" />
-          <Field label="LinkedIn" value={data.linkedin ?? ""} onChange={set("linkedin")} placeholder="https://linkedin.com/company/safegate" prefix="in" />
+          <Field label="Facebook" value={data.facebook ?? ""} onChange={set("facebook")} placeholder="https://facebook.com/verifygate" prefix="fb" />
+          <Field label="Instagram" value={data.instagram ?? ""} onChange={set("instagram")} placeholder="https://instagram.com/verifygate" prefix="ig" />
+          <Field label="Twitter / X" value={data.twitter ?? ""} onChange={set("twitter")} placeholder="https://x.com/verifygate" prefix="x" />
+          <Field label="LinkedIn" value={data.linkedin ?? ""} onChange={set("linkedin")} placeholder="https://linkedin.com/company/verifygate" prefix="in" />
         </div>
       </section>
 

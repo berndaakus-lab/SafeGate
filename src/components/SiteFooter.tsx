@@ -22,7 +22,7 @@ export default async function SiteFooter() {
               <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center">
                 <Shield className="w-4 h-4 text-white" />
               </div>
-              <span className="font-bold text-slate-900">SafeGate</span>
+              <span className="font-bold text-slate-900">VerifyGate</span>
             </div>
             <p className="text-xs text-slate-400 max-w-xs leading-relaxed">
               Secure school pickup authorization for schools across Ghana.
@@ -83,7 +83,7 @@ export default async function SiteFooter() {
         </div>
 
         <div className="border-t border-slate-100 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-slate-400">© {new Date().getFullYear()} SafeGate 🇬🇭</p>
+          <p className="text-xs text-slate-400">© {new Date().getFullYear()} VerifyGate 🇬🇭</p>
           <p className="text-xs text-slate-400">
             Powered by{" "}
             <a

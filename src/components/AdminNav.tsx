@@ -26,7 +26,7 @@ export default function AdminNav() {
         <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
           <Shield className="w-5 h-5 text-white" />
         </div>
-        <span className="font-bold text-lg text-slate-900">SafeGate</span>
+        <span className="font-bold text-lg text-slate-900">VerifyGate</span>
       </Link>
       <p className="text-xs text-slate-400 mb-10 pl-10">{(session?.user as any)?.schoolName}</p>
 

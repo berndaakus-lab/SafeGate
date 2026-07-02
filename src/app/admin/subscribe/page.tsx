@@ -34,11 +34,11 @@ export default async function SubscribePage() {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <Shield className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-xl text-slate-900">SafeGate</span>
+            <span className="font-bold text-xl text-slate-900">VerifyGate</span>
           </Link>
           <h1 className="text-2xl font-bold text-slate-900 mb-2">Upgrade to School Plan</h1>
           <p className="text-slate-500">
-            {school?.name} · Keep SafeGate running beyond your free trial.
+            {school?.name} · Keep VerifyGate running beyond your free trial.
           </p>
         </div>
 

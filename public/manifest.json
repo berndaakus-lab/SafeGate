@@ -1,6 +1,6 @@
 {
-  "name": "SafeGate",
-  "short_name": "SafeGate",
+  "name": "VerifyGate",
+  "short_name": "VerifyGate",
   "description": "Secure school pickup authorization",
   "start_url": "/",
   "display": "standalone",

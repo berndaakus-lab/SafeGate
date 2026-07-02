@@ -48,7 +48,7 @@ export default function CreateSchoolForm() {
           School created successfully!
         </div>
         <p className="text-green-700 text-sm">
-          <strong>{success.schoolName}</strong> is live on SafeGate.
+          <strong>{success.schoolName}</strong> is live on VerifyGate.
         </p>
         <p className="text-green-600 text-sm mt-1">
           Admin login: <strong>{success.adminEmail}</strong>

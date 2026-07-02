@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   const network = detectNetwork(cleanPhone);
   const pesewas = Math.round(parseFloat(amount_ghs) * 100);
   const reference = `SGT-${schoolId.slice(0, 8)}-${Date.now()}`;
-  const email = userEmail || `${cleanPhone}@safegate.app`;
+  const email = userEmail || `${cleanPhone}@verifygate.app`;
 
   try {
     const paystackRes = await fetch("https://api.paystack.co/charge", {
