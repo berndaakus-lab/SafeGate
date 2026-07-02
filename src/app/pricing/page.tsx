@@ -28,7 +28,7 @@ export default async function PricingPage() {
     },
     {
       name: "School",
-      price: s(settings, "plan_school_price", "GHS 150"),
+      price: s(settings, "plan_school_price", "GHS 100"),
       period: s(settings, "plan_school_note", "per month"),
       description: "Everything a single school needs. Affordable, all-inclusive.",
       highlight: true,

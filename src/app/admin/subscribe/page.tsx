@@ -23,8 +23,8 @@ export default async function SubscribePage() {
     redirect("/admin/dashboard");
   }
 
-  const price = s(settings, "plan_school_price", "GHS 150");
-  const priceNum = parseFloat(price.replace(/[^\d.]/g, "")) || 150;
+  const price = s(settings, "plan_school_price", "GHS 100");
+  const priceNum = parseFloat(price.replace(/[^\d.]/g, "")) || 100;
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
