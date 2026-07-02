@@ -9,6 +9,13 @@ export default async function AdminDashboard() {
   const session = await getServerSession(authOptions);
   const schoolId = (session?.user as any)?.schoolId;
 
+  // Fetch student IDs first — Supabase ignores .eq("joined_table.col", val) silently
+  const { data: studentRows } = await supabaseAdmin
+    .from("students")
+    .select("id")
+    .eq("school_id", schoolId);
+  const studentIds = studentRows?.map((s: any) => s.id) ?? [];
+
   const [
     { count: parentCount },
     { count: studentCount },
@@ -18,13 +25,17 @@ export default async function AdminDashboard() {
   ] = await Promise.all([
     supabaseAdmin.from("parents").select("*", { count: "exact", head: true }).eq("school_id", schoolId),
     supabaseAdmin.from("students").select("*", { count: "exact", head: true }).eq("school_id", schoolId),
-    supabaseAdmin.from("pickup_logs").select("*, students!inner(*)", { count: "exact", head: true }).eq("students.school_id", schoolId),
-    supabaseAdmin
-      .from("pickup_logs")
-      .select("*, students(name, school_id), authorized_persons(name)")
-      .eq("students.school_id", schoolId)
-      .order("picked_up_at", { ascending: false })
-      .limit(8),
+    studentIds.length > 0
+      ? supabaseAdmin.from("pickup_logs").select("*", { count: "exact", head: true }).in("student_id", studentIds)
+      : Promise.resolve({ count: 0 }),
+    studentIds.length > 0
+      ? supabaseAdmin
+          .from("pickup_logs")
+          .select("*, students(name), authorized_persons(name)")
+          .in("student_id", studentIds)
+          .order("picked_up_at", { ascending: false })
+          .limit(8)
+      : Promise.resolve({ data: [] }),
     supabaseAdmin
       .from("schools")
       .select("plan, trial_ends_at, max_students")
