@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import AddParentForm from "./AddParentForm";
 import AddChildInline from "./AddChildInline";
 import EditParentModal from "./EditParentModal";
+import ImportParentsModal from "./ImportParentsModal";
 import { GraduationCap, UserPlus } from "lucide-react";
 
 export default async function ParentsPage() {
@@ -18,11 +19,14 @@ export default async function ParentsPage() {
 
   return (
     <div className="p-6 max-w-3xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Parents & Students</h1>
-        <p className="text-slate-500 mt-1">
-          Create parent accounts and add their children. Set everything up before the parent logs in.
-        </p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Parents & Students</h1>
+          <p className="text-slate-500 mt-1">
+            Create parent accounts and add their children. Set everything up before the parent logs in.
+          </p>
+        </div>
+        <ImportParentsModal schoolId={schoolId} />
       </div>
 
       {parents && parents.length > 0 && (
