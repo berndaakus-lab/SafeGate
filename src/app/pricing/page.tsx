@@ -15,7 +15,7 @@ export default async function PricingPage() {
       description: "Try every feature free for 30 days. No card required.",
       highlight: false,
       cta: "Start Free",
-      href: "/get-started",
+      href: "/get-started?plan=starter",
       features: [
         "Up to 100 students",
         "Unlimited QR scans",
@@ -34,7 +34,7 @@ export default async function PricingPage() {
       highlight: true,
       badge: "Most Popular",
       cta: "Get Started",
-      href: "/get-started",
+      href: "/get-started?plan=school",
       features: [
         "Unlimited students",
         "Unlimited QR scans",
@@ -53,7 +53,7 @@ export default async function PricingPage() {
       description: "Multiple campuses, group management, and a dedicated account manager.",
       highlight: false,
       cta: "Talk to Us",
-      href: "/get-started",
+      href: "/get-started?plan=enterprise",
       features: [
         "Multiple school branches",
         "Centralised dashboard",

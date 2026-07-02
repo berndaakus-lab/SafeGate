@@ -28,10 +28,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "A staff account with that email already exists." }, { status: 409 });
     }
 
-    // Create school
+    // Create school with 30-day trial defaults
+    const trialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
     const { data: newSchool, error: schoolError } = await supabaseAdmin
       .from("schools")
-      .insert({ name: school.name, address: school.address || null, phone: school.phone || null })
+      .insert({
+        name: school.name,
+        address: school.address || null,
+        phone: school.phone || null,
+        plan: "trial",
+        trial_ends_at: trialEndsAt,
+        max_students: 100,
+      })
       .select()
       .single();
 

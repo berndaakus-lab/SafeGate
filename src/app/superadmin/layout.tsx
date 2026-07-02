@@ -1,8 +1,11 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { supabaseAdmin } from "@/lib/supabase";
 import SessionProvider from "@/components/SessionProvider";
 import SuperAdminNav from "@/components/SuperAdminNav";
+
+export const dynamic = "force-dynamic";
 
 export default async function SuperAdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
@@ -10,10 +13,15 @@ export default async function SuperAdminLayout({ children }: { children: React.R
     redirect("/login?role=superadmin");
   }
 
+  const { count: newLeads } = await supabaseAdmin
+    .from("demo_requests")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "new");
+
   return (
     <SessionProvider session={session}>
       <div className="min-h-screen bg-slate-50">
-        <SuperAdminNav />
+        <SuperAdminNav newLeads={newLeads ?? 0} />
         <main className="md:ml-64 pb-24 md:pb-0">{children}</main>
       </div>
     </SessionProvider>

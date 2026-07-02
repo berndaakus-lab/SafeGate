@@ -3,16 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Shield, LayoutDashboard, School, LogOut, Settings } from "lucide-react";
+import { Shield, LayoutDashboard, School, LogOut, Settings, Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/superadmin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/superadmin/schools", label: "Schools", icon: School },
+  { href: "/superadmin/demo-requests", label: "Leads", icon: Inbox },
   { href: "/superadmin/settings", label: "Settings", icon: Settings },
 ];
 
-export default function SuperAdminNav() {
+export default function SuperAdminNav({ newLeads = 0 }: { newLeads?: number }) {
   const pathname = usePathname();
 
   return (
@@ -39,6 +40,11 @@ export default function SuperAdminNav() {
           >
             <Icon className="w-4 h-4" />
             {label}
+            {label === "Leads" && newLeads > 0 && (
+              <span className="ml-auto bg-blue-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                {newLeads}
+              </span>
+            )}
           </Link>
         ))}
       </nav>

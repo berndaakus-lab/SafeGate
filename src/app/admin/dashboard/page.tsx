@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
-import { Users, UserCheck, ClipboardList, CheckCircle2 } from "lucide-react";
+import { Users, UserCheck, ClipboardList, CheckCircle2, AlertTriangle, Clock } from "lucide-react";
 import { formatDate, formatTime } from "@/lib/utils";
 import Link from "next/link";
 
@@ -14,6 +14,7 @@ export default async function AdminDashboard() {
     { count: studentCount },
     { count: pickupCount },
     { data: recentLogs },
+    { data: school },
   ] = await Promise.all([
     supabaseAdmin.from("parents").select("*", { count: "exact", head: true }).eq("school_id", schoolId),
     supabaseAdmin.from("students").select("*", { count: "exact", head: true }).eq("school_id", schoolId),
@@ -24,7 +25,24 @@ export default async function AdminDashboard() {
       .eq("students.school_id", schoolId)
       .order("picked_up_at", { ascending: false })
       .limit(8),
+    supabaseAdmin
+      .from("schools")
+      .select("plan, trial_ends_at, max_students")
+      .eq("id", schoolId)
+      .single(),
   ]);
+
+  // Trial banner logic
+  const plan = school?.plan ?? "trial";
+  const trialEndsAt = school?.trial_ends_at ? new Date(school.trial_ends_at) : null;
+  const maxStudents = school?.max_students ?? 100;
+  const daysLeft = trialEndsAt
+    ? Math.ceil((trialEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null;
+  const trialExpired = daysLeft !== null && daysLeft <= 0;
+  const nearLimit = (studentCount ?? 0) >= maxStudents * 0.9;
+  const atLimit = (studentCount ?? 0) >= maxStudents;
+  const showBanner = plan === "trial" && (trialExpired || daysLeft !== null && daysLeft <= 14 || nearLimit);
 
   const stats = [
     { label: "Parents", value: parentCount ?? 0, icon: Users, href: "/admin/parents", color: "bg-blue-50 text-blue-600" },
@@ -34,6 +52,60 @@ export default async function AdminDashboard() {
 
   return (
     <div className="p-6 max-w-4xl">
+      {/* Trial banner */}
+      {showBanner && (
+        <div className={`rounded-2xl p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
+          trialExpired || atLimit ? "bg-red-50 border border-red-200" : "bg-amber-50 border border-amber-200"
+        }`}>
+          <div className="flex items-start gap-3">
+            {trialExpired || atLimit
+              ? <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
+              : <Clock className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
+            }
+            <div>
+              {trialExpired ? (
+                <>
+                  <p className="font-semibold text-red-800">Your free trial has ended</p>
+                  <p className="text-sm text-red-600 mt-0.5">
+                    Upgrade to keep SafeGate running for your school.
+                  </p>
+                </>
+              ) : atLimit ? (
+                <>
+                  <p className="font-semibold text-red-800">Student limit reached ({studentCount}/{maxStudents})</p>
+                  <p className="text-sm text-red-600 mt-0.5">
+                    You&apos;ve reached your trial limit. Upgrade for unlimited students.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-semibold text-amber-800">
+                    {daysLeft !== null && daysLeft <= 14
+                      ? `${daysLeft} day${daysLeft !== 1 ? "s" : ""} left on your free trial`
+                      : `${studentCount}/${maxStudents} students used`}
+                  </p>
+                  <p className="text-sm text-amber-700 mt-0.5">
+                    {nearLimit && !atLimit
+                      ? "Approaching student limit. Upgrade for unlimited students."
+                      : `Trial ends ${trialEndsAt ? formatDate(trialEndsAt.toISOString()) : "soon"}.`}
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+          <Link
+            href="/admin/subscribe"
+            className={`shrink-0 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+              trialExpired || atLimit
+                ? "bg-red-600 text-white hover:bg-red-700"
+                : "bg-amber-500 text-white hover:bg-amber-600"
+            }`}
+          >
+            Upgrade to School Plan →
+          </Link>
+        </div>
+      )}
+
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900">{(session?.user as any)?.schoolName}</h1>
         <p className="text-slate-500 mt-1">School admin dashboard.</p>

@@ -3,10 +3,18 @@ import CreateSchoolForm from "./CreateSchoolForm";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
+const PLAN_BADGE: Record<string, string> = {
+  trial: "bg-amber-100 text-amber-700",
+  school: "bg-green-100 text-green-700",
+  enterprise: "bg-purple-100 text-purple-700",
+};
+
 export default async function SchoolsPage() {
   const { data: schools } = await supabaseAdmin
     .from("schools")
-    .select("id, name, address, phone, created_at")
+    .select("id, name, address, phone, created_at, plan, trial_ends_at, max_students")
     .order("created_at", { ascending: false });
 
   return (
@@ -30,9 +38,17 @@ export default async function SchoolsPage() {
                     {school.name[0].toUpperCase()}
                   </div>
                   <div>
-                    <p className="font-medium text-slate-900">{school.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-slate-900">{school.name}</p>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${PLAN_BADGE[school.plan ?? "trial"] ?? PLAN_BADGE.trial}`}>
+                        {school.plan ?? "trial"}
+                      </span>
+                    </div>
                     <p className="text-xs text-slate-400">
                       {school.address && `${school.address} · `}Added {formatDate(school.created_at)}
+                      {school.trial_ends_at && school.plan === "trial" && (
+                        <> · Trial ends {formatDate(school.trial_ends_at)}</>
+                      )}
                     </p>
                   </div>
                 </div>
