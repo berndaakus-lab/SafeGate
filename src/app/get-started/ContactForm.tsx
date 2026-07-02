@@ -1,12 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Loader2, CheckCircle2 } from "lucide-react";
 
+const PLAN_LABELS: Record<string, string> = {
+  starter: "Starter (Free trial)",
+  school: "School Plan — GHS 150/mo",
+  enterprise: "Enterprise (Custom)",
+};
+
 export default function ContactForm() {
+  const searchParams = useSearchParams();
+  const planParam = searchParams.get("plan") || "";
+
   const [form, setForm] = useState({ school: "", name: "", email: "", phone: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
 
   function set(field: string) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -16,9 +27,28 @@ export default function ContactForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    // For now, send via mailto fallback — replace with an email API (Resend/SendGrid) later
-    await new Promise((r) => setTimeout(r, 800));
+    setError("");
+
+    const res = await fetch("/api/demo-requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        school_name: form.school,
+        contact_name: form.name,
+        email: form.email,
+        phone: form.phone,
+        message: form.message,
+        plan: planParam || "starter",
+      }),
+    });
+
     setLoading(false);
+
+    if (!res.ok) {
+      setError("Something went wrong. Please try again or WhatsApp us directly.");
+      return;
+    }
+
     setSent(true);
   }
 
@@ -28,7 +58,8 @@ export default function ContactForm() {
         <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" />
         <h3 className="font-bold text-slate-900 text-xl mb-2">Request received!</h3>
         <p className="text-slate-500 text-sm">
-          Thank you, <strong>{form.name}</strong>. We&apos;ll reach out to <strong>{form.email}</strong> within 24 hours.
+          Thank you, <strong>{form.name}</strong>. We&apos;ll reach out to{" "}
+          <strong>{form.email}</strong> within 24 hours.
         </p>
       </div>
     );
@@ -36,6 +67,11 @@ export default function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {planParam && PLAN_LABELS[planParam] && (
+        <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-2.5 text-sm text-blue-700 font-medium">
+          Interested in: {PLAN_LABELS[planParam]}
+        </div>
+      )}
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1.5">School name *</label>
         <input
@@ -88,6 +124,9 @@ export default function ContactForm() {
           className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none"
         />
       </div>
+      {error && (
+        <p className="text-red-500 text-sm">{error}</p>
+      )}
       <button
         type="submit"
         disabled={loading}

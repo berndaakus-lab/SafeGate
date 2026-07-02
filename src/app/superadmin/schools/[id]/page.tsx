@@ -4,6 +4,9 @@ import Link from "next/link";
 import { ArrowLeft, Users, UserCheck, ClipboardList, School, CheckCircle2 } from "lucide-react";
 import { formatDate, formatTime } from "@/lib/utils";
 import ResetPasswordForm from "./ResetPasswordForm";
+import PlanManager from "./PlanManager";
+
+export const dynamic = "force-dynamic";
 
 export default async function ManageSchoolPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -151,6 +154,20 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
             ))}
           </div>
         )}
+      </div>
+
+      {/* Plan management */}
+      <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-6">
+        <h2 className="font-semibold text-slate-900 mb-1">Subscription Plan</h2>
+        <p className="text-sm text-slate-400 mb-5">
+          Activate or change the plan for this school. Trial schools see a countdown banner on their dashboard.
+        </p>
+        <PlanManager
+          schoolId={id}
+          currentPlan={school.plan ?? "trial"}
+          trialEndsAt={school.trial_ends_at ?? null}
+          maxStudents={school.max_students ?? 100}
+        />
       </div>
 
       {/* Reset staff password */}
