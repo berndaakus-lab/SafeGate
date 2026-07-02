@@ -76,7 +76,13 @@ export default async function GetStartedPage() {
             <p className="text-slate-500 text-sm mb-6">
               Fill in your details and we&apos;ll reach out within 24 hours to walk you through the platform.
             </p>
-            <ContactForm />
+            <ContactForm
+              planLabels={{
+                starter: `Starter — ${s(settings, "plan_starter_price", "Free")} / ${s(settings, "plan_starter_note", "first month")}`,
+                school: `School Plan — ${s(settings, "plan_school_price", "GHS 150")} / ${s(settings, "plan_school_note", "month")}`,
+                enterprise: `Enterprise — ${s(settings, "plan_enterprise_price", "Custom")}`,
+              }}
+            />
           </div>
 
           {/* Quick contact */}

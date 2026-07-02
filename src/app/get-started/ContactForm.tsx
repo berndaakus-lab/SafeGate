@@ -4,13 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2, CheckCircle2 } from "lucide-react";
 
-const PLAN_LABELS: Record<string, string> = {
-  starter: "Starter (Free trial)",
-  school: "School Plan — GHS 150/mo",
-  enterprise: "Enterprise (Custom)",
-};
-
-export default function ContactForm() {
+export default function ContactForm({ planLabels = {} }: { planLabels?: Record<string, string> }) {
   const searchParams = useSearchParams();
   const planParam = searchParams.get("plan") || "";
 
@@ -67,9 +61,9 @@ export default function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {planParam && PLAN_LABELS[planParam] && (
+      {planParam && planLabels[planParam] && (
         <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-2.5 text-sm text-blue-700 font-medium">
-          Interested in: {PLAN_LABELS[planParam]}
+          Interested in: {planLabels[planParam]}
         </div>
       )}
       <div>
