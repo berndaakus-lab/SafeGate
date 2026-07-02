@@ -63,9 +63,9 @@ export default async function GetStartedPage() {
           <p className="text-blue-200 text-sm mt-6">
             After your free month, plans start from as low as{" "}
             <strong className="text-white">
-              {s(settings, "plan_school_price", "GHS 150")}/{s(settings, "plan_school_note", "month")}
+              {s(settings, "plan_school_price", "GHS 100")}/{s(settings, "plan_school_note", "month")}
             </strong>{" "}
-            — less than GHS 5 a day.
+            — less than GHS 4 a day.
           </p>
         </div>
 
@@ -79,7 +79,7 @@ export default async function GetStartedPage() {
             <ContactForm
               planLabels={{
                 starter: `Starter — ${s(settings, "plan_starter_price", "Free")} / ${s(settings, "plan_starter_note", "first month")}`,
-                school: `School Plan — ${s(settings, "plan_school_price", "GHS 150")} / ${s(settings, "plan_school_note", "month")}`,
+                school: `School Plan — ${s(settings, "plan_school_price", "GHS 100")} / ${s(settings, "plan_school_note", "month")}`,
                 enterprise: `Enterprise — ${s(settings, "plan_enterprise_price", "Custom")}`,
               }}
             />

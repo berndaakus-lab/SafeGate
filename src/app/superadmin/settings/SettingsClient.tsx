@@ -79,7 +79,7 @@ export default function SettingsClient({ settings }: { settings: Settings }) {
           </div>
           <div className="space-y-4">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">School Plan</p>
-            <Field label="Price" value={data.plan_school_price ?? ""} onChange={set("plan_school_price")} placeholder="GHS 150" />
+            <Field label="Price" value={data.plan_school_price ?? ""} onChange={set("plan_school_price")} placeholder="GHS 100" />
             <Field label="Period note" value={data.plan_school_note ?? ""} onChange={set("plan_school_note")} placeholder="per month" />
           </div>
           <div className="space-y-4">
