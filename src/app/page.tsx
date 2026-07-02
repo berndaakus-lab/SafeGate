@@ -13,7 +13,7 @@ export default function Home() {
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <Shield className="w-5 h-5 text-white" />
           </div>
-          <span className="font-bold text-xl text-slate-900">SafeGate</span>
+          <span className="font-bold text-xl text-slate-900">VerifyGate</span>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/pricing" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors hidden sm:block">
@@ -45,7 +45,7 @@ export default function Home() {
           <span className="text-blue-600">safely, every time.</span>
         </h1>
         <p className="text-xl text-slate-500 max-w-2xl mx-auto mb-10 leading-relaxed">
-          SafeGate replaces phone calls and paper notebooks with a secure digital
+          VerifyGate replaces phone calls and paper notebooks with a secure digital
           system. Parents authorize pickups. Guards verify instantly. Schools have
           a full audit trail.
         </p>
@@ -69,7 +69,7 @@ export default function Home() {
       {/* How it works */}
       <section className="bg-slate-50 py-20">
         <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-slate-900 text-center mb-4">How SafeGate works</h2>
+          <h2 className="text-3xl font-bold text-slate-900 text-center mb-4">How VerifyGate works</h2>
           <p className="text-slate-500 text-center mb-14 text-lg">Three simple steps. Zero confusion at the gate.</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[

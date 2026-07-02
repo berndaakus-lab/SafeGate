@@ -10,7 +10,7 @@ export default function GuardScanPage() {
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <Shield className="w-5 h-5 text-white" />
           </div>
-          <span className="font-bold text-white">SafeGate</span>
+          <span className="font-bold text-white">VerifyGate</span>
         </Link>
         <span className="text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1 rounded-full font-medium">
           Guard Mode

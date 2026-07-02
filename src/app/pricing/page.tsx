@@ -74,7 +74,7 @@ export default async function PricingPage() {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <Shield className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-xl text-slate-900">SafeGate</span>
+            <span className="font-bold text-xl text-slate-900">VerifyGate</span>
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700">
@@ -145,7 +145,7 @@ export default async function PricingPage() {
             {[
               { q: "Do I need a credit card to start?", a: "No. Your first month is completely free with no payment details required. We'll reach out before the trial ends." },
               { q: "What happens after the free month?", a: "We'll contact you to set up a simple monthly or annual payment. Annual plans get 2 months free." },
-              { q: "Can parents use SafeGate for free?", a: "Yes. Parents never pay anything. The school subscription covers all parent and student accounts." },
+              { q: "Can parents use VerifyGate for free?", a: "Yes. Parents never pay anything. The school subscription covers all parent and student accounts." },
               { q: "Is the price per branch or per school?", a: "Per school. One flat fee covers all parents, students, guards, and teachers at one location." },
               { q: "What SMS provider do you use?", a: "We use Nkomo SMS, a reliable Ghanaian provider. SMS costs are included in your subscription." },
               { q: "Can we cancel anytime?", a: "Yes, no contracts. If you need to cancel, just let us know and we'll sort it out." },
@@ -161,7 +161,7 @@ export default async function PricingPage() {
         <div className="text-center mt-12">
           <p className="text-slate-500 mb-4">Still have questions? We&apos;re happy to help.</p>
           <Link href="/get-started" className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-3.5 rounded-xl font-semibold hover:bg-blue-700 transition-colors">
-            Talk to the SafeGate team <ArrowRight className="w-5 h-5" />
+            Talk to the VerifyGate team <ArrowRight className="w-5 h-5" />
           </Link>
         </div>
       </div>

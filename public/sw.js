@@ -1,4 +1,4 @@
-const CACHE = "safegate-v2";
+const CACHE = "verifygate-v2";
 
 // Only pre-cache truly static assets
 const STATIC_ASSETS = ["/manifest.json", "/icon-192.png", "/icon-512.png"];

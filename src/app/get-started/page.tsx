@@ -8,9 +8,9 @@ export const dynamic = "force-dynamic";
 export default async function GetStartedPage() {
   const settings = await getSettings();
   const whatsapp = s(settings, "whatsapp", "233XXXXXXXXX");
-  const email = s(settings, "email", "hello@safegate.app");
+  const email = s(settings, "email", "hello@verifygate.app");
   const phone = s(settings, "phone", "");
-  const waMsg = encodeURIComponent("Hi SafeGate! I'd like to learn more about getting my school onboarded.");
+  const waMsg = encodeURIComponent("Hi VerifyGate! I'd like to learn more about getting my school onboarded.");
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -20,7 +20,7 @@ export default async function GetStartedPage() {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <Shield className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-xl text-slate-900">SafeGate</span>
+            <span className="font-bold text-xl text-slate-900">VerifyGate</span>
           </Link>
           <Link href="/" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700">
             <ArrowLeft className="w-4 h-4" /> Back
@@ -35,7 +35,7 @@ export default async function GetStartedPage() {
           </div>
           <h1 className="text-4xl font-bold text-slate-900 mb-4">Get your school onboarded today</h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto">
-            Join schools across Ghana using SafeGate to make every pickup safe, verified, and logged.
+            Join schools across Ghana using VerifyGate to make every pickup safe, verified, and logged.
             We set everything up for you — your school can be live within 24 hours.
           </p>
         </div>

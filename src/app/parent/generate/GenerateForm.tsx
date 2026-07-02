@@ -47,7 +47,7 @@ export default function GenerateForm({
     if (!qrData) return;
     if (navigator.share) {
       navigator.share({
-        title: "SafeGate Pickup Code",
+        title: "VerifyGate Pickup Code",
         text: `Use this code to pick up the child: ${qrData.code}`,
       });
     } else {
@@ -60,7 +60,7 @@ export default function GenerateForm({
     if (!qrData?.qrUrl) return;
     const a = document.createElement("a");
     a.href = qrData.qrUrl;
-    a.download = "safegate-pickup-qr.png";
+    a.download = "verifygate-pickup-qr.png";
     a.click();
   }
 

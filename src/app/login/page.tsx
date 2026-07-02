@@ -53,7 +53,7 @@ function LoginForm() {
             <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
               <Shield className="w-6 h-6 text-white" />
             </div>
-            <span className="font-bold text-2xl text-slate-900">SafeGate</span>
+            <span className="font-bold text-2xl text-slate-900">VerifyGate</span>
           </Link>
           <p className="text-slate-500 text-sm">Sign in to your account</p>
         </div>

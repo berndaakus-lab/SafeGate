@@ -50,7 +50,7 @@ export default function ImportParentsModal({ schoolId }: { schoolId: string }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "safegate_parents_template.csv";
+    a.download = "verifygate_parents_template.csv";
     a.click();
     URL.revokeObjectURL(url);
   }
