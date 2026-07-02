@@ -11,26 +11,40 @@ export const dynamic = "force-dynamic";
 export default async function ManageSchoolPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
+  // Fetch student IDs first — Supabase ignores .eq("joined_table.col", val) silently
+  const { data: studentRows } = await supabaseAdmin
+    .from("students")
+    .select("id")
+    .eq("school_id", id);
+  const studentIds = studentRows?.map((s: any) => s.id) ?? [];
+
   const [
     { data: school },
     { data: staff },
     { data: parents },
     { data: recentLogs },
-    { count: studentCount },
     { count: pickupCount },
   ] = await Promise.all([
     supabaseAdmin.from("schools").select("*").eq("id", id).single(),
     supabaseAdmin.from("staff").select("id, name, email, role").eq("school_id", id).order("role"),
     supabaseAdmin.from("parents").select("id, name, email, phone").eq("school_id", id).order("name"),
-    supabaseAdmin
-      .from("pickup_logs")
-      .select("*, students(name, school_id), authorized_persons(name)")
-      .eq("students.school_id", id)
-      .order("picked_up_at", { ascending: false })
-      .limit(5),
-    supabaseAdmin.from("students").select("*", { count: "exact", head: true }).eq("school_id", id),
-    supabaseAdmin.from("pickup_logs").select("*, students!inner(school_id)", { count: "exact", head: true }).eq("students.school_id", id),
+    studentIds.length > 0
+      ? supabaseAdmin
+          .from("pickup_logs")
+          .select("*, students(name), authorized_persons(name)")
+          .in("student_id", studentIds)
+          .order("picked_up_at", { ascending: false })
+          .limit(5)
+      : Promise.resolve({ data: [] }),
+    studentIds.length > 0
+      ? supabaseAdmin
+          .from("pickup_logs")
+          .select("*", { count: "exact", head: true })
+          .in("student_id", studentIds)
+      : Promise.resolve({ count: 0 }),
   ]);
+
+  const studentCount = studentIds.length;
 
   if (!school) return notFound();
 
