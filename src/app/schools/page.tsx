@@ -95,7 +95,7 @@ export default async function SchoolPitchPage() {
               { val: "30 sec", label: "per pickup" },
               { val: "0", label: "app downloads" },
               { val: "24 hrs", label: "to go live" },
-              { val: "GHS 150+", label: "per month" },
+              { val: `${s(settings, "tier_standard_monthly", "GHS 150")}+`, label: "per month" },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <p className="text-3xl font-black text-white">{s.val}</p>
