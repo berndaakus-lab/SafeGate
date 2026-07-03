@@ -13,12 +13,6 @@ export default async function SchoolPitchPage() {
   const settings = await getSettings();
   const whatsapp = s(settings, "whatsapp", "233XXXXXXXXX");
 
-  const tiers = [
-    { name: "Standard", students: "Up to 100 students", monthly: s(settings, "tier_standard_monthly", "GHS 150"), annual: s(settings, "tier_standard_annual", "GHS 1,500"), highlight: false },
-    { name: "Growth", students: "101 – 500 students", monthly: s(settings, "tier_growth_monthly", "GHS 250"), annual: s(settings, "tier_growth_annual", "GHS 2,500"), highlight: true, badge: "Most Popular" },
-    { name: "Premier", students: "500+ students", monthly: s(settings, "tier_premier_monthly", "GHS 400"), annual: s(settings, "tier_premier_annual", "GHS 4,000"), highlight: false },
-  ];
-
   const waMsg = encodeURIComponent(
     "Hi! I visited verifygate.app and I'm interested in setting up VerifyGate for my school. Can we talk?"
   );
@@ -95,7 +89,7 @@ export default async function SchoolPitchPage() {
               { val: "30 sec", label: "per pickup" },
               { val: "0", label: "app downloads" },
               { val: "24 hrs", label: "to go live" },
-              { val: `${s(settings, "tier_standard_monthly", "GHS 150")}+`, label: "per month" },
+              { val: "Flat fee", label: "per school/month" },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <p className="text-3xl font-black text-white">{s.val}</p>
@@ -513,22 +507,22 @@ export default async function SchoolPitchPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
-            {tiers.map((t) => (
-              <div key={t.name} className={`rounded-2xl overflow-hidden relative ${t.highlight ? "bg-blue-600 ring-2 ring-blue-400 shadow-2xl shadow-blue-200" : "bg-white border border-slate-100 shadow-sm"}`}>
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+            {[
+              { name: "Standard", students: "Up to 100 students", highlight: false },
+              { name: "Growth", students: "101 – 500 students", highlight: true, badge: "Most Popular" },
+              { name: "Premier", students: "500+ students", highlight: false },
+              { name: "International", students: "Any size", highlight: false, badge: "Premium", dark: true },
+            ].map((t) => (
+              <div key={t.name} className={`rounded-2xl overflow-hidden relative ${t.highlight ? "bg-blue-600 ring-2 ring-blue-400 shadow-2xl shadow-blue-200" : t.dark ? "bg-slate-900" : "bg-white border border-slate-100 shadow-sm"}`}>
                 {t.badge && <span className="absolute top-0 right-0 bg-amber-400 text-amber-900 text-xs font-black px-3 py-1 rounded-bl-xl">{t.badge}</span>}
-                <div className="p-6">
-                  <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${t.highlight ? "text-blue-200" : "text-slate-400"}`}>{t.students}</p>
-                  <p className={`font-black text-xl mb-4 ${t.highlight ? "text-white" : "text-slate-900"}`}>{t.name}</p>
-                  <div className={`rounded-xl p-3 mb-3 ${t.highlight ? "bg-blue-700/50" : "bg-slate-50"}`}>
-                    <p className={`text-xs mb-0.5 ${t.highlight ? "text-blue-200" : "text-slate-400"}`}>Monthly</p>
-                    <p className={`font-black text-2xl ${t.highlight ? "text-white" : "text-slate-900"}`}>{t.monthly}<span className={`text-sm font-normal ml-1 ${t.highlight ? "text-blue-200" : "text-slate-400"}`}>/mo</span></p>
-                    <p className={`text-xs mt-0.5 ${t.highlight ? "text-blue-300" : "text-slate-400"}`}>First month free</p>
-                  </div>
-                  <div className={`rounded-xl p-3 border-2 ${t.highlight ? "border-blue-400/40 bg-blue-500/30" : "border-blue-100 bg-blue-50"}`}>
-                    <p className={`text-xs font-semibold mb-0.5 ${t.highlight ? "text-blue-200" : "text-blue-600"}`}>Annual billing</p>
-                    <p className={`font-black text-2xl ${t.highlight ? "text-white" : "text-blue-700"}`}>{t.annual}<span className={`text-sm font-normal ml-1 ${t.highlight ? "text-blue-200" : "text-blue-400"}`}>/yr</span></p>
-                    <p className={`text-xs font-semibold mt-0.5 ${t.highlight ? "text-green-300" : "text-green-600"}`}>✓ 2 months free on annual</p>
+                <div className="p-5">
+                  <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${t.highlight ? "text-blue-200" : t.dark ? "text-slate-400" : "text-slate-400"}`}>{t.students}</p>
+                  <p className={`font-black text-lg mb-4 ${t.highlight ? "text-white" : t.dark ? "text-white" : "text-slate-900"}`}>{t.name}</p>
+                  <div className={`rounded-xl p-3 ${t.highlight ? "bg-blue-700/50" : t.dark ? "bg-slate-800" : "bg-slate-50"}`}>
+                    <p className={`text-xs mb-0.5 ${t.highlight ? "text-blue-200" : t.dark ? "text-slate-400" : "text-slate-400"}`}>Pricing</p>
+                    <p className={`font-bold text-base ${t.highlight ? "text-white" : t.dark ? "text-white" : "text-slate-900"}`}>Contact us</p>
+                    <p className={`text-xs mt-0.5 ${t.highlight ? "text-blue-300" : t.dark ? "text-slate-400" : "text-slate-400"}`}>First month free · Monthly or annual</p>
                   </div>
                 </div>
               </div>
@@ -536,11 +530,11 @@ export default async function SchoolPitchPage() {
           </div>
 
           <p className="text-center text-slate-400 text-sm">
-            All plans include every feature — QR scans, SMS notifications, guard scanner, admin dashboard, bulk import, student photos, and priority support.
+            All plans include every feature. Contact us on WhatsApp and we&apos;ll give you your school&apos;s exact price in minutes.
           </p>
           <div className="text-center mt-4">
             <Link href="/pricing" className="text-blue-600 font-semibold text-sm hover:underline">
-              View full pricing details →
+              See what&apos;s included on every plan →
             </Link>
           </div>
         </div>
