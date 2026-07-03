@@ -3,8 +3,11 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Users, UserCheck, ClipboardList, School, CheckCircle2 } from "lucide-react";
 import { formatDate, formatTime } from "@/lib/utils";
+import { getSettings, s } from "@/lib/settings";
 import ResetPasswordForm from "./ResetPasswordForm";
 import PlanManager from "./PlanManager";
+import GoLiveToggle from "./GoLiveToggle";
+import PaymentLinkPanel from "./PaymentLinkPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +27,7 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
     { data: parents },
     { data: recentLogs },
     { count: pickupCount },
+    settings,
   ] = await Promise.all([
     supabaseAdmin.from("schools").select("*").eq("id", id).single(),
     supabaseAdmin.from("staff").select("id, name, email, role").eq("school_id", id).order("role"),
@@ -42,6 +46,7 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
           .select("*", { count: "exact", head: true })
           .in("student_id", studentIds)
       : Promise.resolve({ count: 0 }),
+    getSettings(),
   ]);
 
   const studentCount = studentIds.length;
@@ -181,6 +186,28 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
           currentPlan={school.plan ?? "trial"}
           trialEndsAt={school.trial_ends_at ?? null}
           maxStudents={school.max_students ?? 100}
+        />
+      </div>
+
+      {/* Go-live toggle */}
+      <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-6">
+        <h2 className="font-semibold text-slate-900 mb-1">School Access</h2>
+        <p className="text-sm text-slate-400 mb-5">
+          Toggle the school live or offline. When offline, all staff, guards and parents see a suspension notice instead of the app.
+        </p>
+        <GoLiveToggle schoolId={id} isActive={school.is_active !== false} />
+      </div>
+
+      {/* Payment link */}
+      <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-6">
+        <h2 className="font-semibold text-slate-900 mb-1">Send Payment Link</h2>
+        <p className="text-sm text-slate-400 mb-5">
+          Share this link with the school admin via WhatsApp. They open it, enter their MoMo number, and pay. Their account activates automatically once payment is confirmed.
+        </p>
+        <PaymentLinkPanel
+          schoolId={id}
+          schoolName={school.name}
+          whatsapp={s(settings, "whatsapp", "233XXXXXXXXX")}
         />
       </div>
 
