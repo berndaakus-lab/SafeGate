@@ -12,6 +12,13 @@ export const dynamic = "force-dynamic";
 export default async function SchoolPitchPage() {
   const settings = await getSettings();
   const whatsapp = s(settings, "whatsapp", "233XXXXXXXXX");
+
+  const tiers = [
+    { name: "Standard", students: "Up to 100 students", monthly: s(settings, "tier_standard_monthly", "GHS 150"), annual: s(settings, "tier_standard_annual", "GHS 1,500"), highlight: false },
+    { name: "Growth", students: "101 – 500 students", monthly: s(settings, "tier_growth_monthly", "GHS 250"), annual: s(settings, "tier_growth_annual", "GHS 2,500"), highlight: true, badge: "Most Popular" },
+    { name: "Premier", students: "500+ students", monthly: s(settings, "tier_premier_monthly", "GHS 400"), annual: s(settings, "tier_premier_annual", "GHS 4,000"), highlight: false },
+  ];
+
   const waMsg = encodeURIComponent(
     "Hi! I visited verifygate.app and I'm interested in setting up VerifyGate for my school. Can we talk?"
   );
@@ -507,11 +514,7 @@ export default async function SchoolPitchPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
-            {[
-              { name: "Standard", students: "Up to 100 students", monthly: "GHS 150", annual: "GHS 1,500", save: "Save GHS 300", highlight: false },
-              { name: "Growth", students: "101 – 500 students", monthly: "GHS 250", annual: "GHS 2,500", save: "Save GHS 500", highlight: true, badge: "Most Popular" },
-              { name: "Premier", students: "500+ students", monthly: "GHS 400", annual: "GHS 4,000", save: "Save GHS 800", highlight: false },
-            ].map((t) => (
+            {tiers.map((t) => (
               <div key={t.name} className={`rounded-2xl overflow-hidden relative ${t.highlight ? "bg-blue-600 ring-2 ring-blue-400 shadow-2xl shadow-blue-200" : "bg-white border border-slate-100 shadow-sm"}`}>
                 {t.badge && <span className="absolute top-0 right-0 bg-amber-400 text-amber-900 text-xs font-black px-3 py-1 rounded-bl-xl">{t.badge}</span>}
                 <div className="p-6">
@@ -525,7 +528,7 @@ export default async function SchoolPitchPage() {
                   <div className={`rounded-xl p-3 border-2 ${t.highlight ? "border-blue-400/40 bg-blue-500/30" : "border-blue-100 bg-blue-50"}`}>
                     <p className={`text-xs font-semibold mb-0.5 ${t.highlight ? "text-blue-200" : "text-blue-600"}`}>Annual billing</p>
                     <p className={`font-black text-2xl ${t.highlight ? "text-white" : "text-blue-700"}`}>{t.annual}<span className={`text-sm font-normal ml-1 ${t.highlight ? "text-blue-200" : "text-blue-400"}`}>/yr</span></p>
-                    <p className={`text-xs font-semibold mt-0.5 ${t.highlight ? "text-green-300" : "text-green-600"}`}>✓ {t.save} (2 months free)</p>
+                    <p className={`text-xs font-semibold mt-0.5 ${t.highlight ? "text-green-300" : "text-green-600"}`}>✓ 2 months free on annual</p>
                   </div>
                 </div>
               </div>

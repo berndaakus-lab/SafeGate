@@ -1,38 +1,8 @@
 import Link from "next/link";
 import { Shield, CheckCircle2, ArrowRight, ArrowLeft } from "lucide-react";
+import { getSettings, s } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
-
-const TIERS = [
-  {
-    name: "Standard",
-    students: "Up to 100 students",
-    monthly: "GHS 150",
-    annual: "GHS 1,500",
-    annualNote: "Save GHS 300",
-    highlight: false,
-    href: "/get-started?plan=standard",
-  },
-  {
-    name: "Growth",
-    students: "101 – 500 students",
-    monthly: "GHS 250",
-    annual: "GHS 2,500",
-    annualNote: "Save GHS 500",
-    highlight: true,
-    badge: "Most Popular",
-    href: "/get-started?plan=growth",
-  },
-  {
-    name: "Premier",
-    students: "500+ students",
-    monthly: "GHS 400",
-    annual: "GHS 4,000",
-    annualNote: "Save GHS 800",
-    highlight: false,
-    href: "/get-started?plan=premier",
-  },
-];
 
 const FEATURES = [
   "Unlimited QR code scans",
@@ -47,7 +17,57 @@ const FEATURES = [
   "Priority support",
 ];
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const settings = await getSettings();
+
+  const tiers = [
+    {
+      name: "Standard",
+      students: "Up to 100 students",
+      monthly: s(settings, "tier_standard_monthly", "GHS 150"),
+      annual: s(settings, "tier_standard_annual", "GHS 1,500"),
+      highlight: false,
+      href: "/get-started?plan=standard",
+    },
+    {
+      name: "Growth",
+      students: "101 – 500 students",
+      monthly: s(settings, "tier_growth_monthly", "GHS 250"),
+      annual: s(settings, "tier_growth_annual", "GHS 2,500"),
+      highlight: true,
+      badge: "Most Popular",
+      href: "/get-started?plan=growth",
+    },
+    {
+      name: "Premier",
+      students: "500+ students",
+      monthly: s(settings, "tier_premier_monthly", "GHS 400"),
+      annual: s(settings, "tier_premier_annual", "GHS 4,000"),
+      highlight: false,
+      href: "/get-started?plan=premier",
+    },
+  ];
+
+  // Derive savings: annual saves 2 months = annual price shown, monthly × 10
+  function savings(tier: typeof tiers[0]) {
+    const m = parseFloat(tier.monthly.replace(/[^\d.]/g, "")) || 0;
+    const a = parseFloat(tier.annual.replace(/[^\d.]/g, "")) || 0;
+    const saved = Math.round(m * 12 - a);
+    return saved > 0 ? `Save GHS ${saved.toLocaleString()}` : "2 months free";
+  }
+
+  const tableRows = tiers.map((t) => ({
+    name: t.name,
+    size: t.students,
+    monthly: t.monthly,
+    annual: t.annual,
+    day: (() => {
+      const m = parseFloat(t.monthly.replace(/[^\d.]/g, "")) || 0;
+      return m > 0 ? `GHS ${(m / 30).toFixed(2)}` : "—";
+    })(),
+    highlight: t.highlight,
+  }));
+
   return (
     <div className="min-h-screen bg-slate-50">
       <nav className="bg-white border-b border-slate-100 px-6 py-4">
@@ -87,7 +107,7 @@ export default function PricingPage() {
 
         {/* Tier cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {TIERS.map((tier) => (
+          {tiers.map((tier) => (
             <div
               key={tier.name}
               className={`rounded-2xl flex flex-col relative overflow-hidden ${
@@ -127,7 +147,7 @@ export default function PricingPage() {
                     <span className={`text-sm mb-1 ${tier.highlight ? "text-blue-200" : "text-blue-400"}`}>/yr</span>
                   </div>
                   <p className={`text-xs mt-0.5 font-semibold ${tier.highlight ? "text-green-300" : "text-green-600"}`}>
-                    ✓ {tier.annualNote} (2 months free)
+                    ✓ {savings(tier)} (2 months free)
                   </p>
                 </div>
               </div>
@@ -156,7 +176,7 @@ export default function PricingPage() {
           ))}
         </div>
 
-        {/* Quick compare table */}
+        {/* Comparison table */}
         <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm mb-12">
           <div className="px-8 py-5 border-b border-slate-100">
             <h2 className="font-bold text-slate-900">At a glance</h2>
@@ -173,19 +193,21 @@ export default function PricingPage() {
                 </tr>
               </thead>
               <tbody>
-                {[
-                  { name: "Standard", size: "Up to 100", monthly: "GHS 150", annual: "GHS 1,500", day: "GHS 5" },
-                  { name: "Growth", size: "101 – 500", monthly: "GHS 250", annual: "GHS 2,500", day: "GHS 8.33", highlight: true },
-                  { name: "Premier", size: "500+", monthly: "GHS 400", annual: "GHS 4,000", day: "GHS 13.33" },
-                ].map((row) => (
+                {tableRows.map((row) => (
                   <tr key={row.name} className={`border-b border-slate-50 ${row.highlight ? "bg-blue-50/50" : ""}`}>
                     <td className="px-8 py-4 font-semibold text-slate-900">
                       {row.name}
-                      {row.highlight && <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">Popular</span>}
+                      {row.highlight && (
+                        <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">Popular</span>
+                      )}
                     </td>
-                    <td className="px-6 py-4 text-slate-600">{row.size} students</td>
-                    <td className="px-6 py-4 font-semibold text-slate-900">{row.monthly}<span className="text-slate-400 font-normal">/mo</span></td>
-                    <td className="px-6 py-4 font-semibold text-slate-900">{row.annual}<span className="text-slate-400 font-normal">/yr</span></td>
+                    <td className="px-6 py-4 text-slate-600">{row.size}</td>
+                    <td className="px-6 py-4 font-semibold text-slate-900">
+                      {row.monthly}<span className="text-slate-400 font-normal">/mo</span>
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-slate-900">
+                      {row.annual}<span className="text-slate-400 font-normal">/yr</span>
+                    </td>
                     <td className="px-6 py-4 text-slate-500">{row.day}</td>
                   </tr>
                 ))}
@@ -193,7 +215,9 @@ export default function PricingPage() {
             </table>
           </div>
           <div className="px-8 py-4 bg-slate-50 border-t border-slate-100">
-            <p className="text-xs text-slate-400">All plans include every feature. Price is per school, not per student or per user. First month is free on all plans.</p>
+            <p className="text-xs text-slate-400">
+              All plans include every feature. Price is per school, not per student or per user. First month is free on all plans.
+            </p>
           </div>
         </div>
 
@@ -205,7 +229,7 @@ export default function PricingPage() {
               { q: "Do I need a credit card to start?", a: "No. Your first month is completely free with no payment details required. We'll reach out before the trial ends." },
               { q: "What happens after the free month?", a: "We'll contact you to set up a monthly or annual payment via mobile money. Annual plans get 2 months free." },
               { q: "Can parents use VerifyGate for free?", a: "Yes. Parents never pay anything. The school subscription covers all parent and student accounts." },
-              { q: "Is the price per branch or per school?", a: "Per school campus. For multiple branches, contact us for an enterprise arrangement." },
+              { q: "Is the price per branch or per school?", a: "Per school campus. For multiple branches, contact us for a group arrangement." },
               { q: "What SMS provider do you use?", a: "We use a reliable Ghanaian SMS provider. SMS costs are included in your subscription — no hidden charges." },
               { q: "Can we cancel anytime?", a: "Yes, no contracts or lock-in. If you need to cancel, just let us know and we'll sort it out promptly." },
               { q: "Do you support international schools?", a: "Yes. VerifyGate works for any school in Ghana regardless of curriculum — Cambridge, IB, GES, or private." },

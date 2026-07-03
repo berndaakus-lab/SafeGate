@@ -78,9 +78,9 @@ export default async function GetStartedPage() {
             </p>
             <ContactForm
               planLabels={{
-                starter: `Starter — ${s(settings, "plan_starter_price", "Free")} / ${s(settings, "plan_starter_note", "first month")}`,
-                school: `School Plan — ${s(settings, "plan_school_price", "GHS 100")} / ${s(settings, "plan_school_note", "month")}`,
-                enterprise: `Enterprise — ${s(settings, "plan_enterprise_price", "Custom")}`,
+                standard: `Standard (up to 100 students) — ${s(settings, "tier_standard_monthly", "GHS 150")}/mo`,
+                growth: `Growth (101–500 students) — ${s(settings, "tier_growth_monthly", "GHS 250")}/mo`,
+                premier: `Premier (500+ students) — ${s(settings, "tier_premier_monthly", "GHS 400")}/mo`,
               }}
             />
           </div>
