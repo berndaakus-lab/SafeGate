@@ -12,7 +12,6 @@ export const dynamic = "force-dynamic";
 export default async function SchoolPitchPage() {
   const settings = await getSettings();
   const whatsapp = s(settings, "whatsapp", "233XXXXXXXXX");
-  const price = s(settings, "plan_school_price", "GHS 100");
   const waMsg = encodeURIComponent(
     "Hi! I visited verifygate.app and I'm interested in setting up VerifyGate for my school. Can we talk?"
   );
@@ -89,7 +88,7 @@ export default async function SchoolPitchPage() {
               { val: "30 sec", label: "per pickup" },
               { val: "0", label: "app downloads" },
               { val: "24 hrs", label: "to go live" },
-              { val: price, label: "per month" },
+              { val: "GHS 150+", label: "per month" },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <p className="text-3xl font-black text-white">{s.val}</p>
@@ -493,49 +492,54 @@ export default async function SchoolPitchPage() {
 
       {/* ── Pricing ── */}
       <section className="bg-slate-50 border-y border-slate-100 py-20 px-6">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-slate-900 mb-4">One flat fee. Everything included.</h2>
-          <p className="text-slate-500 text-lg mb-12">
-            No per-parent fees. No per-scan fees. One price covers your entire school.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Free trial */}
-            <div className="bg-white border-2 border-slate-200 rounded-2xl p-8 text-left">
-              <p className="font-bold text-slate-900 text-lg mb-1">Starter</p>
-              <div className="flex items-end gap-1 mb-4">
-                <span className="text-4xl font-black text-slate-900">Free</span>
-                <span className="text-slate-400 text-sm mb-1">/ first month</span>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">Priced by school size. Everything included.</h2>
+            <p className="text-slate-500 text-lg mb-5">No per-parent fees. No per-scan fees. One flat rate covers your entire school.</p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold">
+                🎉 First month free — no credit card
               </div>
-              <p className="text-slate-500 text-sm mb-5">Every feature. No credit card. No commitment.</p>
-              <ul className="space-y-2.5">
-                {["Up to 100 students", "Unlimited QR scans", "SMS notifications", "Guard scanner", "Admin dashboard"].map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-slate-600">
-                    <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" /> {f}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            {/* School plan */}
-            <div className="bg-blue-600 rounded-2xl p-8 text-left relative">
-              <span className="absolute -top-3 left-6 bg-amber-400 text-amber-900 text-xs font-black px-3 py-1 rounded-full">MOST POPULAR</span>
-              <p className="font-bold text-white text-lg mb-1">School Plan</p>
-              <div className="flex items-end gap-1 mb-4">
-                <span className="text-4xl font-black text-white">{price}</span>
-                <span className="text-blue-200 text-sm mb-1">/ month</span>
+              <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold">
+                📅 Annual plan = 2 months free
               </div>
-              <p className="text-blue-100 text-sm mb-5">After your free month. Cancel anytime.</p>
-              <ul className="space-y-2.5">
-                {["Unlimited students", "Unlimited QR scans", "SMS notifications", "Multiple admin accounts", "Guard & teacher roles", "Bulk student import", "Student photo ID", "Priority support"].map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-blue-50">
-                    <CheckCircle2 className="w-4 h-4 text-blue-200 shrink-0" /> {f}
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
-          <p className="text-slate-400 text-sm mt-6">
-            That&apos;s less than {price === "GHS 100" ? "GHS 3.33" : "GHS 5"} a day — less than a bottle of water per day for the safety of every child in your school.
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
+            {[
+              { name: "Standard", students: "Up to 100 students", monthly: "GHS 150", annual: "GHS 1,500", save: "Save GHS 300", highlight: false },
+              { name: "Growth", students: "101 – 500 students", monthly: "GHS 250", annual: "GHS 2,500", save: "Save GHS 500", highlight: true, badge: "Most Popular" },
+              { name: "Premier", students: "500+ students", monthly: "GHS 400", annual: "GHS 4,000", save: "Save GHS 800", highlight: false },
+            ].map((t) => (
+              <div key={t.name} className={`rounded-2xl overflow-hidden relative ${t.highlight ? "bg-blue-600 ring-2 ring-blue-400 shadow-2xl shadow-blue-200" : "bg-white border border-slate-100 shadow-sm"}`}>
+                {t.badge && <span className="absolute top-0 right-0 bg-amber-400 text-amber-900 text-xs font-black px-3 py-1 rounded-bl-xl">{t.badge}</span>}
+                <div className="p-6">
+                  <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${t.highlight ? "text-blue-200" : "text-slate-400"}`}>{t.students}</p>
+                  <p className={`font-black text-xl mb-4 ${t.highlight ? "text-white" : "text-slate-900"}`}>{t.name}</p>
+                  <div className={`rounded-xl p-3 mb-3 ${t.highlight ? "bg-blue-700/50" : "bg-slate-50"}`}>
+                    <p className={`text-xs mb-0.5 ${t.highlight ? "text-blue-200" : "text-slate-400"}`}>Monthly</p>
+                    <p className={`font-black text-2xl ${t.highlight ? "text-white" : "text-slate-900"}`}>{t.monthly}<span className={`text-sm font-normal ml-1 ${t.highlight ? "text-blue-200" : "text-slate-400"}`}>/mo</span></p>
+                    <p className={`text-xs mt-0.5 ${t.highlight ? "text-blue-300" : "text-slate-400"}`}>First month free</p>
+                  </div>
+                  <div className={`rounded-xl p-3 border-2 ${t.highlight ? "border-blue-400/40 bg-blue-500/30" : "border-blue-100 bg-blue-50"}`}>
+                    <p className={`text-xs font-semibold mb-0.5 ${t.highlight ? "text-blue-200" : "text-blue-600"}`}>Annual billing</p>
+                    <p className={`font-black text-2xl ${t.highlight ? "text-white" : "text-blue-700"}`}>{t.annual}<span className={`text-sm font-normal ml-1 ${t.highlight ? "text-blue-200" : "text-blue-400"}`}>/yr</span></p>
+                    <p className={`text-xs font-semibold mt-0.5 ${t.highlight ? "text-green-300" : "text-green-600"}`}>✓ {t.save} (2 months free)</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-center text-slate-400 text-sm">
+            All plans include every feature — QR scans, SMS notifications, guard scanner, admin dashboard, bulk import, student photos, and priority support.
           </p>
+          <div className="text-center mt-4">
+            <Link href="/pricing" className="text-blue-600 font-semibold text-sm hover:underline">
+              View full pricing details →
+            </Link>
+          </div>
         </div>
       </section>
 
