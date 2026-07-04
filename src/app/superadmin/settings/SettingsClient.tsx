@@ -71,22 +71,33 @@ export default function SettingsClient({ settings }: { settings: Settings }) {
           </div>
           <h2 className="font-semibold text-slate-900">Pricing Tiers</h2>
         </div>
-        <p className="text-xs text-slate-400 mb-6">These values appear on the public pricing page and pitch page. Annual = 10× monthly (2 months free).</p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="space-y-4">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Standard · up to 100 students</p>
+        <p className="text-xs text-slate-400 mb-6">
+          For internal use and proposals only — prices are not shown publicly. Annual = 10× monthly (2 months free).
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="space-y-3 bg-slate-50 rounded-xl p-4">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Standard</p>
+            <p className="text-xs text-slate-400 -mt-1">Up to 100 students</p>
             <Field label="Monthly price" value={data.tier_standard_monthly ?? ""} onChange={set("tier_standard_monthly")} placeholder="GHS 150" />
             <Field label="Annual price" value={data.tier_standard_annual ?? ""} onChange={set("tier_standard_annual")} placeholder="GHS 1,500" />
           </div>
-          <div className="space-y-4">
-            <p className="text-xs font-bold text-blue-500 uppercase tracking-wider">Growth · 101–500 students ★</p>
+          <div className="space-y-3 bg-blue-50 rounded-xl p-4">
+            <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">Growth ★ Most Popular</p>
+            <p className="text-xs text-slate-400 -mt-1">101 – 500 students</p>
             <Field label="Monthly price" value={data.tier_growth_monthly ?? ""} onChange={set("tier_growth_monthly")} placeholder="GHS 250" />
             <Field label="Annual price" value={data.tier_growth_annual ?? ""} onChange={set("tier_growth_annual")} placeholder="GHS 2,500" />
           </div>
-          <div className="space-y-4">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Premier · 500+ students</p>
+          <div className="space-y-3 bg-slate-50 rounded-xl p-4">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Premier</p>
+            <p className="text-xs text-slate-400 -mt-1">500+ students</p>
             <Field label="Monthly price" value={data.tier_premier_monthly ?? ""} onChange={set("tier_premier_monthly")} placeholder="GHS 400" />
             <Field label="Annual price" value={data.tier_premier_annual ?? ""} onChange={set("tier_premier_annual")} placeholder="GHS 4,000" />
+          </div>
+          <div className="space-y-3 bg-slate-900 rounded-xl p-4">
+            <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">International ★ Premium</p>
+            <p className="text-xs text-slate-400 -mt-1">Any size · international / private schools</p>
+            <Field label="Monthly price" value={data.tier_international_monthly ?? ""} onChange={set("tier_international_monthly")} placeholder="GHS 800" />
+            <Field label="Annual price" value={data.tier_international_annual ?? ""} onChange={set("tier_international_annual")} placeholder="GHS 8,000" />
           </div>
         </div>
       </section>
