@@ -54,11 +54,13 @@ export default function PlanManager({
   currentPlan,
   trialEndsAt,
   maxStudents,
+  customPrice,
 }: {
   schoolId: string;
   currentPlan: string;
   trialEndsAt: string | null;
   maxStudents: number;
+  customPrice: number | null;
 }) {
   const router = useRouter();
   const [plan, setPlan] = useState(currentPlan);
@@ -66,6 +68,7 @@ export default function PlanManager({
     trialEndsAt ? trialEndsAt.split("T")[0] : ""
   );
   const [maxS, setMaxS] = useState(String(maxStudents));
+  const [price, setPrice] = useState(customPrice ? String(customPrice) : "");
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -79,6 +82,7 @@ export default function PlanManager({
         plan,
         trial_ends_at: plan === "trial" && trialEnd ? new Date(trialEnd).toISOString() : null,
         max_students: parseInt(maxS) || 100,
+        custom_price: price ? parseFloat(price) : null,
       }),
     });
     setLoading(false);
@@ -157,6 +161,31 @@ export default function PlanManager({
             onChange={(e) => setMaxS(e.target.value)}
             className="w-full sm:w-40 px-3 py-2.5 rounded-xl border border-slate-200 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+        </div>
+      )}
+
+      {/* Agreed price for this school */}
+      {plan !== "trial" && (
+        <div>
+          <label className="block text-xs font-medium text-slate-600 mb-1.5">
+            Agreed monthly price for this school (GHS)
+          </label>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-500 font-medium">GHS</span>
+            <input
+              type="number"
+              min={0}
+              step={0.01}
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="e.g. 250"
+              className="w-40 px-3 py-2.5 rounded-xl border border-slate-200 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <p className="text-xs text-slate-400 mt-1">
+            This overrides the tier default. The school sees this exact amount on their payment page.
+            Leave blank to use the tier default price.
+          </p>
         </div>
       )}
 

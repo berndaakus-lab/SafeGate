@@ -36,7 +36,7 @@ export default async function SubscribePage() {
   if (!schoolId) redirect("/login");
 
   const [{ data: school }, settings] = await Promise.all([
-    supabaseAdmin.from("schools").select("name, plan, trial_ends_at, max_students").eq("id", schoolId).single(),
+    supabaseAdmin.from("schools").select("name, plan, trial_ends_at, max_students, custom_price").eq("id", schoolId).single(),
     getSettings(),
   ]);
 
@@ -47,6 +47,11 @@ export default async function SubscribePage() {
 
   const currentPlan = school?.plan ?? "trial";
   const tier = TIER_KEYS[currentPlan] ?? TIER_KEYS.growth;
+
+  // Use the school's individually negotiated price if set, otherwise fall back to tier default
+  const agreedPrice = school?.custom_price
+    ? school.custom_price
+    : parseFloat(s(settings, tier.monthly, "150").replace(/[^\d.]/g, "")) || 150;
 
   const whatsapp = s(settings, "whatsapp", "");
   const waMsg = encodeURIComponent(
@@ -82,7 +87,7 @@ export default async function SubscribePage() {
             <div className="text-right">
               <p className="text-blue-200 text-xs mb-1">Price</p>
               <p className="text-white font-black text-xl">
-                {s(settings, tier.monthly, "Contact us")}
+                GHS {agreedPrice.toLocaleString()}
               </p>
               <p className="text-blue-200 text-xs">/month</p>
             </div>
@@ -113,7 +118,7 @@ export default async function SubscribePage() {
             Enter your MoMo number below. You&apos;ll receive a payment prompt on your phone — approve it to activate your account.
           </p>
           <SubscribeForm
-            amountGhs={parseFloat(s(settings, tier.monthly, "150").replace(/[^\d.]/g, "")) || 150}
+            amountGhs={agreedPrice}
             reference={schoolId}
           />
         </div>

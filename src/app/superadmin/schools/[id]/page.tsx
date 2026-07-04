@@ -186,6 +186,7 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
           currentPlan={school.plan ?? "trial"}
           trialEndsAt={school.trial_ends_at ?? null}
           maxStudents={school.max_students ?? 100}
+          customPrice={school.custom_price ?? null}
         />
       </div>
 
