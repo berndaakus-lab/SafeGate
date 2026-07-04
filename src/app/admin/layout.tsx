@@ -1,7 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import { supabaseAdmin } from "@/lib/supabase";
 import SessionProvider from "@/components/SessionProvider";
 import AdminNav from "@/components/AdminNav";
@@ -16,11 +15,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   const schoolId = (session.user as any)?.schoolId;
-  const headersList = await headers();
-  const pathname = headersList.get("x-invoke-path") ?? headersList.get("x-pathname") ?? "";
-  const isOfflinePage = pathname.includes("/admin/offline");
 
-  if (schoolId && !isOfflinePage) {
+  if (schoolId) {
     const { data: school } = await supabaseAdmin
       .from("schools")
       .select("is_active")
@@ -28,7 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       .single();
 
     if (school && school.is_active === false) {
-      redirect("/admin/offline");
+      redirect("/offline");
     }
   }
 
