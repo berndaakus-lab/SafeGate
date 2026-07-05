@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Shield, MessageCircle, Mail, CheckCircle2, ArrowLeft, Phone } from "lucide-react";
+import Image from "next/image";
+import { MessageCircle, Mail, CheckCircle2, ArrowLeft, Phone } from "lucide-react";
 import ContactForm from "./ContactForm";
 import { getSettings, s } from "@/lib/settings";
 
@@ -17,9 +18,7 @@ export default async function GetStartedPage() {
       <nav className="bg-white border-b border-slate-100 px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
+            <Image src="/icon-192.png" alt="VerifyGate" width={32} height={32} className="rounded-lg" />
             <span className="font-bold text-xl text-slate-900">VerifyGate</span>
           </Link>
           <Link href="/" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700">
