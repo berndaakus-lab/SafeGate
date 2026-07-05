@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Shield, LayoutDashboard, School, LogOut, Settings, Inbox } from "lucide-react";
+import Image from "next/image";
+import { LayoutDashboard, School, LogOut, Settings, Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -21,9 +22,7 @@ export default function SuperAdminNav({ newLeads = 0 }: { newLeads?: number }) {
       {/* Desktop sidebar */}
       <aside className="hidden md:flex flex-col w-64 min-h-screen bg-slate-900 p-6 fixed left-0 top-0">
         <Link href="/" className="flex items-center gap-2 mb-2">
-          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-            <Shield className="w-5 h-5 text-white" />
-          </div>
+          <Image src="/icon-192.png" alt="VerifyGate" width={32} height={32} className="rounded-lg" />
           <span className="font-bold text-lg text-white">VerifyGate</span>
         </Link>
         <p className="text-xs text-slate-500 mb-10 pl-10">Super Admin</p>
@@ -65,9 +64,7 @@ export default function SuperAdminNav({ newLeads = 0 }: { newLeads?: number }) {
       {/* Mobile top bar */}
       <header className="md:hidden flex items-center justify-between px-4 py-3 bg-slate-900 sticky top-0 z-50">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-blue-500 rounded-lg flex items-center justify-center">
-            <Shield className="w-4 h-4 text-white" />
-          </div>
+          <Image src="/icon-192.png" alt="VerifyGate" width={28} height={28} className="rounded-lg" />
           <span className="font-bold text-white">VerifyGate</span>
         </Link>
         <span className="text-xs text-slate-400 font-medium">Super Admin</span>
