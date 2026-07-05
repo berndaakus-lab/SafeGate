@@ -21,7 +21,33 @@ export const metadata: Metadata = {
     startupImage: "/icon-512.png",
   },
   icons: {
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
     apple: "/icon-192.png",
+    shortcut: "/icon-192.png",
+  },
+  openGraph: {
+    title: "VerifyGate — School Pickup Authorization",
+    description: "Secure, digital school pickup authorization for parents, schools, and security guards.",
+    url: "https://verifygate-chi.vercel.app",
+    siteName: "VerifyGate",
+    images: [
+      {
+        url: "https://verifygate-chi.vercel.app/icon-512.png",
+        width: 512,
+        height: 512,
+        alt: "VerifyGate",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "VerifyGate — School Pickup Authorization",
+    description: "Secure, digital school pickup authorization for parents, schools, and security guards.",
+    images: ["https://verifygate-chi.vercel.app/icon-512.png"],
   },
 };
 
