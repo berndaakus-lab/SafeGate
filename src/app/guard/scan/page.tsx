@@ -1,5 +1,5 @@
 import QRScanner from "./QRScanner";
-import { Shield } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function GuardScanPage() {
@@ -7,9 +7,7 @@ export default function GuardScanPage() {
     <div className="min-h-screen bg-slate-900 text-white flex flex-col">
       <header className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Shield className="w-5 h-5 text-white" />
-          </div>
+          <Image src="/icon-192.png" alt="VerifyGate" width={32} height={32} className="rounded-lg" />
           <span className="font-bold text-white">VerifyGate</span>
         </Link>
         <span className="text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1 rounded-full font-medium">

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Shield, X, Download } from "lucide-react";
+import Image from "next/image";
+import { X, Download } from "lucide-react";
 
 export default function InstallBanner() {
   const [prompt, setPrompt] = useState<any>(null);
@@ -52,9 +53,7 @@ export default function InstallBanner() {
     <div className="fixed top-4 left-4 right-4 z-50 md:left-auto md:right-6 md:max-w-sm animate-in slide-in-from-top-4 duration-300">
       <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-4">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shrink-0">
-            <Shield className="w-5 h-5 text-white" />
-          </div>
+          <Image src="/icon-192.png" alt="VerifyGate" width={40} height={40} className="rounded-xl shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-slate-900 text-sm">Install VerifyGate</p>
             {isIOS ? (

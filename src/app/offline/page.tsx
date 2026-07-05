@@ -2,7 +2,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { getSettings, s } from "@/lib/settings";
-import { Shield, MessageCircle, WifiOff } from "lucide-react";
+import Image from "next/image";
+import { MessageCircle, WifiOff } from "lucide-react";
 import { signOut } from "next-auth/react";
 import OfflineSignOut from "./OfflineSignOut";
 
@@ -33,9 +34,7 @@ export default async function OfflinePage() {
         </div>
 
         <div className="flex items-center justify-center gap-2 mb-3">
-          <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Shield className="w-4 h-4 text-white" />
-          </div>
+          <Image src="/icon-192.png" alt="VerifyGate" width={28} height={28} className="rounded-lg" />
           <span className="font-bold text-lg text-slate-900">VerifyGate</span>
         </div>
 

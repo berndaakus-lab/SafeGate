@@ -4,7 +4,8 @@ import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Shield, Eye, EyeOff, Loader2 } from "lucide-react";
+import Image from "next/image";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 function LoginForm() {
   const router = useRouter();
@@ -50,9 +51,7 @@ function LoginForm() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-4">
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-              <Shield className="w-6 h-6 text-white" />
-            </div>
+            <Image src="/icon-192.png" alt="VerifyGate" width={40} height={40} className="rounded-xl" />
             <span className="font-bold text-2xl text-slate-900">VerifyGate</span>
           </Link>
           <p className="text-slate-500 text-sm">Sign in to your account</p>

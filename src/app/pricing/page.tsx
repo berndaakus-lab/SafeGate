@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Shield, CheckCircle2, ArrowRight, ArrowLeft, MessageCircle, Star } from "lucide-react";
+import Image from "next/image";
+import { CheckCircle2, ArrowRight, ArrowLeft, MessageCircle, Star } from "lucide-react";
 import { getSettings, s } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
@@ -66,9 +67,7 @@ export default async function PricingPage() {
       <nav className="bg-white border-b border-slate-100 px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
+            <Image src="/icon-192.png" alt="VerifyGate" width={32} height={32} className="rounded-lg" />
             <span className="font-bold text-xl text-slate-900">VerifyGate</span>
           </Link>
           <div className="flex items-center gap-3">

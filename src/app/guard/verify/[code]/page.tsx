@@ -1,7 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import ConfirmPickup from "./ConfirmPickup";
-import { Shield, Clock, XCircle } from "lucide-react";
+import { Clock, XCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatTime } from "@/lib/utils";
@@ -30,9 +30,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
     <div className="min-h-screen bg-slate-900 text-white flex flex-col">
       <header className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
         <Link href="/guard/scan" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Shield className="w-5 h-5 text-white" />
-          </div>
+          <Image src="/icon-192.png" alt="VerifyGate" width={32} height={32} className="rounded-lg" />
           <span className="font-bold text-white">VerifyGate</span>
         </Link>
         <Link href="/guard/scan" className="text-slate-400 text-sm hover:text-white">← Scan again</Link>

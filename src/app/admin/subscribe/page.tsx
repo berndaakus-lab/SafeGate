@@ -4,7 +4,8 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { redirect } from "next/navigation";
 import { getSettings, s } from "@/lib/settings";
 import SubscribeForm from "./SubscribeForm";
-import { Shield, CheckCircle2, MessageCircle } from "lucide-react";
+import Image from "next/image";
+import { CheckCircle2, MessageCircle } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -65,9 +66,7 @@ export default async function SubscribePage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/admin/dashboard" className="inline-flex items-center gap-2 mb-5">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
+            <Image src="/icon-192.png" alt="VerifyGate" width={32} height={32} className="rounded-lg" />
             <span className="font-bold text-xl text-slate-900">VerifyGate</span>
           </Link>
           <h1 className="text-2xl font-bold text-slate-900 mb-2">Activate your subscription</h1>

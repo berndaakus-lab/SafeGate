@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Shield } from "lucide-react";
+import Image from "next/image";
 import { getSettings, s } from "@/lib/settings";
 
 export default async function SiteFooter() {
@@ -19,9 +19,7 @@ export default async function SiteFooter() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center">
-                <Shield className="w-4 h-4 text-white" />
-              </div>
+              <Image src="/icon-192.png" alt="VerifyGate" width={28} height={28} className="rounded-md" />
               <span className="font-bold text-slate-900">VerifyGate</span>
             </div>
             <p className="text-xs text-slate-400 max-w-xs leading-relaxed">
