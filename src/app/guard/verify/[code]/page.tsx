@@ -1,7 +1,8 @@
 import { supabaseAdmin } from "@/lib/supabase";
-import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import ConfirmPickup from "./ConfirmPickup";
-import { Clock, XCircle } from "lucide-react";
+import { Clock, XCircle, ShieldAlert } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatTime } from "@/lib/utils";
@@ -9,11 +10,14 @@ import { formatTime } from "@/lib/utils";
 export default async function VerifyPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
 
+  const session = await getServerSession(authOptions);
+  const guardSchoolId = (session?.user as any)?.schoolId as string | null;
+
   const { data: pickupCode } = await supabaseAdmin
     .from("pickup_codes")
     .select(`
       *,
-      students(name, class_name, photo_url, schools(name)),
+      students(id, name, class_name, photo_url, school_id, schools(name)),
       authorized_persons(name, phone, relation),
       parents(name),
       pickup_logs(id, picked_up_at)
@@ -21,7 +25,22 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
     .eq("code", code)
     .single();
 
-  if (!pickupCode) return notFound();
+  // Code not found at all
+  if (!pickupCode) {
+    return <WrongCode message="Invalid code. This QR code does not exist." />;
+  }
+
+  const studentSchoolId = pickupCode.students?.school_id;
+
+  // Guard trying to verify a code from a different school
+  if (guardSchoolId && studentSchoolId && guardSchoolId !== studentSchoolId) {
+    return (
+      <WrongSchool
+        guardSchool={(session?.user as any)?.schoolName ?? "your school"}
+        codeSchool={pickupCode.students?.schools?.name ?? "another school"}
+      />
+    );
+  }
 
   const isExpired = new Date() > new Date(pickupCode.expires_at);
   const isUsed = pickupCode.pickup_logs && pickupCode.pickup_logs.length > 0;
@@ -121,6 +140,70 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
               />
             </div>
           )}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function WrongSchool({ guardSchool, codeSchool }: { guardSchool: string; codeSchool: string }) {
+  return (
+    <div className="min-h-screen bg-slate-900 text-white flex flex-col">
+      <header className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+        <Link href="/guard/scan" className="flex items-center gap-2">
+          <Image src="/icon-192.png" alt="VerifyGate" width={32} height={32} className="rounded-lg" />
+          <span className="font-bold text-white">VerifyGate</span>
+        </Link>
+        <Link href="/guard/scan" className="text-slate-400 text-sm hover:text-white">← Scan again</Link>
+      </header>
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-8">
+        <div className="w-full max-w-sm text-center">
+          <div className="bg-red-900/30 border border-red-700/50 rounded-2xl p-8">
+            <ShieldAlert className="w-14 h-14 text-red-400 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-red-300 mb-2">Wrong School</h2>
+            <p className="text-red-400/80 text-sm leading-relaxed mb-4">
+              This QR code belongs to <span className="font-bold text-red-300">{codeSchool}</span>.
+              You are scanning for <span className="font-bold text-white">{guardSchool}</span>.
+            </p>
+            <p className="text-slate-500 text-xs">
+              This child does not belong to your school. Do not authorise this pickup.
+            </p>
+          </div>
+          <Link
+            href="/guard/scan"
+            className="mt-6 inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-6 py-3 rounded-xl font-medium text-sm transition-colors"
+          >
+            ← Scan again
+          </Link>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function WrongCode({ message }: { message: string }) {
+  return (
+    <div className="min-h-screen bg-slate-900 text-white flex flex-col">
+      <header className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+        <Link href="/guard/scan" className="flex items-center gap-2">
+          <Image src="/icon-192.png" alt="VerifyGate" width={32} height={32} className="rounded-lg" />
+          <span className="font-bold text-white">VerifyGate</span>
+        </Link>
+        <Link href="/guard/scan" className="text-slate-400 text-sm hover:text-white">← Scan again</Link>
+      </header>
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-8">
+        <div className="w-full max-w-sm text-center">
+          <div className="bg-red-900/30 border border-red-700/50 rounded-2xl p-8">
+            <XCircle className="w-14 h-14 text-red-400 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-red-300 mb-2">Invalid Code</h2>
+            <p className="text-red-400/80 text-sm">{message}</p>
+          </div>
+          <Link
+            href="/guard/scan"
+            className="mt-6 inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-6 py-3 rounded-xl font-medium text-sm transition-colors"
+          >
+            ← Scan again
+          </Link>
         </div>
       </main>
     </div>
