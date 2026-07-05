@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Radio, Send } from "lucide-react";
+import { Radio, Send, FlaskConical } from "lucide-react";
 
 interface Props {
   schools: { id: string; name: string }[];
@@ -12,6 +12,7 @@ export default function BroadcastPanel({ schools }: Props) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [loading, setLoading] = useState(false);
+  const [testing, setTesting] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
   async function handleSend() {
@@ -34,46 +35,72 @@ export default function BroadcastPanel({ schools }: Props) {
     }
   }
 
+  async function handleTest() {
+    setTesting(true);
+    setResult(null);
+    try {
+      const res = await fetch("/api/superadmin/test-push", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      setResult(res.ok ? `Test push sent! (${data.endpoint})` : `Error: ${data.error}`);
+    } catch {
+      setResult("Network error");
+    } finally {
+      setTesting(false);
+    }
+  }
+
   return (
     <div className="space-y-3">
-      <select
-        value={schoolId}
-        onChange={(e) => setSchoolId(e.target.value)}
-        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        <option value="all">All schools</option>
-        {schools.map((s) => (
-          <option key={s.id} value={s.id}>{s.name}</option>
-        ))}
-      </select>
-      <input
-        type="text"
-        placeholder="Notification title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <textarea
-        placeholder="Message body..."
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-        rows={2}
-        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
       <button
-        onClick={handleSend}
-        disabled={loading || !title.trim() || !body.trim()}
-        className="flex items-center justify-center gap-2 w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+        onClick={handleTest}
+        disabled={testing}
+        className="flex items-center justify-center gap-2 w-full border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 text-sm font-medium px-4 py-2 rounded-xl transition-colors"
       >
-        {loading ? (
-          <Radio className="w-4 h-4 animate-pulse" />
-        ) : (
-          <Send className="w-4 h-4" />
-        )}
-        {loading ? "Sending..." : "Send Broadcast"}
+        <FlaskConical className="w-4 h-4" />
+        {testing ? "Sending test..." : "Send Test Push"}
       </button>
+
+      <div className="border-t border-slate-100 pt-3 space-y-3">
+        <select
+          value={schoolId}
+          onChange={(e) => setSchoolId(e.target.value)}
+          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="all">All schools</option>
+          {schools.map((s) => (
+            <option key={s.id} value={s.id}>{s.name}</option>
+          ))}
+        </select>
+        <input
+          type="text"
+          placeholder="Notification title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <textarea
+          placeholder="Message body..."
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          rows={2}
+          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button
+          onClick={handleSend}
+          disabled={loading || !title.trim() || !body.trim()}
+          className="flex items-center justify-center gap-2 w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+        >
+          {loading ? <Radio className="w-4 h-4 animate-pulse" /> : <Send className="w-4 h-4" />}
+          {loading ? "Sending..." : "Send Broadcast"}
+        </button>
+      </div>
+
       {result && (
-        <p className={`text-xs text-center font-medium ${result.startsWith("Sent") ? "text-green-600" : "text-red-500"}`}>
+        <p className={`text-xs text-center font-medium break-all ${result.startsWith("Test push sent") || result.startsWith("Sent") ? "text-green-600" : "text-red-500"}`}>
           {result}
         </p>
       )}

@@ -22,27 +22,39 @@ const TIERS = [
   {
     name: "Standard",
     students: "Up to 100 students",
+    price: "GH₵150",
+    period: "/month",
     highlight: false,
+    contact: false,
     extras: [],
   },
   {
     name: "Growth",
     students: "101 – 500 students",
+    price: "GH₵300",
+    period: "/month",
     highlight: true,
+    contact: false,
     badge: "Most Popular",
     extras: [],
   },
   {
     name: "Premier",
-    students: "500+ students",
+    students: "501 – 1,000 students",
+    price: "GH₵500",
+    period: "/month",
     highlight: false,
+    contact: false,
     extras: [],
   },
   {
-    name: "International",
-    students: "Any size",
+    name: "Enterprise",
+    students: "Multiple campuses or custom",
+    price: "Custom",
+    period: "",
     highlight: false,
-    badge: "Premium",
+    contact: true,
+    badge: "Custom",
     extras: [
       "Custom SMS sender ID (your school name)",
       "Co-branded parent experience",
@@ -107,108 +119,111 @@ export default async function PricingPage() {
             One flat rate covers your entire school.
           </p>
           <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-5 py-3 rounded-xl text-sm font-semibold">
-            Plans from <span className="font-black text-blue-900 text-base mx-1">{startingPrice}/month</span> · Contact us for your school&apos;s exact price
+            Starting from <span className="font-black text-blue-900 text-base mx-1">GH₵150/month</span> · First month completely free
           </div>
         </div>
 
         {/* Tier cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-14">
-          {TIERS.map((tier) => (
-            <div
-              key={tier.name}
-              className={`rounded-2xl flex flex-col relative overflow-hidden ${
-                tier.highlight
-                  ? "bg-blue-600 shadow-2xl shadow-blue-200 ring-2 ring-blue-400"
-                  : tier.name === "International"
-                  ? "bg-slate-900 shadow-xl"
-                  : "bg-white border border-slate-100 shadow-sm"
-              }`}
-            >
-              {tier.badge && (
-                <span className={`absolute top-0 right-0 text-xs font-black px-3 py-1 rounded-bl-xl ${
-                  tier.name === "International"
-                    ? "bg-amber-400 text-amber-900"
-                    : "bg-amber-400 text-amber-900"
-                }`}>
-                  {tier.badge}
-                </span>
-              )}
+          {TIERS.map((tier) => {
+            const isEnterprise = tier.name === "Enterprise";
+            const isDark = isEnterprise;
+            return (
+              <div
+                key={tier.name}
+                className={`rounded-2xl flex flex-col relative overflow-hidden ${
+                  tier.highlight
+                    ? "bg-blue-600 shadow-2xl shadow-blue-200 ring-2 ring-blue-400"
+                    : isDark
+                    ? "bg-slate-900 shadow-xl"
+                    : "bg-white border border-slate-100 shadow-sm"
+                }`}
+              >
+                {tier.badge && (
+                  <span className="absolute top-0 right-0 text-xs font-black px-3 py-1 rounded-bl-xl bg-amber-400 text-amber-900">
+                    {tier.badge}
+                  </span>
+                )}
 
-              <div className="p-6 flex-1 flex flex-col">
-                <div className="mb-5">
-                  <p className={`text-xs font-bold uppercase tracking-widest mb-1.5 ${
-                    tier.highlight ? "text-blue-200" : tier.name === "International" ? "text-slate-400" : "text-slate-400"
-                  }`}>
-                    {tier.students}
-                  </p>
-                  <h2 className={`font-black text-xl mb-4 ${
-                    tier.highlight ? "text-white" : tier.name === "International" ? "text-white" : "text-slate-900"
-                  }`}>
-                    {tier.name}
-                  </h2>
+                <div className="p-6 flex-1 flex flex-col">
+                  <div className="mb-5">
+                    <p className={`text-xs font-bold uppercase tracking-widest mb-1.5 ${
+                      tier.highlight ? "text-blue-200" : isDark ? "text-slate-400" : "text-slate-400"
+                    }`}>
+                      {tier.students}
+                    </p>
+                    <h2 className={`font-black text-xl mb-4 ${
+                      tier.highlight ? "text-white" : isDark ? "text-white" : "text-slate-900"
+                    }`}>
+                      {tier.name}
+                    </h2>
 
-                  {/* Price placeholder */}
-                  <div className={`rounded-xl px-4 py-3 mb-1 ${
-                    tier.highlight
-                      ? "bg-blue-700/50"
-                      : tier.name === "International"
-                      ? "bg-slate-800"
-                      : "bg-slate-50"
-                  }`}>
-                    <p className={`text-xs font-semibold mb-1 ${
-                      tier.highlight ? "text-blue-200" : tier.name === "International" ? "text-slate-400" : "text-slate-400"
-                    }`}>Pricing</p>
-                    <p className={`font-black text-lg ${
-                      tier.highlight ? "text-white" : tier.name === "International" ? "text-white" : "text-slate-900"
+                    <div className={`rounded-xl px-4 py-3 mb-1 ${
+                      tier.highlight ? "bg-blue-700/50" : isDark ? "bg-slate-800" : "bg-slate-50"
                     }`}>
-                      Contact us
-                    </p>
-                    <p className={`text-xs mt-0.5 ${
-                      tier.highlight ? "text-blue-300" : tier.name === "International" ? "text-slate-400" : "text-slate-400"
-                    }`}>
-                      Monthly & annual options · First month free
-                    </p>
+                      {tier.contact ? (
+                        <>
+                          <p className={`font-black text-lg ${isDark ? "text-white" : "text-slate-900"}`}>
+                            Contact us
+                          </p>
+                          <p className={`text-xs mt-0.5 ${isDark ? "text-slate-400" : "text-slate-400"}`}>
+                            Custom pricing · First month free
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className={`font-black text-2xl ${tier.highlight ? "text-white" : "text-slate-900"}`}>
+                            {tier.price}
+                            <span className={`text-sm font-semibold ml-1 ${tier.highlight ? "text-blue-200" : "text-slate-400"}`}>
+                              {tier.period}
+                            </span>
+                          </p>
+                          <p className={`text-xs mt-0.5 ${tier.highlight ? "text-blue-300" : "text-slate-400"}`}>
+                            First month free · Annual billing available
+                          </p>
+                        </>
+                      )}
+                    </div>
                   </div>
+
+                  <ul className="space-y-2 flex-1 mb-6">
+                    {FEATURES.map((f) => (
+                      <li key={f} className="flex items-start gap-2">
+                        <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${
+                          tier.highlight ? "text-blue-200" : isDark ? "text-blue-400" : "text-blue-500"
+                        }`} />
+                        <span className={`text-xs leading-relaxed ${
+                          tier.highlight ? "text-blue-50" : isDark ? "text-slate-300" : "text-slate-600"
+                        }`}>{f}</span>
+                      </li>
+                    ))}
+                    {tier.extras.map((f) => (
+                      <li key={f} className="flex items-start gap-2">
+                        <Star className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
+                        <span className="text-xs leading-relaxed text-amber-300 font-medium">{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <a
+                    href={waLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-colors ${
+                      tier.highlight
+                        ? "bg-white text-blue-600 hover:bg-blue-50"
+                        : isEnterprise
+                        ? "bg-amber-400 text-amber-900 hover:bg-amber-300"
+                        : "bg-blue-600 text-white hover:bg-blue-700"
+                    }`}
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    {tier.contact ? "Contact Us" : "Get Started"}
+                  </a>
                 </div>
-
-                {/* Features */}
-                <ul className="space-y-2 flex-1 mb-6">
-                  {FEATURES.map((f) => (
-                    <li key={f} className="flex items-start gap-2">
-                      <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${
-                        tier.highlight ? "text-blue-200" : tier.name === "International" ? "text-blue-400" : "text-blue-500"
-                      }`} />
-                      <span className={`text-xs leading-relaxed ${
-                        tier.highlight ? "text-blue-50" : tier.name === "International" ? "text-slate-300" : "text-slate-600"
-                      }`}>{f}</span>
-                    </li>
-                  ))}
-                  {tier.extras.map((f) => (
-                    <li key={f} className="flex items-start gap-2">
-                      <Star className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
-                      <span className="text-xs leading-relaxed text-amber-300 font-medium">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <a
-                  href={waLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-colors ${
-                    tier.highlight
-                      ? "bg-white text-blue-600 hover:bg-blue-50"
-                      : tier.name === "International"
-                      ? "bg-amber-400 text-amber-900 hover:bg-amber-300"
-                      : "bg-blue-600 text-white hover:bg-blue-700"
-                  }`}
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  Get a Quote
-                </a>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* What's included — full feature breakdown */}

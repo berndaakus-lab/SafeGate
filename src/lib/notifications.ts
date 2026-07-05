@@ -4,7 +4,6 @@
  */
 import webpush from "web-push";
 import { supabaseAdmin } from "./supabase";
-import { sendPickupSMS } from "./sms";
 import { withRetry } from "./retry";
 
 // VAPID must be set in env
