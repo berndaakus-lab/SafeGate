@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
-import { sendPickupSMS } from "@/lib/sms";
+import { sendNotification } from "@/lib/notifications";
 
 export async function POST(req: NextRequest) {
   try {
@@ -60,16 +60,25 @@ export async function POST(req: NextRequest) {
 
       console.log("[sms] parent:", parent?.name, "| phone:", parent?.phone, "| student:", student?.name);
 
-      if (parent?.phone) {
-        await sendPickupSMS({
-          parentPhone: parent.phone,
-          studentName: student?.name ?? "Your child",
-          collectedBy: person?.name ?? "an authorised person",
-          schoolName: school?.name ?? "school",
-        });
-      } else {
-        console.warn("[sms] skipped — no phone. parent_id:", codeData.parent_id);
-      }
+      const time = new Date().toLocaleTimeString("en-GH", { hour: "2-digit", minute: "2-digit" });
+      const studentName = student?.name ?? "Your child";
+      const collectedBy = person?.name ?? "an authorised person";
+      const schoolName = school?.name ?? "school";
+
+      await sendNotification({
+        parentId: codeData.parent_id,
+        parentPhone: parent?.phone,
+        studentId,
+        payload: {
+          title: "✅ Pickup Confirmed",
+          body: `${studentName} was picked up by ${collectedBy} at ${time}.`,
+          url: "/parent/dashboard",
+          icon: "/icon-192.png",
+        },
+        smsText:
+          `VerifyGate: ${studentName} was picked up by ${collectedBy} at ${time} from ${schoolName}. ` +
+          `If this was not authorised, call the school immediately!`,
+      });
     }
 
     return NextResponse.json(log, { status: 201 });

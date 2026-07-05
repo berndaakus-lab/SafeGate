@@ -1,6 +1,5 @@
-const CACHE = "verifygate-v2";
+const CACHE = "verifygate-v3";
 
-// Only pre-cache truly static assets
 const STATIC_ASSETS = ["/manifest.json", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -21,20 +20,14 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
-
   const url = new URL(event.request.url);
-
-  // Never intercept API routes, auth, or dynamic pages — let them go to network
   if (
     url.pathname.startsWith("/api/") ||
     url.pathname.startsWith("/guard/verify/") ||
     url.pathname.startsWith("/_next/") ||
     url.origin !== location.origin
-  ) {
-    return;
-  }
+  ) return;
 
-  // Cache-first for static assets (icons, manifest)
   if (STATIC_ASSETS.includes(url.pathname)) {
     event.respondWith(
       caches.match(event.request).then((cached) => cached || fetch(event.request))
@@ -42,6 +35,53 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Network-first for everything else (pages)
   event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+});
+
+// ── Push notification handler ──
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+
+  let data = {};
+  try { data = event.data.json(); } catch { data = { title: "VerifyGate", body: event.data.text() }; }
+
+  const { title = "VerifyGate", body = "", url = "/", icon = "/icon-192.png" } = data;
+
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon,
+      badge: "/icon-192.png",
+      data: { url },
+      vibrate: [200, 100, 200],
+      requireInteraction: false,
+    })
+  );
+});
+
+// ── Notification click — open URL ──
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url ?? "/";
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      const existing = list.find((c) => c.url.includes(url) && "focus" in c);
+      if (existing) return existing.focus();
+      return clients.openWindow(url);
+    })
+  );
+});
+
+// ── Push subscription change — re-register automatically ──
+self.addEventListener("pushsubscriptionchange", (event) => {
+  event.waitUntil(
+    self.registration.pushManager.subscribe({ userVisibleOnly: true })
+      .then((sub) =>
+        fetch("/api/push/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(sub),
+        })
+      )
+  );
 });
