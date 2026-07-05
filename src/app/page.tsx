@@ -20,15 +20,16 @@ export default function Home() {
             <Image src="/icon-192.png" alt="VerifyGate" width={32} height={32} className="rounded-lg" />
             <span className="font-bold text-xl text-slate-900">VerifyGate</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link href="/pricing" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors hidden sm:block">
               Pricing
             </Link>
-            <Link href="/get-started" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors">
-              Get Started Free
-            </Link>
-            <Link href="/login" className="border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors hidden sm:block">
+            <Link href="/login" className="border border-slate-200 text-slate-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
               Sign In
+            </Link>
+            <Link href="/get-started" className="bg-blue-600 text-white px-3 py-2 sm:px-4 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors">
+              <span className="hidden sm:inline">Get Started Free</span>
+              <span className="sm:hidden">Get Started</span>
             </Link>
           </div>
         </div>

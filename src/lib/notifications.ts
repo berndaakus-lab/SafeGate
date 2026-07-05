@@ -54,10 +54,8 @@ async function logDelivery({
 async function sendPush(subscription: any, payload: NotificationPayload): Promise<boolean> {
   if (!process.env.VAPID_PUBLIC_KEY) return false;
   try {
-    await withRetry(
-      () => webpush.sendNotification(subscription, JSON.stringify(payload)),
-      { label: "web-push" }
-    );
+    // No retry — push either works instantly or we fall back to SMS immediately
+    await webpush.sendNotification(subscription, JSON.stringify(payload));
     return true;
   } catch (err: any) {
     // 410 Gone = subscription expired/invalid — remove it
