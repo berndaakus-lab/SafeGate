@@ -22,38 +22,26 @@ const TIERS = [
   {
     name: "Standard",
     students: "Up to 100 students",
-    price: "GH₵150",
-    period: "/month",
     highlight: false,
-    contact: false,
     extras: [],
   },
   {
     name: "Growth",
     students: "101 – 500 students",
-    price: "GH₵300",
-    period: "/month",
     highlight: true,
-    contact: false,
     badge: "Most Popular",
     extras: [],
   },
   {
     name: "Premier",
     students: "501 – 1,000 students",
-    price: "GH₵500",
-    period: "/month",
     highlight: false,
-    contact: false,
     extras: [],
   },
   {
     name: "Enterprise",
     students: "Multiple campuses or custom",
-    price: "Custom",
-    period: "",
     highlight: false,
-    contact: true,
     badge: "Custom",
     extras: [
       "Custom SMS sender ID (your school name)",
@@ -68,7 +56,6 @@ const TIERS = [
 export default async function PricingPage() {
   const settings = await getSettings();
   const whatsapp = s(settings, "whatsapp", "233XXXXXXXXX");
-  const startingPrice = s(settings, "tier_standard_monthly", "GHS 150");
   const waMsg = encodeURIComponent(
     "Hi VerifyGate! I'd like to get a price quote for my school. Can we talk?"
   );
@@ -119,7 +106,7 @@ export default async function PricingPage() {
             One flat rate covers your entire school.
           </p>
           <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-5 py-3 rounded-xl text-sm font-semibold">
-            Starting from <span className="font-black text-blue-900 text-base mx-1">GH₵150/month</span> · First month completely free
+            Contact us for your school&apos;s exact price · First month completely free
           </div>
         </div>
 
@@ -161,28 +148,12 @@ export default async function PricingPage() {
                     <div className={`rounded-xl px-4 py-3 mb-1 ${
                       tier.highlight ? "bg-blue-700/50" : isDark ? "bg-slate-800" : "bg-slate-50"
                     }`}>
-                      {tier.contact ? (
-                        <>
-                          <p className={`font-black text-lg ${isDark ? "text-white" : "text-slate-900"}`}>
-                            Contact us
-                          </p>
-                          <p className={`text-xs mt-0.5 ${isDark ? "text-slate-400" : "text-slate-400"}`}>
-                            Custom pricing · First month free
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <p className={`font-black text-2xl ${tier.highlight ? "text-white" : "text-slate-900"}`}>
-                            {tier.price}
-                            <span className={`text-sm font-semibold ml-1 ${tier.highlight ? "text-blue-200" : "text-slate-400"}`}>
-                              {tier.period}
-                            </span>
-                          </p>
-                          <p className={`text-xs mt-0.5 ${tier.highlight ? "text-blue-300" : "text-slate-400"}`}>
-                            First month free · Annual billing available
-                          </p>
-                        </>
-                      )}
+                      <p className={`font-black text-lg ${tier.highlight ? "text-white" : isDark ? "text-white" : "text-slate-900"}`}>
+                        Contact us
+                      </p>
+                      <p className={`text-xs mt-0.5 ${tier.highlight ? "text-blue-300" : "text-slate-400"}`}>
+                        First month free · WhatsApp us for pricing
+                      </p>
                     </div>
                   </div>
 
@@ -218,7 +189,7 @@ export default async function PricingPage() {
                     }`}
                   >
                     <MessageCircle className="w-4 h-4" />
-                    {tier.contact ? "Contact Us" : "Get Started"}
+                    Get a Quote
                   </a>
                 </div>
               </div>
@@ -261,7 +232,7 @@ export default async function PricingPage() {
           <h2 className="font-bold text-slate-900 text-xl mb-8 text-center">Common questions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {[
-              { q: "How much does it cost?", a: `Plans start from ${startingPrice}/month depending on your school size. Contact us on WhatsApp and we'll give you an exact quote — usually within minutes.` },
+              { q: "How much does it cost?", a: "Pricing depends on your school size and needs. Contact us on WhatsApp and we'll give you an exact quote — usually within minutes." },
               { q: "Do I need a credit card to start?", a: "No. Your first month is completely free with no payment details required. We'll reach out before the trial ends." },
               { q: "What happens after the free month?", a: "We'll contact you to arrange payment via mobile money. Monthly or annual — your choice. Annual saves you 2 months." },
               { q: "Can parents use VerifyGate for free?", a: "Yes. Parents never pay anything. The school subscription covers every parent, student, and guard account." },

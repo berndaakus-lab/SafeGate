@@ -494,8 +494,8 @@ export default async function SchoolPitchPage() {
       <section className="bg-slate-50 border-y border-slate-100 py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">Simple pricing. Priced by school size.</h2>
-            <p className="text-slate-500 text-lg mb-5">No per-parent fees. No per-scan fees. One flat monthly rate covers your entire school.</p>
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">Plans for every school size.</h2>
+            <p className="text-slate-500 text-lg mb-5">No per-parent fees. No per-scan fees. One flat rate covers your entire school — contact us for your school&apos;s price.</p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold">
                 🎉 First month free — no credit card
@@ -508,42 +508,10 @@ export default async function SchoolPitchPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {[
-              {
-                name: "Starter",
-                students: "Up to 100 students",
-                price: "GH₵150",
-                period: "/month",
-                highlight: false,
-                dark: false,
-                badge: null,
-              },
-              {
-                name: "Growth",
-                students: "101 – 500 students",
-                price: "GH₵300",
-                period: "/month",
-                highlight: true,
-                dark: false,
-                badge: "Most Popular",
-              },
-              {
-                name: "Premier",
-                students: "501 – 1,000 students",
-                price: "GH₵500",
-                period: "/month",
-                highlight: false,
-                dark: false,
-                badge: null,
-              },
-              {
-                name: "Enterprise",
-                students: "Multiple campuses or custom features",
-                price: "Contact us",
-                period: "",
-                highlight: false,
-                dark: true,
-                badge: "Custom",
-              },
+              { name: "Starter", students: "Up to 100 students", highlight: false, dark: false, badge: null },
+              { name: "Growth", students: "101 – 500 students", highlight: true, dark: false, badge: "Most Popular" },
+              { name: "Premier", students: "501 – 1,000 students", highlight: false, dark: false, badge: null },
+              { name: "Enterprise", students: "Multiple campuses or custom features", highlight: false, dark: true, badge: "Custom" },
             ].map((t) => (
               <div key={t.name} className={`rounded-2xl overflow-hidden relative ${t.highlight ? "bg-blue-600 ring-2 ring-blue-400 shadow-2xl shadow-blue-200" : t.dark ? "bg-slate-900" : "bg-white border border-slate-100 shadow-sm"}`}>
                 {t.badge && (
@@ -559,12 +527,11 @@ export default async function SchoolPitchPage() {
                     {t.name}
                   </p>
                   <div className={`rounded-xl p-3 ${t.highlight ? "bg-blue-700/50" : t.dark ? "bg-slate-800" : "bg-slate-50"}`}>
-                    <p className={`font-black text-xl ${t.highlight ? "text-white" : t.dark ? "text-white" : "text-slate-900"}`}>
-                      {t.price}
-                      {t.period && <span className={`text-sm font-medium ml-0.5 ${t.highlight ? "text-blue-200" : "text-slate-400"}`}>{t.period}</span>}
+                    <p className={`font-bold text-base ${t.highlight ? "text-white" : t.dark ? "text-white" : "text-slate-900"}`}>
+                      Contact us
                     </p>
                     <p className={`text-xs mt-1 ${t.highlight ? "text-blue-300" : t.dark ? "text-slate-400" : "text-slate-400"}`}>
-                      {t.dark ? "Tailored pricing · WhatsApp us" : "First month free · All features included"}
+                      First month free · All features included
                     </p>
                   </div>
                 </div>
