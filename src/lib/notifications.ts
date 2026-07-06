@@ -5,6 +5,7 @@
 import webpush from "web-push";
 import { supabaseAdmin } from "./supabase";
 import { withRetry } from "./retry";
+import { smsService } from "./sms";
 
 // VAPID must be set in env
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
@@ -112,7 +113,7 @@ export async function sendNotification({
   if (parentPhone) {
     try {
       await withRetry(
-        () => sendPickupSMSRaw({ phone: parentPhone, message: smsText }),
+        () => smsService.send({ to: parentPhone, message: smsText }),
         { label: "sms-fallback" }
       );
       const outcome: LogOutcome = subs && subs.length > 0 ? "push_fail_sms_ok" : "sms_only_ok";
@@ -128,25 +129,6 @@ export async function sendNotification({
   }
 }
 
-// Raw SMS send (message already composed)
-async function sendPickupSMSRaw({ phone, message }: { phone: string; message: string }) {
-  const apiKey = process.env.NKOMO_API_KEY;
-  const senderId = process.env.NKOMO_SENDER_ID || "VerifyGate";
-  if (!apiKey) throw new Error("NKOMO_API_KEY not set");
-
-  const clean = phone.replace(/\D/g, "");
-  const intl = clean.startsWith("233") ? clean : clean.startsWith("0") ? "233" + clean.slice(1) : clean;
-
-  const res = await fetch("https://app.nkomosms.com/api/v3/sms/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ sender_id: senderId, message, recipient: intl }),
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(`Nkomo ${res.status}: ${JSON.stringify(body)}`);
-  }
-}
 
 /**
  * Send a broadcast push to all parents of a specific school.
