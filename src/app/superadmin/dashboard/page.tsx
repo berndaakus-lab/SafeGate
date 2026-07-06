@@ -31,7 +31,7 @@ export default async function SuperAdminDashboard() {
     supabaseAdmin.from("demo_requests").select("*", { count: "exact", head: true }).eq("status", "onboarded"),
     supabaseAdmin.from("schools").select("id, name, plan, is_active, created_at").order("created_at", { ascending: false }),
     supabaseAdmin.from("demo_requests").select("id, name, school_name, status, created_at").order("created_at", { ascending: false }).limit(5),
-    supabaseAdmin.from("notification_logs").select("outcome, created_at").order("created_at", { ascending: false }).limit(200),
+    supabaseAdmin.from("notification_logs").select("outcome, error, created_at").order("created_at", { ascending: false }).limit(200),
   ]);
 
   const conversionRate = leadsTotal ? Math.round(((leadsOnboarded ?? 0) / leadsTotal) * 100) : 0;
@@ -169,18 +169,25 @@ export default async function SuperAdminDashboard() {
         {notifLogs && notifLogs.length > 0 && (
           <div className="border-t border-slate-50 pt-4">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Recent events</p>
-            <div className="space-y-1.5">
-              {notifLogs.slice(0, 6).map((log: any, i: number) => (
-                <div key={i} className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-1.5 h-1.5 rounded-full ${
-                      log.outcome === "push_ok" ? "bg-green-500" :
-                      log.outcome?.includes("sms_ok") ? "bg-amber-500" :
-                      "bg-red-400"
-                    }`} />
-                    <span className="text-slate-600 font-mono">{log.outcome}</span>
+            <div className="space-y-2">
+              {notifLogs.slice(0, 8).map((log: any, i: number) => (
+                <div key={i} className="text-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                        log.outcome === "push_ok" ? "bg-green-500" :
+                        log.outcome?.includes("sms_ok") ? "bg-amber-500" :
+                        "bg-red-400"
+                      }`} />
+                      <span className="text-slate-600 font-mono">{log.outcome}</span>
+                    </div>
+                    <span className="text-slate-400">{formatTime(log.created_at)}</span>
                   </div>
-                  <span className="text-slate-400">{formatTime(log.created_at)}</span>
+                  {log.error && (
+                    <p className="ml-3.5 mt-0.5 text-red-500 font-mono truncate" title={log.error}>
+                      ↳ {log.error}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
