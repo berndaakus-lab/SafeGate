@@ -494,34 +494,45 @@ export default async function SchoolPitchPage() {
       <section className="bg-slate-50 border-y border-slate-100 py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">Priced by school size. Everything included.</h2>
-            <p className="text-slate-500 text-lg mb-5">No per-parent fees. No per-scan fees. One flat rate covers your entire school.</p>
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">Plans for every school size.</h2>
+            <p className="text-slate-500 text-lg mb-5">No per-parent fees. No per-scan fees. One flat rate covers your entire school — contact us for your school&apos;s price.</p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold">
                 🎉 First month free — no credit card
               </div>
               <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold">
-                📅 Annual plan = 2 months free
+                📅 Pay via Mobile Money (MoMo)
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {[
-              { name: "Standard", students: "Up to 100 students", highlight: false },
-              { name: "Growth", students: "101 – 500 students", highlight: true, badge: "Most Popular" },
-              { name: "Premier", students: "500+ students", highlight: false },
-              { name: "International", students: "Any size", highlight: false, badge: "Premium", dark: true },
+              { name: "Starter", students: "Up to 100 students", highlight: false, dark: false, badge: null },
+              { name: "Growth", students: "101 – 500 students", highlight: true, dark: false, badge: "Most Popular" },
+              { name: "Premier", students: "501 – 1,000 students", highlight: false, dark: false, badge: null },
+              { name: "Enterprise", students: "Multiple campuses or custom features", highlight: false, dark: true, badge: "Custom" },
             ].map((t) => (
               <div key={t.name} className={`rounded-2xl overflow-hidden relative ${t.highlight ? "bg-blue-600 ring-2 ring-blue-400 shadow-2xl shadow-blue-200" : t.dark ? "bg-slate-900" : "bg-white border border-slate-100 shadow-sm"}`}>
-                {t.badge && <span className="absolute top-0 right-0 bg-amber-400 text-amber-900 text-xs font-black px-3 py-1 rounded-bl-xl">{t.badge}</span>}
+                {t.badge && (
+                  <span className="absolute top-0 right-0 bg-amber-400 text-amber-900 text-xs font-black px-3 py-1 rounded-bl-xl">
+                    {t.badge}
+                  </span>
+                )}
                 <div className="p-5">
-                  <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${t.highlight ? "text-blue-200" : t.dark ? "text-slate-400" : "text-slate-400"}`}>{t.students}</p>
-                  <p className={`font-black text-lg mb-4 ${t.highlight ? "text-white" : t.dark ? "text-white" : "text-slate-900"}`}>{t.name}</p>
+                  <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${t.highlight ? "text-blue-200" : t.dark ? "text-slate-400" : "text-slate-400"}`}>
+                    {t.students}
+                  </p>
+                  <p className={`font-black text-lg mb-4 ${t.highlight ? "text-white" : t.dark ? "text-white" : "text-slate-900"}`}>
+                    {t.name}
+                  </p>
                   <div className={`rounded-xl p-3 ${t.highlight ? "bg-blue-700/50" : t.dark ? "bg-slate-800" : "bg-slate-50"}`}>
-                    <p className={`text-xs mb-0.5 ${t.highlight ? "text-blue-200" : t.dark ? "text-slate-400" : "text-slate-400"}`}>Pricing</p>
-                    <p className={`font-bold text-base ${t.highlight ? "text-white" : t.dark ? "text-white" : "text-slate-900"}`}>Contact us</p>
-                    <p className={`text-xs mt-0.5 ${t.highlight ? "text-blue-300" : t.dark ? "text-slate-400" : "text-slate-400"}`}>First month free · Monthly or annual</p>
+                    <p className={`font-bold text-base ${t.highlight ? "text-white" : t.dark ? "text-white" : "text-slate-900"}`}>
+                      Contact us
+                    </p>
+                    <p className={`text-xs mt-1 ${t.highlight ? "text-blue-300" : t.dark ? "text-slate-400" : "text-slate-400"}`}>
+                      First month free · All features included
+                    </p>
                   </div>
                 </div>
               </div>
@@ -529,7 +540,7 @@ export default async function SchoolPitchPage() {
           </div>
 
           <p className="text-center text-slate-400 text-sm">
-            All plans include every feature. Contact us on WhatsApp and we&apos;ll give you your school&apos;s exact price in minutes.
+            Flat rate per school — no per-parent or per-scan fees. One price, everything included.
           </p>
           <div className="text-center mt-4">
             <Link href="/pricing" className="text-blue-600 font-semibold text-sm hover:underline">
