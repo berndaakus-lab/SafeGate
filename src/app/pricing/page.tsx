@@ -106,7 +106,7 @@ export default async function PricingPage() {
             One flat rate covers your entire school.
           </p>
           <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-5 py-3 rounded-xl text-sm font-semibold">
-            Contact us for your school&apos;s exact price · First month completely free
+            Starting from <span className="font-black text-blue-900 text-base mx-1">GH₵150/month</span> · First month completely free
           </div>
         </div>
 
