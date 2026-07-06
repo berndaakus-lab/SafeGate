@@ -119,6 +119,7 @@ export async function sendNotification({
       await logDelivery({ parentId, studentId, channel: "sms", outcome });
     } catch (err: any) {
       const outcome: LogOutcome = subs && subs.length > 0 ? "push_fail_sms_fail" : "sms_only_fail";
+      console.error("[notify] SMS failed:", err?.message, "| phone:", parentPhone);
       await logDelivery({ parentId, studentId, channel: "sms", outcome, error: err?.message });
     }
   } else {
