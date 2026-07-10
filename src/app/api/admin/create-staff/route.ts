@@ -12,10 +12,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const sessionSchoolId = (session?.user as any)?.schoolId;
     const { name, email, password, role: staffRole, schoolId } = await req.json();
 
     if (!name || !email || !password || !schoolId) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+    if (schoolId !== sessionSchoolId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const { data: existing } = await supabaseAdmin.from("staff").select("id").eq("email", email).single();

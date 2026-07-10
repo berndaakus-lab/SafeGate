@@ -11,9 +11,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const sessionSchoolId = (session?.user as any)?.schoolId;
     const { name, className, parentId, schoolId, photoData } = await req.json();
     if (!name || !parentId || !schoolId) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    }
+    if (role === "admin" && schoolId !== sessionSchoolId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     let photoUrl: string | null = null;
