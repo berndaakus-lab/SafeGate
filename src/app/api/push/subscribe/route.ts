@@ -24,8 +24,18 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  const parentId = (session?.user as any)?.id;
+  if (!parentId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { endpoint } = await req.json();
   if (!endpoint) return NextResponse.json({ error: "Missing endpoint" }, { status: 400 });
-  await supabaseAdmin.from("push_subscriptions").delete().eq("endpoint", endpoint);
+
+  // Only delete subscriptions that belong to the authenticated parent
+  await supabaseAdmin
+    .from("push_subscriptions")
+    .delete()
+    .eq("endpoint", endpoint)
+    .eq("parent_id", parentId);
   return NextResponse.json({ ok: true });
 }

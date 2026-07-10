@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, phone, relation, parentId } = await req.json();
-    if (!name || !parentId) {
+    const session = await getServerSession(authOptions);
+    const parentId = (session?.user as any)?.id;
+    if (!session || !parentId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { name, phone, relation } = await req.json();
+    if (!name) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 

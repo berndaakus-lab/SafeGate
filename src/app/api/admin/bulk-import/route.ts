@@ -10,9 +10,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const sessionSchoolId = (session?.user as any)?.schoolId;
     const { schoolId, studentName, className, parentEmail } = await req.json();
     if (!schoolId || !studentName || !parentEmail) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    }
+    if (schoolId !== sessionSchoolId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Find parent by email within this school

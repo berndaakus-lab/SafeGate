@@ -1,12 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { sendNotification } from "@/lib/notifications";
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    const role = (session?.user as any)?.role;
+    const guardSchoolId = (session?.user as any)?.schoolId;
+    if (!session || role !== "guard" || !guardSchoolId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { pickupCodeId, studentId, authorizedPersonId } = await req.json();
     if (!pickupCodeId || !studentId || !authorizedPersonId) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    }
+
+    // Verify the pickup code belongs to the guard's own school
+    const { data: codeSchool } = await supabaseAdmin
+      .from("pickup_codes")
+      .select("students(school_id)")
+      .eq("id", pickupCodeId)
+      .single();
+    const studentSchoolId = (codeSchool?.students as any)?.school_id;
+    if (studentSchoolId !== guardSchoolId) {
+      return NextResponse.json({ error: "Code does not belong to your school" }, { status: 403 });
     }
 
     // Check not already used
