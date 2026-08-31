@@ -9,11 +9,29 @@ const geist = Geist({
   subsets: ["latin"],
 });
 
+const siteDescription =
+  "Secure, digital school pickup authorization for parents, schools, and security guards in Ghana. QR pickup passes, instant SMS alerts, and a full audit trail.";
+
 export const metadata: Metadata = {
-  title: "VerifyGate — School Pickup Authorization",
-  description: "Secure, digital school pickup authorization for parents, schools, and security guards.",
+  metadataBase: new URL("https://verifygate.app"),
+  title: {
+    default: "VerifyGate — School Pickup Authorization",
+    template: "%s — VerifyGate",
+  },
+  description: siteDescription,
+  keywords: [
+    "school pickup app",
+    "school pickup authorization",
+    "student pickup verification",
+    "school security Ghana",
+    "QR code pickup pass",
+    "school SMS alerts",
+  ],
   manifest: "/manifest.json",
   themeColor: "#1d4ed8",
+  alternates: {
+    canonical: "/",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -30,24 +48,44 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "VerifyGate — School Pickup Authorization",
-    description: "Secure, digital school pickup authorization for parents, schools, and security guards.",
-    url: "https://verifygate-chi.vercel.app",
+    description: siteDescription,
+    url: "/",
     siteName: "VerifyGate",
     images: [
       {
-        url: "https://verifygate-chi.vercel.app/icon-512.png",
+        url: "/icon-512.png",
         width: 512,
         height: 512,
         alt: "VerifyGate",
       },
     ],
+    locale: "en_GH",
     type: "website",
   },
   twitter: {
     card: "summary",
     title: "VerifyGate — School Pickup Authorization",
-    description: "Secure, digital school pickup authorization for parents, schools, and security guards.",
-    images: ["https://verifygate-chi.vercel.app/icon-512.png"],
+    description: siteDescription,
+    images: ["/icon-512.png"],
+  },
+};
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "VerifyGate",
+  applicationCategory: "SecurityApplication",
+  operatingSystem: "Web",
+  description: siteDescription,
+  url: "https://verifygate.app",
+  areaServed: {
+    "@type": "Country",
+    name: "Ghana",
+  },
+  offers: {
+    "@type": "Offer",
+    priceCurrency: "GHS",
+    availability: "https://schema.org/InStock",
   },
 };
 
@@ -59,6 +97,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable} h-full`}>
       <body className="min-h-full bg-slate-50 text-slate-900">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
         <RegisterSW />
         <InstallBanner />
         {children}

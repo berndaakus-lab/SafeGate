@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { Metadata } from "next";
 import {
   Shield, CheckCircle2, ArrowRight, QrCode, Bell, Users,
   ClipboardList, Lock, MessageCircle, Phone,
@@ -9,6 +10,13 @@ import { getSettings, s } from "@/lib/settings";
 import SiteFooter from "@/components/SiteFooter";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "For Schools",
+  description:
+    "See how VerifyGate helps schools in Ghana verify every pickup, alert parents instantly by SMS, and keep a complete digital audit trail.",
+  alternates: { canonical: "/schools" },
+};
 
 export default async function SchoolPitchPage() {
   const settings = await getSettings();
