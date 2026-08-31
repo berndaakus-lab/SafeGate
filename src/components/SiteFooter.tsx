@@ -83,15 +83,7 @@ export default async function SiteFooter() {
         <div className="border-t border-slate-100 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-xs text-slate-400">© {new Date().getFullYear()} VerifyGate 🇬🇭</p>
           <p className="text-xs text-slate-400">
-            Powered by{" "}
-            <a
-              href="https://berndaakus.tech"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-slate-500 hover:text-blue-600 transition-colors"
-            >
-              BTS — Berndaakus Tech Solution
-            </a>
+            Powered by <span className="font-semibold text-slate-500">BTS — Berndaakus Tech Solution</span>
           </p>
         </div>
       </div>
