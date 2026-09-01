@@ -269,7 +269,7 @@ export default function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             {[
               { stat: "< 30s", label: "Average pickup verification time" },
-              { stat: "GHS 3.33/day", label: "Less than the cost of a daily snack" },
+              { stat: "GHS 5/day", label: "Less than the cost of a daily snack" },
               { stat: "100%", label: "Web-based — works on any device, any network" },
             ].map((s) => (
               <div key={s.label}>
