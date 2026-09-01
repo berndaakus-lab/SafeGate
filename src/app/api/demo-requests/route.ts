@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { sendDemoConfirmationEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -21,6 +22,12 @@ export async function POST(req: NextRequest) {
   if (error) {
     console.error("[demo-requests]", error.message);
     return NextResponse.json({ error: "Failed to save request" }, { status: 500 });
+  }
+
+  try {
+    await sendDemoConfirmationEmail({ to: email, contactName: contact_name, schoolName: school_name });
+  } catch (err: any) {
+    console.error("[demo-requests] confirmation email failed:", err.message);
   }
 
   return NextResponse.json({ ok: true });
