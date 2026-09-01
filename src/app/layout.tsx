@@ -32,6 +32,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  verification: {
+    google: "AaZPxO3Oqm2z7QeqmuVvb9j9u7iHpzIGiXXBFg4J-2M",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
