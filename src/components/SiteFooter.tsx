@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getSettings, s } from "@/lib/settings";
+import CopyButton from "@/components/CopyButton";
 
 export default async function SiteFooter() {
   const settings = await getSettings();
@@ -56,9 +57,12 @@ export default async function SiteFooter() {
               <p className="font-semibold text-slate-700 text-xs uppercase tracking-wider">Contact</p>
               <div className="space-y-1.5">
                 {s(settings, "email") && (
-                  <a href={`mailto:${s(settings, "email")}`} className="block text-slate-400 hover:text-slate-600 text-sm">
-                    {s(settings, "email")}
-                  </a>
+                  <span className="flex items-center gap-1.5">
+                    <a href={`mailto:${s(settings, "email")}`} className="text-slate-400 hover:text-slate-600 text-sm">
+                      {s(settings, "email")}
+                    </a>
+                    <CopyButton text={s(settings, "email")} className="text-slate-300 hover:text-slate-500" />
+                  </span>
                 )}
                 {s(settings, "phone") && (
                   <a href={`tel:${s(settings, "phone")}`} className="block text-slate-400 hover:text-slate-600 text-sm">
