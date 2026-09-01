@@ -1,9 +1,9 @@
-// Minimal PNG generator — no dependencies
+// Minimal PNG/ICO generator — no dependencies
 // Run: node generate-icons.mjs
 import { writeFileSync } from "fs";
 import { deflateSync } from "zlib";
 
-function createPNG(size) {
+function drawShield(size) {
   // Draw pixels: blue background, white shield
   const pixels = new Uint8Array(size * size * 4);
 
@@ -58,7 +58,11 @@ function createPNG(size) {
     }
   }
 
-  return encodePNG(size, size, pixels);
+  return pixels;
+}
+
+function createPNG(size) {
+  return encodePNG(size, size, drawShield(size));
 }
 
 function encodePNG(w, h, rgba) {
@@ -114,6 +118,38 @@ function crc32(buf) {
   return c ^ -1;
 }
 
+// ICO container embedding PNG images (supported by all modern browsers/Windows Vista+)
+function createICO(sizes) {
+  const images = sizes.map((size) => createPNG(size));
+  const count = images.length;
+
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0); // reserved
+  header.writeUInt16LE(1, 2); // type: icon
+  header.writeUInt16LE(count, 4);
+
+  let offset = 6 + count * 16;
+  const dirEntries = [];
+  for (let i = 0; i < count; i++) {
+    const size = sizes[i];
+    const data = images[i];
+    const entry = Buffer.alloc(16);
+    entry.writeUInt8(size >= 256 ? 0 : size, 0); // width
+    entry.writeUInt8(size >= 256 ? 0 : size, 1); // height
+    entry.writeUInt8(0, 2); // color count
+    entry.writeUInt8(0, 3); // reserved
+    entry.writeUInt16LE(1, 4); // planes
+    entry.writeUInt16LE(32, 6); // bit count
+    entry.writeUInt32LE(data.length, 8); // size in bytes
+    entry.writeUInt32LE(offset, 12); // offset
+    dirEntries.push(entry);
+    offset += data.length;
+  }
+
+  return Buffer.concat([header, ...dirEntries, ...images]);
+}
+
 writeFileSync("public/icon-192.png", createPNG(192));
 writeFileSync("public/icon-512.png", createPNG(512));
-console.log("Done: public/icon-192.png and public/icon-512.png");
+writeFileSync("src/app/favicon.ico", createICO([16, 32, 48]));
+console.log("Done: public/icon-192.png, public/icon-512.png, src/app/favicon.ico");

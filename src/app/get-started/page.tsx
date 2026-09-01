@@ -1,10 +1,18 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { Metadata } from "next";
 import { MessageCircle, Mail, CheckCircle2, ArrowLeft, Phone } from "lucide-react";
 import ContactForm from "./ContactForm";
 import { getSettings, s } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Get Started",
+  description:
+    "Bring VerifyGate to your school. Get in touch to onboard your school onto secure, digital pickup authorization — first month free.",
+  alternates: { canonical: "/get-started" },
+};
 
 export default async function GetStartedPage() {
   const settings = await getSettings();

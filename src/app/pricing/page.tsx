@@ -1,9 +1,17 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { Metadata } from "next";
 import { CheckCircle2, ArrowRight, ArrowLeft, MessageCircle, Star } from "lucide-react";
 import { getSettings, s } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Pricing",
+  description:
+    "Simple, transparent pricing for VerifyGate — digital school pickup authorization for schools in Ghana. QR passes, SMS alerts, and a full audit trail included.",
+  alternates: { canonical: "/pricing" },
+};
 
 const FEATURES = [
   "Unlimited QR code scans",
