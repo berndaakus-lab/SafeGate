@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# supabase CLI runtime cache (project ref, pooler URL, etc.)
+supabase/.temp
+
 # AI coding tool config (kept locally, not for client-facing repo)
 CLAUDE.md
 AGENTS.md
