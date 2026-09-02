@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { MessageCircle, Mail, CheckCircle2, ArrowLeft, Phone } from "lucide-react";
 import ContactForm from "./ContactForm";
 import { getSettings, s } from "@/lib/settings";
+import CopyButton from "@/components/CopyButton";
 
 export const dynamic = "force-dynamic";
 
@@ -116,7 +117,10 @@ export default async function GetStartedPage() {
               </div>
               <div>
                 <p className="font-bold text-slate-900 text-lg">Send an email</p>
-                <p className="text-slate-400 text-sm">{email}</p>
+                <span className="flex items-center gap-1.5">
+                  <span className="text-slate-400 text-sm">{email}</span>
+                  <CopyButton text={email} className="text-slate-300 hover:text-slate-500" />
+                </span>
               </div>
             </a>
 

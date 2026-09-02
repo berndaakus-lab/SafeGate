@@ -30,17 +30,6 @@ export default async function SchoolPitchPage() {
   return (
     <div className="min-h-screen bg-white">
 
-      {/* ── Sticky WhatsApp CTA ── */}
-      <a
-        href={waLink}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-5 py-3.5 rounded-2xl shadow-2xl shadow-green-900/30 font-bold text-sm transition-all hover:scale-105"
-      >
-        <MessageCircle className="w-5 h-5" />
-        Chat with us on WhatsApp
-      </a>
-
       {/* ── Nav ── */}
       <nav className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-100">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
