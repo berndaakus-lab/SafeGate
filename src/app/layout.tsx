@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import RegisterSW from "@/components/RegisterSW";
 import InstallBanner from "@/components/InstallBanner";
 import "./globals.css";
@@ -107,6 +108,7 @@ export default function RootLayout({
         <RegisterSW />
         <InstallBanner />
         {children}
+        <Analytics />
       </body>
     </html>
   );
