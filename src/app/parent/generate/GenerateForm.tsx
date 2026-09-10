@@ -82,7 +82,7 @@ export default function GenerateForm({
       {!missingChild && missingPerson && (
         <div className="bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 rounded-2xl text-sm mb-4">
           <p className="font-semibold mb-1">No pickup persons added yet</p>
-          <p className="mb-3">Add the people who are authorised to collect your child — family members, drivers, etc.</p>
+          <p className="mb-3">Add the people who are authorised to collect your child, family members, drivers, etc.</p>
           <a href="/parent/authorized" className="inline-flex items-center gap-1 font-semibold underline underline-offset-2">
             Add Pickup Persons →
           </a>
@@ -103,7 +103,7 @@ export default function GenerateForm({
             <option value="">Select a child...</option>
             {children.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name}{c.class_name ? ` — ${c.class_name}` : ""}
+                {c.name}{c.class_name ? `, ${c.class_name}` : ""}
               </option>
             ))}
           </select>

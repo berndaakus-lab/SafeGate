@@ -53,7 +53,7 @@ export default async function AuthorizedPage() {
       <div className="bg-white rounded-2xl border border-slate-100 p-6">
         <h2 className="font-semibold text-slate-900 mb-1">Add Authorized Person</h2>
         <p className="text-sm text-slate-400 mb-5">
-          Add anyone you trust — uncle, grandparent, driver, family friend.
+          Add anyone you trust, uncle, grandparent, driver, family friend.
         </p>
         <AddPersonForm parentId={parentId} />
       </div>

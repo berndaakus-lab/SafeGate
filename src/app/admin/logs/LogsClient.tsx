@@ -37,7 +37,7 @@ export default function LogsClient({ logs }: { logs: Log[] }) {
         if (new Date(log.picked_up_at) < new Date(dateFrom)) return false;
       }
 
-      // Date to — include full end day
+      // Date to, include full end day
       if (dateTo) {
         const end = new Date(dateTo);
         end.setHours(23, 59, 59, 999);

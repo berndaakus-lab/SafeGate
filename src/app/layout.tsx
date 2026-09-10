@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import RegisterSW from "@/components/RegisterSW";
 import InstallBanner from "@/components/InstallBanner";
+import AOSInit from "@/components/AOSInit";
 import "./globals.css";
 
 const geist = Geist({
@@ -15,8 +16,8 @@ const siteDescription =
 export const metadata: Metadata = {
   metadataBase: new URL("https://verifygate.app"),
   title: {
-    default: "VerifyGate — School Pickup Authorization",
-    template: "%s — VerifyGate",
+    default: "VerifyGate - School Pickup Authorization",
+    template: "%s - VerifyGate",
   },
   description: siteDescription,
   keywords: [
@@ -50,7 +51,7 @@ export const metadata: Metadata = {
     shortcut: "/icon-192.png",
   },
   openGraph: {
-    title: "VerifyGate — School Pickup Authorization",
+    title: "VerifyGate - School Pickup Authorization",
     description: siteDescription,
     url: "/",
     siteName: "VerifyGate",
@@ -67,7 +68,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "VerifyGate — School Pickup Authorization",
+    title: "VerifyGate - School Pickup Authorization",
     description: siteDescription,
     images: ["/icon-512.png"],
   },
@@ -106,6 +107,7 @@ export default function RootLayout({
         />
         <RegisterSW />
         <InstallBanner />
+        <AOSInit />
         {children}
       </body>
     </html>

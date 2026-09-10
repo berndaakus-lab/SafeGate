@@ -42,7 +42,7 @@ export default async function ParentDashboard() {
     <div className="p-6 max-w-4xl">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900">
-          Welcome back, {session?.user?.name?.split(" ")[0]} 👋
+          Welcome back, {session?.user?.name?.split(" ")[0]}
         </h1>
         <p className="text-slate-500 mt-1">Here&apos;s an overview of your children&apos;s pickup status.</p>
       </div>

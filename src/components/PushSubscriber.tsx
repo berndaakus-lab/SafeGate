@@ -34,7 +34,7 @@ export default function PushSubscriber() {
           body: JSON.stringify(sub),
         });
       } catch (e) {
-        // Silent — push is optional, SMS is fallback
+        // Silent, push is optional, SMS is fallback
         console.warn("[push] subscription failed:", e);
       }
     }

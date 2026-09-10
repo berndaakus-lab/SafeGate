@@ -16,7 +16,7 @@ async function sendEmail({
   html: string;
 }) {
   if (!process.env.BREVO_API_KEY) {
-    console.warn("[email] BREVO_API_KEY not set — skipping send");
+    console.warn("[email] BREVO_API_KEY not set, skipping send");
     return;
   }
 
@@ -53,14 +53,14 @@ export async function sendDemoConfirmationEmail({
   await sendEmail({
     to,
     toName: contactName,
-    subject: "We got your request — VerifyGate",
+    subject: "We got your request - VerifyGate",
     html: `
       <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; color: #1e293b;">
         <h2 style="color: #1d4ed8;">Thanks, ${contactName}!</h2>
         <p>We received your request to set up <strong>VerifyGate</strong> for <strong>${schoolName}</strong>.</p>
-        <p>Our team will reach out within 24 hours to schedule a quick walkthrough and get your school set up — first month completely free, no card required.</p>
+        <p>Our team will reach out within 24 hours to schedule a quick walkthrough and get your school set up, first month completely free, no card required.</p>
         <p>In a hurry? Reply to this email or WhatsApp us directly and we'll speed things up.</p>
-        <p style="margin-top: 32px; color: #64748b; font-size: 13px;">— The VerifyGate team</p>
+        <p style="margin-top: 32px; color: #64748b; font-size: 13px;">The VerifyGate team</p>
       </div>
     `,
   });

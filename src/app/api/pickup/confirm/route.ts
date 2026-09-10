@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       .eq("id", pickupCodeId)
       .single();
 
-    // Create pickup log — only columns that exist in the table
+    // Create pickup log, only columns that exist in the table
     const { data: log, error } = await supabaseAdmin
       .from("pickup_logs")
       .insert({
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
       .update({ used_at: new Date().toISOString() })
       .eq("id", pickupCodeId);
 
-    // Send SMS — awaited so Vercel doesn't shut down the function before it fires
+    // Send SMS, awaited so Vercel doesn't shut down the function before it fires
     if (codeData) {
       const parent = Array.isArray(codeData.parents) ? codeData.parents[0] : codeData.parents as any;
       const student = Array.isArray(codeData.students) ? codeData.students[0] : codeData.students as any;
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
         parentPhone: parent?.phone,
         studentId,
         payload: {
-          title: "✅ Pickup Confirmed",
+          title: "Pickup Confirmed",
           body: `${studentName} was picked up by ${collectedBy} at ${time}.`,
           url: "/parent/dashboard",
           icon: "/icon-192.png",

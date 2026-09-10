@@ -127,7 +127,7 @@ export default function ContactForm({ planLabels = {} }: { planLabels?: Record<s
         className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3.5 rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60"
       >
         {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-        {loading ? "Sending..." : "Request Demo — It's Free"}
+        {loading ? "Sending..." : "Request Demo, It's Free"}
       </button>
       <p className="text-xs text-center text-slate-400">No commitment. We&apos;ll contact you to schedule a walkthrough.</p>
     </form>

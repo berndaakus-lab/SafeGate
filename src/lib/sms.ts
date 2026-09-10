@@ -1,4 +1,4 @@
-// Legacy re-export — kept for any existing imports.
+// Legacy re-export, kept for any existing imports.
 // New code should import from "@/lib/sms" (the directory).
 export { smsService } from "./sms/index";
 

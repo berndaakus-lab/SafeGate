@@ -22,7 +22,7 @@ const TIER_KEYS: Record<string, { monthly: string; annual: string; label: string
 const FEATURES = [
   "Unlimited QR code scans",
   "SMS notifications to parents",
-  "Guard scanner — no app needed",
+  "Guard scanner, no app needed",
   "Multiple admin accounts",
   "Guard & teacher roles",
   "Student photo ID",
@@ -41,7 +41,7 @@ export default async function SubscribePage() {
     getSettings(),
   ]);
 
-  // Already on a paid plan — nothing to do
+  // Already on a paid plan, nothing to do
   if (school?.plan && PAID_PLANS.includes(school.plan)) {
     redirect("/admin/dashboard");
   }
@@ -114,7 +114,7 @@ export default async function SubscribePage() {
         <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-4">
           <h2 className="font-semibold text-slate-900 mb-1">Pay via Mobile Money</h2>
           <p className="text-sm text-slate-400 mb-5">
-            Enter your MoMo number below. You&apos;ll receive a payment prompt on your phone — approve it to activate your account.
+            Enter your MoMo number below. You&apos;ll receive a payment prompt on your phone, approve it to activate your account.
           </p>
           <SubscribeForm
             amountGhs={agreedPrice}

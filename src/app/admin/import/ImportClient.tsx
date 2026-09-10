@@ -92,11 +92,11 @@ export default function ImportClient({ schoolId }: { schoolId: string }) {
         </p>
       </div>
 
-      {/* Step 1 — Download template */}
+      {/* Step 1: Download template */}
       <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-semibold text-slate-900 text-sm">Step 1 — Download template</h2>
+            <h2 className="font-semibold text-slate-900 text-sm">Step 1: Download template</h2>
             <p className="text-xs text-slate-400 mt-0.5">Fill it in with your school&apos;s student list</p>
           </div>
           <button
@@ -113,13 +113,13 @@ export default function ImportClient({ schoolId }: { schoolId: string }) {
           <p>Akosua Mensah, KG 2, another@example.com</p>
         </div>
         <p className="text-xs text-amber-600 mt-2">
-          ⚠ Parent accounts must already exist in VerifyGate. Students are matched by parent email.
+          Note: Parent accounts must already exist in VerifyGate. Students are matched by parent email.
         </p>
       </div>
 
-      {/* Step 2 — Upload */}
+      {/* Step 2: Upload */}
       <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-4">
-        <h2 className="font-semibold text-slate-900 text-sm mb-3">Step 2 — Upload your CSV</h2>
+        <h2 className="font-semibold text-slate-900 text-sm mb-3">Step 2: Upload your CSV</h2>
         <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={handleFile} />
         <button
           onClick={() => { fileRef.current?.click(); setDone(false); setRows([]); }}

@@ -9,7 +9,7 @@ export default async function AdminDashboard() {
   const session = await getServerSession(authOptions);
   const schoolId = (session?.user as any)?.schoolId;
 
-  // Fetch student IDs first — Supabase ignores .eq("joined_table.col", val) silently
+  // Fetch student IDs first, Supabase ignores .eq("joined_table.col", val) silently
   const { data: studentRows } = await supabaseAdmin
     .from("students")
     .select("id")

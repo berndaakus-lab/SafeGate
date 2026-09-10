@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function ManageSchoolPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  // Fetch student IDs first — Supabase ignores .eq("joined_table.col", val) silently
+  // Fetch student IDs first, Supabase ignores .eq("joined_table.col", val) silently
   const { data: studentRows } = await supabaseAdmin
     .from("students")
     .select("id")

@@ -17,7 +17,7 @@ export default function PaymentLinkPanel({
   const subscribeUrl = `${typeof window !== "undefined" ? window.location.origin : "https://verifygate.app"}/admin/subscribe`;
 
   const waMsg = encodeURIComponent(
-    `Hi ${schoolName},\n\nYour VerifyGate school account is ready! 🎉\n\nTo activate your subscription, please click the link below and pay via Mobile Money:\n\n${subscribeUrl}\n\nOnce payment is confirmed, your account will be fully active. Contact us if you need any help.\n\n— VerifyGate Team`
+    `Hi ${schoolName},\n\nYour VerifyGate school account is ready.\n\nTo activate your subscription, please click the link below and pay via Mobile Money:\n\n${subscribeUrl}\n\nOnce payment is confirmed, your account will be fully active. Contact us if you need any help.\n\n- VerifyGate Team`
   );
 
   const waLink = `https://wa.me/${whatsapp}?text=${waMsg}`;
@@ -70,7 +70,7 @@ export default function PaymentLinkPanel({
 
       <p className="text-xs text-slate-400">
         The school admin opens this link, enters their MoMo number, and pays.
-        Payment is confirmed instantly via Paystack — their account activates automatically.
+        Payment is confirmed instantly via Paystack, their account activates automatically.
       </p>
     </div>
   );

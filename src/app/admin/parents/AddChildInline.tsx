@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Loader2, GraduationCap, Camera, X } from "lucide-react";
+import { Plus, Loader2, GraduationCap, Camera, X, Check } from "lucide-react";
 
 async function compressImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -91,8 +91,8 @@ export default function AddChildInline({
   return (
     <div>
       {success && (
-        <p className="text-xs text-green-600 font-medium mb-2">
-          ✓ Child added to {parentName}&apos;s account
+        <p className="text-xs text-green-600 font-medium mb-2 flex items-center gap-1">
+          <Check className="w-3.5 h-3.5" /> Child added to {parentName}&apos;s account
         </p>
       )}
 
