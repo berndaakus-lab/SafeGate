@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Get Started",
   description:
-    "Bring VerifyGate to your school. Get in touch to onboard your school onto secure, digital pickup authorization — first month free.",
+    "Bring VerifyGate to your school. Get in touch to onboard your school onto secure, digital pickup authorization, first month free.",
   alternates: { canonical: "/get-started" },
 };
 
@@ -37,26 +37,26 @@ export default async function GetStartedPage() {
       </nav>
 
       <div className="max-w-5xl mx-auto px-6 py-16">
-        <div className="text-center mb-14">
+        <div className="text-center mb-14" data-aos="fade-up">
           <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
-            🎉 First month completely free
+            First month completely free
           </div>
           <h1 className="text-4xl font-bold text-slate-900 mb-4">Get your school onboarded today</h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto">
             Join schools across Ghana using VerifyGate to make every pickup safe, verified, and logged.
-            We set everything up for you — your school can be live within 24 hours.
+            We set everything up for you, your school can be live within 24 hours.
           </p>
         </div>
 
         {/* What you get */}
-        <div className="bg-blue-600 rounded-2xl p-8 mb-12 text-white">
+        <div className="bg-blue-600 rounded-2xl p-8 mb-12 text-white" data-aos="fade-up">
           <h2 className="font-bold text-xl mb-6">What you get in your free month</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
               "Unlimited parent accounts",
               "Unlimited QR code scans",
               "SMS notifications to parents",
-              "Guard scanner — no app needed",
+              "Guard scanner, no app needed",
               "Full pickup audit trail",
               "School admin dashboard",
               "Bulk student import",
@@ -70,14 +70,14 @@ export default async function GetStartedPage() {
           </div>
           <p className="text-blue-200 text-sm mt-6">
             After your free month, plans start from{" "}
-            <strong className="text-white">GH₵150/month</strong>{" "}
-            — contact us for your school&apos;s exact rate.
+            <strong className="text-white">GH₵150/month</strong>
+            , contact us for your school&apos;s exact rate.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Demo request form */}
-          <div className="bg-white rounded-2xl border border-slate-100 p-8">
+          <div className="bg-white rounded-2xl border border-slate-100 p-8" data-aos="fade-right">
             <h2 className="font-bold text-slate-900 text-xl mb-2">Request a demo</h2>
             <p className="text-slate-500 text-sm mb-6">
               Fill in your details and we&apos;ll reach out within 24 hours to walk you through the platform.
@@ -92,7 +92,7 @@ export default async function GetStartedPage() {
           </div>
 
           {/* Quick contact */}
-          <div className="space-y-4">
+          <div className="space-y-4" data-aos="fade-left">
             <a
               href={`https://wa.me/${whatsapp}?text=${waMsg}`}
               target="_blank"

@@ -18,7 +18,7 @@ export async function withRetry<T>(
     } catch (err: any) {
       lastErr = err;
       if (!isRetryable(err) || i === attempts - 1) break;
-      console.warn(`[retry] ${label} attempt ${i + 1} failed — retrying in ${delays[i]}ms`);
+      console.warn(`[retry] ${label} attempt ${i + 1} failed, retrying in ${delays[i]}ms`);
       await new Promise((r) => setTimeout(r, delays[i]));
     }
   }

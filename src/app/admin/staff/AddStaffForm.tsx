@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { Loader2, Plus } from "lucide-react";
 
 const roles = [
-  { value: "admin", label: "Admin — full access" },
-  { value: "guard", label: "Guard — scan QR only" },
-  { value: "teacher", label: "Teacher — view logs" },
+  { value: "admin", label: "Admin, full access" },
+  { value: "guard", label: "Guard, scan QR only" },
+  { value: "teacher", label: "Teacher, view logs" },
 ];
 
 export default function AddStaffForm({ schoolId }: { schoolId: string }) {

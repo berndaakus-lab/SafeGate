@@ -1,5 +1,5 @@
 /**
- * Central notification service — Web Push primary, SMS fallback.
+ * Central notification service, Web Push primary, SMS fallback.
  * All delivery outcomes are logged to notification_logs table.
  */
 import webpush from "web-push";
@@ -55,11 +55,11 @@ async function logDelivery({
 async function sendPush(subscription: any, payload: NotificationPayload): Promise<boolean> {
   if (!process.env.VAPID_PUBLIC_KEY) return false;
   try {
-    // No retry — push either works instantly or we fall back to SMS immediately
+    // No retry, push either works instantly or we fall back to SMS immediately
     await webpush.sendNotification(subscription, JSON.stringify(payload));
     return true;
   } catch (err: any) {
-    // 410 Gone = subscription expired/invalid — remove it
+    // 410 Gone = subscription expired/invalid, remove it
     if (err?.statusCode === 410) {
       await supabaseAdmin
         .from("push_subscriptions")
@@ -109,7 +109,7 @@ export async function sendNotification({
     return;
   }
 
-  // Push failed or no subscription — fall back to SMS
+  // Push failed or no subscription, fall back to SMS
   if (parentPhone) {
     try {
       await withRetry(
@@ -132,7 +132,7 @@ export async function sendNotification({
 
 /**
  * Send a broadcast push to all parents of a specific school.
- * Non-blocking — fires and resolves immediately.
+ * Non-blocking, fires and resolves immediately.
  */
 export async function broadcastToSchool({
   schoolId,

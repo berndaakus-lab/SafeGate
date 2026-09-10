@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     await webpush.sendNotification(
       sub.subscription_json,
       JSON.stringify({
-        title: "✅ Test Push — VerifyGate",
+        title: "Test Push - VerifyGate",
         body: "Push notifications are working correctly!",
         url: "/parent/dashboard",
         icon: "/icon-192.png",

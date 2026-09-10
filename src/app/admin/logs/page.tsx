@@ -40,11 +40,11 @@ export default async function LogsPage() {
     return {
       id: l.id,
       picked_up_at: l.picked_up_at,
-      studentName: l.students?.name ?? "—",
+      studentName: l.students?.name ?? "N/A",
       className: l.students?.class_name ?? "",
-      collectedBy: l.authorized_persons?.name ?? "—",
+      collectedBy: l.authorized_persons?.name ?? "N/A",
       relation: l.authorized_persons?.relation ?? "",
-      parentName: parent?.name ?? "—",
+      parentName: parent?.name ?? "N/A",
     };
   });
 

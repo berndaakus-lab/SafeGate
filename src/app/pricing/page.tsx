@@ -9,14 +9,13 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Simple, transparent pricing for VerifyGate — digital school pickup authorization for schools in Ghana. QR passes, SMS alerts, and a full audit trail included.",
+    "Simple, transparent pricing for VerifyGate, digital school pickup authorization for schools in Ghana. QR passes, SMS alerts, and a full audit trail included.",
   alternates: { canonical: "/pricing" },
 };
 
 const FEATURES = [
   "Unlimited QR code scans",
-  "SMS notifications to parents",
-  "Guard scanner — no app needed",
+  "Guard scanner, no app needed",
   "Parent & student accounts",
   "Multiple admin accounts",
   "Guard & teacher roles",
@@ -30,12 +29,14 @@ const TIERS = [
   {
     name: "Standard",
     students: "Up to 100 students",
+    smsCap: "2,500 SMS included/month",
     highlight: false,
     extras: [],
   },
   {
     name: "Growth",
     students: "101 – 500 students",
+    smsCap: "12,000 SMS included/month",
     highlight: true,
     badge: "Most Popular",
     extras: [],
@@ -43,12 +44,14 @@ const TIERS = [
   {
     name: "Premier",
     students: "501 – 1,000 students",
+    smsCap: "24,000 SMS included/month",
     highlight: false,
     extras: [],
   },
   {
     name: "Enterprise",
     students: "Multiple campuses or custom",
+    smsCap: "Custom SMS volume",
     highlight: false,
     badge: "Custom",
     extras: [
@@ -102,9 +105,9 @@ export default async function PricingPage() {
       <div className="max-w-5xl mx-auto px-6 py-16">
 
         {/* Header */}
-        <div className="text-center mb-14">
+        <div className="text-center mb-14" data-aos="fade-up">
           <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-semibold mb-6">
-            🎉 First month completely free — no credit card needed
+            First month completely free, no credit card needed
           </div>
           <h1 className="text-4xl font-bold text-slate-900 mb-4">
             Priced for your school size
@@ -120,12 +123,14 @@ export default async function PricingPage() {
 
         {/* Tier cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-14">
-          {TIERS.map((tier) => {
+          {TIERS.map((tier, i) => {
             const isEnterprise = tier.name === "Enterprise";
             const isDark = isEnterprise;
             return (
               <div
                 key={tier.name}
+                data-aos="fade-up"
+                data-aos-delay={i * 100}
                 className={`rounded-2xl flex flex-col relative overflow-hidden ${
                   tier.highlight
                     ? "bg-blue-600 shadow-2xl shadow-blue-200 ring-2 ring-blue-400"
@@ -166,6 +171,14 @@ export default async function PricingPage() {
                   </div>
 
                   <ul className="space-y-2 flex-1 mb-6">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${
+                        tier.highlight ? "text-blue-200" : isDark ? "text-blue-400" : "text-blue-500"
+                      }`} />
+                      <span className={`text-xs leading-relaxed font-semibold ${
+                        tier.highlight ? "text-blue-50" : isDark ? "text-slate-300" : "text-slate-600"
+                      }`}>{tier.smsCap}</span>
+                    </li>
                     {FEATURES.map((f) => (
                       <li key={f} className="flex items-start gap-2">
                         <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${
@@ -205,8 +218,12 @@ export default async function PricingPage() {
           })}
         </div>
 
-        {/* What's included — full feature breakdown */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-8 mb-12">
+        <p className="text-center text-xs text-slate-400 mb-14 -mt-8">
+          Extra SMS beyond your plan's included volume billed at GH₵0.05/SMS. Most schools never come close to their limit.
+        </p>
+
+        {/* What's included, full feature breakdown */}
+        <div className="bg-white border border-slate-100 rounded-2xl p-8 mb-12" data-aos="fade-up">
           <h2 className="font-bold text-slate-900 text-xl mb-2 text-center">Everything included on every plan</h2>
           <p className="text-slate-400 text-sm text-center mb-8">No locked features. No upsells. Your plan size only determines how many students you can enroll.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -216,10 +233,10 @@ export default async function PricingPage() {
               { title: "SMS Notifications", desc: "Parent receives an SMS the moment their child is confirmed picked up. Works on any network." },
               { title: "Pickup Audit Trail", desc: "Every pickup logged with time, collector name, and guard who confirmed. Searchable forever." },
               { title: "Admin Dashboard", desc: "Real-time view of today's pickups, all parents, all students, and school activity." },
-              { title: "Multiple Roles", desc: "Separate logins for school admins, security guards, and teachers — each sees only what they need." },
+              { title: "Multiple Roles", desc: "Separate logins for school admins, security guards, and teachers, each sees only what they need." },
               { title: "Student Photo ID", desc: "Upload student photos so guards can visually confirm the right child every time." },
               { title: "Bulk Import", desc: "Upload a spreadsheet to add hundreds of students and parents at once. No manual entry." },
-              { title: "Authorised Collectors", desc: "Parents can set different collectors per pickup — not just one saved contact." },
+              { title: "Authorised Collectors", desc: "Parents can set different collectors per pickup, not just one saved contact." },
               { title: "Annual Billing Option", desc: "Pay annually and get 2 months free. Simple mobile money payment, no bank card needed." },
               { title: "No Hardware Needed", desc: "Runs on any smartphone. No devices, scanners, or equipment to buy or maintain." },
               { title: "Fast Setup", desc: "Your school can be live and scanning in under 24 hours. We handle the onboarding." },
@@ -236,16 +253,16 @@ export default async function PricingPage() {
         </div>
 
         {/* FAQ */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-8 mb-12">
+        <div className="bg-white rounded-2xl border border-slate-100 p-8 mb-12" data-aos="fade-up">
           <h2 className="font-bold text-slate-900 text-xl mb-8 text-center">Common questions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {[
-              { q: "How much does it cost?", a: "Pricing depends on your school size and needs. Contact us on WhatsApp and we'll give you an exact quote — usually within minutes." },
+              { q: "How much does it cost?", a: "Pricing depends on your school size and needs. Contact us on WhatsApp and we'll give you an exact quote, usually within minutes." },
               { q: "Do I need a credit card to start?", a: "No. Your first month is completely free with no payment details required. We'll reach out before the trial ends." },
-              { q: "What happens after the free month?", a: "We'll contact you to arrange payment via mobile money. Monthly or annual — your choice. Annual saves you 2 months." },
+              { q: "What happens after the free month?", a: "We'll contact you to arrange payment via mobile money. Monthly or annual, your choice. Annual saves you 2 months." },
               { q: "Can parents use VerifyGate for free?", a: "Yes. Parents never pay anything. The school subscription covers every parent, student, and guard account." },
               { q: "Is the price per branch or per school?", a: "Per school campus. Running multiple branches? Contact us and we'll work out a group rate." },
-              { q: "Do you support international schools?", a: "Yes — our International plan includes a custom SMS sender ID with your school name, co-branded experience, and a dedicated support contact." },
+              { q: "Do you support international schools?", a: "Yes, our International plan includes a custom SMS sender ID with your school name, co-branded experience, and a dedicated support contact." },
               { q: "How do you handle student data?", a: "All data is stored securely and never shared with third parties. Child safety and privacy are our top priorities." },
               { q: "Can we cancel anytime?", a: "Yes, no contracts or lock-in. If you need to cancel, just let us know and we'll sort it out promptly." },
             ].map(({ q, a }) => (
@@ -258,10 +275,10 @@ export default async function PricingPage() {
         </div>
 
         {/* Final CTA */}
-        <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 rounded-2xl p-12 text-center">
+        <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 rounded-2xl p-12 text-center" data-aos="zoom-in">
           <h2 className="text-3xl font-black text-white mb-3">Ready to get a price for your school?</h2>
           <p className="text-slate-300 mb-8 max-w-lg mx-auto">
-            Tell us your school name and how many students you have. We&apos;ll send you an exact quote and set up your free month — usually same day.
+            Tell us your school name and how many students you have. We&apos;ll send you an exact quote and set up your free month, usually same day.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a

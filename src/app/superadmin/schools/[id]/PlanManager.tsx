@@ -135,7 +135,7 @@ export default function PlanManager({
         </p>
       )}
 
-      {/* Trial end date — only for trial */}
+      {/* Trial end date, only for trial */}
       {showTrialFields && (
         <div>
           <label className="block text-xs font-medium text-slate-600 mb-1.5">Trial ends on</label>
@@ -148,7 +148,7 @@ export default function PlanManager({
         </div>
       )}
 
-      {/* Max students — for trial and standard */}
+      {/* Max students, for trial and standard */}
       {showMaxStudents && (
         <div>
           <label className="block text-xs font-medium text-slate-600 mb-1.5">

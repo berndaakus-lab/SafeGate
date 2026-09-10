@@ -80,7 +80,7 @@ export default function SubscribeForm({ amountGhs, reference: _ref }: { amountGh
           className="flex items-center gap-2 mx-auto bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60"
         >
           {phase === "polling" && <Loader2 className="w-4 h-4 animate-spin" />}
-          {phase === "polling" ? "Checking..." : "I've approved — check payment"}
+          {phase === "polling" ? "Checking..." : "I've approved, check payment"}
         </button>
         <button
           onClick={() => setPhase("idle")}

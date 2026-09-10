@@ -72,7 +72,7 @@ export default function SettingsClient({ settings }: { settings: Settings }) {
           <h2 className="font-semibold text-slate-900">Pricing Tiers</h2>
         </div>
         <p className="text-xs text-slate-400 mb-6">
-          For internal use and proposals only — prices are not shown publicly. Annual = 10× monthly (2 months free).
+          For internal use and proposals only, prices are not shown publicly. Annual = 10× monthly (2 months free).
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="space-y-3 bg-slate-50 rounded-xl p-4">
@@ -82,7 +82,7 @@ export default function SettingsClient({ settings }: { settings: Settings }) {
             <Field label="Annual price" value={data.tier_standard_annual ?? ""} onChange={set("tier_standard_annual")} placeholder="GH₵1,500" />
           </div>
           <div className="space-y-3 bg-blue-50 rounded-xl p-4">
-            <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">Growth ★ Most Popular</p>
+            <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">Growth - Most Popular</p>
             <p className="text-xs text-slate-400 -mt-1">101 – 500 students</p>
             <Field label="Monthly price" value={data.tier_growth_monthly ?? ""} onChange={set("tier_growth_monthly")} placeholder="GH₵300" />
             <Field label="Annual price" value={data.tier_growth_annual ?? ""} onChange={set("tier_growth_annual")} placeholder="GH₵3,000" />
@@ -94,7 +94,7 @@ export default function SettingsClient({ settings }: { settings: Settings }) {
             <Field label="Annual price" value={data.tier_premier_annual ?? ""} onChange={set("tier_premier_annual")} placeholder="GH₵5,000" />
           </div>
           <div className="space-y-3 bg-slate-900 rounded-xl p-4">
-            <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">Enterprise ★ Custom</p>
+            <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">Enterprise - Custom</p>
             <p className="text-xs text-slate-400 -mt-1">Multiple campuses or custom features</p>
             <Field label="Monthly price" value={data.tier_international_monthly ?? ""} onChange={set("tier_international_monthly")} placeholder="Custom" />
             <Field label="Annual price" value={data.tier_international_annual ?? ""} onChange={set("tier_international_annual")} placeholder="Custom" />

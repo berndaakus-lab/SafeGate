@@ -151,7 +151,7 @@ export default function ImportParentsModal({ schoolId }: { schoolId: string }) {
               <p className="text-sm font-medium text-blue-900">Use the template CSV</p>
               <p className="text-xs text-blue-600 mt-0.5">
                 Columns: parent_name, parent_email, parent_phone, default_password, child_name, child_class.
-                One row per child — same parent email on multiple rows adds multiple children.
+                One row per child, same parent email on multiple rows adds multiple children.
               </p>
             </div>
             <button
@@ -172,7 +172,7 @@ export default function ImportParentsModal({ schoolId }: { schoolId: string }) {
             >
               <FileText className="w-8 h-8 text-slate-300" />
               <span className="text-sm font-medium text-slate-600">
-                {rows.length > 0 ? `${rows.length} rows loaded — click to replace` : "Click to choose CSV file"}
+                {rows.length > 0 ? `${rows.length} rows loaded, click to replace` : "Click to choose CSV file"}
               </span>
             </button>
           </div>
@@ -197,7 +197,7 @@ export default function ImportParentsModal({ schoolId }: { schoolId: string }) {
                     {r.status === "error" && <XCircle className="w-4 h-4 text-red-500 shrink-0" />}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-slate-800 truncate">
-                        {r.row.parent_name} — {r.row.parent_email}
+                        {r.row.parent_name}, {r.row.parent_email}
                         {r.row.child_name && <span className="text-slate-400"> · {r.row.child_name}</span>}
                       </p>
                       {r.message && (

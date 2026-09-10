@@ -50,7 +50,7 @@ export default async function SuperAdminDashboard() {
     <div className="p-6 max-w-6xl space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Super Admin</h1>
-        <p className="text-slate-500 mt-1">Platform overview — all schools on VerifyGate.</p>
+        <p className="text-slate-500 mt-1">Platform overview, all schools on VerifyGate.</p>
       </div>
 
       {/* Core stats */}

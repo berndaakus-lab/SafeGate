@@ -16,7 +16,7 @@ export default function InstallBanner() {
     // Don't show if user already dismissed this session
     if (sessionStorage.getItem("pwa-dismissed")) return;
 
-    // iOS detection — Safari doesn't fire beforeinstallprompt
+    // iOS detection, Safari doesn't fire beforeinstallprompt
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !(window as any).MSStream;
     if (ios) {
       setIsIOS(true);
@@ -62,7 +62,7 @@ export default function InstallBanner() {
               </p>
             ) : (
               <p className="text-xs text-slate-500 mt-0.5">
-                Add to your home screen for quick access — works offline too.
+                Add to your home screen for quick access, works offline too.
               </p>
             )}
           </div>

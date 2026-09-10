@@ -85,9 +85,9 @@ export default async function SiteFooter() {
         </div>
 
         <div className="border-t border-slate-100 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-slate-400">© {new Date().getFullYear()} VerifyGate 🇬🇭</p>
+          <p className="text-xs text-slate-400">© {new Date().getFullYear()} VerifyGate</p>
           <p className="text-xs text-slate-400">
-            Powered by <span className="font-semibold text-slate-500">BTS — Berndaakus Tech Solution</span>
+            Powered by <span className="font-semibold text-slate-500">BTS - Berndaakus Tech Solution</span>
           </p>
         </div>
       </div>

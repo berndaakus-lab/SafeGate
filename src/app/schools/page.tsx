@@ -53,7 +53,7 @@ export default async function SchoolPitchPage() {
       <section className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-green-500/20 border border-green-400/30 text-green-300 px-4 py-1.5 rounded-full text-sm font-semibold mb-8">
-            🎉 First month completely free — no card required
+            First month completely free, no card required
           </div>
           <h1 className="text-4xl sm:text-6xl font-black leading-tight mb-6">
             Your school gate,<br />
@@ -61,7 +61,7 @@ export default async function SchoolPitchPage() {
           </h1>
           <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
             VerifyGate is a secure digital system for school pickups.
-            Parents generate QR codes. Guards scan and confirm. You have a full record — forever.
+            Parents generate QR codes. Guards scan and confirm. You have a full record, forever.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
@@ -99,7 +99,7 @@ export default async function SchoolPitchPage() {
       {/* ── Problem ── */}
       <section className="bg-amber-50 border-y border-amber-100 py-16 px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-10">
+          <div className="text-center mb-10" data-aos="fade-up">
             <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
               <AlertTriangle className="w-3.5 h-3.5" /> The Problem Right Now
             </div>
@@ -110,8 +110,8 @@ export default async function SchoolPitchPage() {
               { icon: BookOpen, title: "Paper notebook", desc: "Names get crossed out, pages torn, no one knows who really collected a child." },
               { icon: PhoneCall, title: "Phone calls to verify", desc: "Guards call parents who don't pick up. Child waits. Gate gets chaotic." },
               { icon: AlertTriangle, title: "No audit trail", desc: "If something goes wrong, there's no record of who took which child and when." },
-            ].map((p) => (
-              <div key={p.title} className="bg-white border-2 border-amber-200 rounded-2xl p-6">
+            ].map((p, i) => (
+              <div key={p.title} className="bg-white border-2 border-amber-200 rounded-2xl p-6" data-aos="fade-up" data-aos-delay={i * 100}>
                 <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center mb-4">
                   <p.icon className="w-5 h-5 text-amber-600" />
                 </div>
@@ -121,36 +121,36 @@ export default async function SchoolPitchPage() {
             ))}
           </div>
           <p className="text-center text-slate-400 text-sm mt-8 font-medium">
-            VerifyGate eliminates all three — with no hardware and no app to install.
+            VerifyGate eliminates all three, with no hardware and no app to install.
           </p>
         </div>
       </section>
 
       {/* ── How it works + Screen mockups ── */}
       <section className="py-20 px-6 max-w-5xl mx-auto">
-        <div className="text-center mb-16">
+        <div className="text-center mb-16" data-aos="fade-up">
           <h2 className="text-4xl font-bold text-slate-900 mb-4">See exactly how it works</h2>
           <p className="text-slate-500 text-lg">Three steps. Every role covered. Nothing to install.</p>
         </div>
 
-        {/* Step 1 — Parent */}
-        <div className="flex flex-col lg:flex-row items-center gap-12 mb-24">
+        {/* Step 1, Parent */}
+        <div className="flex flex-col lg:flex-row items-center gap-12 mb-24" data-aos="fade-up">
           <div className="flex-1">
             <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
               Step 01 · Parent
             </div>
             <h3 className="text-3xl font-bold text-slate-900 mb-4">Parent generates a pickup QR code</h3>
             <p className="text-slate-500 text-lg leading-relaxed mb-6">
-              Before school closes, the parent opens VerifyGate in their phone browser —
+              Before school closes, the parent opens VerifyGate in their phone browser,
               no download needed. They pick their child and choose who is collecting them today.
               A secure QR code is generated in under 30 seconds.
             </p>
             <ul className="space-y-3">
               {[
-                "Works on any phone — Android, iPhone, feature phone browser",
-                "Can set a specific collector per pickup — not just one saved contact",
+                "Works on any phone: Android, iPhone, feature phone browser",
+                "Can set a specific collector per pickup, not just one saved contact",
                 "QR code expires automatically for security",
-                "No login hassle — parents stay signed in",
+                "No login hassle, parents stay signed in",
               ].map((pt) => (
                 <li key={pt} className="flex items-start gap-2.5">
                   <CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
@@ -159,7 +159,7 @@ export default async function SchoolPitchPage() {
               ))}
             </ul>
           </div>
-          {/* Phone mockup — Parent QR screen */}
+          {/* Phone mockup, Parent QR screen */}
           <div className="shrink-0">
             <div className="w-64 bg-slate-900 rounded-[2.5rem] p-3 shadow-2xl">
               <div className="bg-white rounded-[2rem] overflow-hidden">
@@ -211,8 +211,8 @@ export default async function SchoolPitchPage() {
           </div>
         </div>
 
-        {/* Step 2 — Guard */}
-        <div className="flex flex-col lg:flex-row-reverse items-center gap-12 mb-24">
+        {/* Step 2, Guard */}
+        <div className="flex flex-col lg:flex-row-reverse items-center gap-12 mb-24" data-aos="fade-up">
           <div className="flex-1">
             <div className="inline-flex items-center gap-2 bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
               Step 02 · Security Guard
@@ -220,13 +220,13 @@ export default async function SchoolPitchPage() {
             <h3 className="text-3xl font-bold text-slate-900 mb-4">Guard scans and sees everything instantly</h3>
             <p className="text-slate-500 text-lg leading-relaxed mb-6">
               The security guard opens VerifyGate on any phone or tablet at the gate.
-              They scan the parent&apos;s QR code — and immediately see the child&apos;s photo,
+              They scan the parent&apos;s QR code, and immediately see the child&apos;s photo,
               full name, class, and the authorised collector&apos;s name. One tap confirms the pickup.
             </p>
             <ul className="space-y-3">
               {[
-                "Child's photo shows — guard can visually confirm the right child",
-                "Collector's name visible — no guessing who the person at the gate is",
+                "Child's photo shows, guard can visually confirm the right child",
+                "Collector's name visible, no guessing who the person at the gate is",
                 "Invalid or expired codes are rejected instantly",
                 "No internet? Works on 2G/3G with minimal data",
               ].map((pt) => (
@@ -237,13 +237,13 @@ export default async function SchoolPitchPage() {
               ))}
             </ul>
           </div>
-          {/* Phone mockup — Guard verify screen */}
+          {/* Phone mockup, Guard verify screen */}
           <div className="shrink-0">
             <div className="w-64 bg-slate-900 rounded-[2.5rem] p-3 shadow-2xl">
               <div className="bg-white rounded-[2rem] overflow-hidden">
                 <div className="bg-indigo-600 px-4 pt-3 pb-4">
                   <p className="text-white font-bold text-sm">Guard Verification</p>
-                  <p className="text-indigo-200 text-xs mt-0.5">Pickup confirmed ✓</p>
+                  <p className="text-indigo-200 text-xs mt-0.5">Pickup confirmed </p>
                 </div>
                 <div className="p-4 space-y-3">
                   {/* Child card */}
@@ -277,7 +277,7 @@ export default async function SchoolPitchPage() {
                     <p className="text-xs font-bold text-slate-700">2:47 PM · Today</p>
                   </div>
                   <div className="bg-green-500 rounded-xl py-2.5 text-center">
-                    <p className="text-white text-xs font-bold">✓ Confirm Pickup</p>
+                    <p className="text-white text-xs font-bold">Confirm Pickup</p>
                   </div>
                 </div>
               </div>
@@ -285,8 +285,8 @@ export default async function SchoolPitchPage() {
           </div>
         </div>
 
-        {/* Step 3 — SMS */}
-        <div className="flex flex-col lg:flex-row items-center gap-12 mb-8">
+        {/* Step 3, SMS */}
+        <div className="flex flex-col lg:flex-row items-center gap-12 mb-8" data-aos="fade-up">
           <div className="flex-1">
             <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
               Step 03 · Parent Notification
@@ -294,7 +294,7 @@ export default async function SchoolPitchPage() {
             <h3 className="text-3xl font-bold text-slate-900 mb-4">Parent gets an SMS the moment it happens</h3>
             <p className="text-slate-500 text-lg leading-relaxed mb-6">
               The instant the guard confirms the pickup, VerifyGate sends an automatic SMS to the parent.
-              Who collected the child, from which school, and at what time — all in one message.
+              Who collected the child, from which school, and at what time, all in one message.
               No app needed. Works on any phone.
             </p>
             <ul className="space-y-3">
@@ -311,7 +311,7 @@ export default async function SchoolPitchPage() {
               ))}
             </ul>
           </div>
-          {/* Phone mockup — SMS notification */}
+          {/* Phone mockup, SMS notification */}
           <div className="shrink-0">
             <div className="w-64 bg-slate-900 rounded-[2.5rem] p-3 shadow-2xl">
               <div className="bg-slate-800 rounded-[2rem] overflow-hidden">
@@ -327,9 +327,9 @@ export default async function SchoolPitchPage() {
                 <div className="p-4">
                   <div className="bg-green-600 rounded-2xl rounded-tl-sm px-4 py-3 mb-2">
                     <p className="text-white text-xs leading-relaxed">
-                      ✅ <strong>Kofi Mensah</strong> was picked up by{" "}
+                      <strong>Kofi Mensah</strong> was picked up by{" "}
                       <strong>Grandma Akosua</strong> at <strong>2:47 PM</strong> from{" "}
-                      <strong>Bright Future Academy</strong>. — VerifyGate
+                      <strong>Bright Future Academy</strong>.
                     </p>
                   </div>
                   <p className="text-slate-500 text-xs text-center mt-3">Today, 2:47 PM</p>
@@ -349,7 +349,7 @@ export default async function SchoolPitchPage() {
       {/* ── Admin Dashboard preview ── */}
       <section className="bg-slate-900 py-20 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-12" data-aos="fade-up">
             <div className="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-400/30 text-blue-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
               School Admin Dashboard
             </div>
@@ -360,7 +360,7 @@ export default async function SchoolPitchPage() {
           </div>
 
           {/* Dashboard mockup */}
-          <div className="bg-white rounded-2xl overflow-hidden shadow-2xl max-w-3xl mx-auto">
+          <div className="bg-white rounded-2xl overflow-hidden shadow-2xl max-w-3xl mx-auto" data-aos="zoom-in">
             {/* Sidebar + content */}
             <div className="flex">
               {/* Mini sidebar */}
@@ -428,10 +428,10 @@ export default async function SchoolPitchPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 max-w-3xl mx-auto">
             {[
               { icon: Users, title: "Manage Parents & Students", desc: "Add, edit, bulk import your entire school list in minutes." },
-              { icon: ClipboardList, title: "Full Pickup History", desc: "Search, filter by date, export — every pickup ever recorded." },
+              { icon: ClipboardList, title: "Full Pickup History", desc: "Search, filter by date, export, every pickup ever recorded." },
               { icon: Lock, title: "Role-Based Access", desc: "Admins see everything. Guards see only what they need at the gate." },
-            ].map((f) => (
-              <div key={f.title} className="bg-slate-800 rounded-xl p-5 border border-slate-700">
+            ].map((f, i) => (
+              <div key={f.title} className="bg-slate-800 rounded-xl p-5 border border-slate-700" data-aos="fade-up" data-aos-delay={i * 100}>
                 <div className="w-9 h-9 bg-slate-700 rounded-lg flex items-center justify-center mb-3">
                   <f.icon className="w-4 h-4 text-blue-400" />
                 </div>
@@ -445,7 +445,7 @@ export default async function SchoolPitchPage() {
 
       {/* ── Who benefits ── */}
       <section className="py-20 px-6 max-w-5xl mx-auto">
-        <div className="text-center mb-12">
+        <div className="text-center mb-12" data-aos="fade-up">
           <h2 className="text-3xl font-bold text-slate-900 mb-4">Every person at your school benefits</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -468,8 +468,8 @@ export default async function SchoolPitchPage() {
               color: "bg-green-600",
               points: ["Generate QR in 30 seconds", "Choose who picks up daily", "SMS the moment child leaves", "No app to download"],
             },
-          ].map((p) => (
-            <div key={p.role} className="border-2 border-slate-100 hover:border-blue-200 rounded-2xl p-6 transition-all">
+          ].map((p, i) => (
+            <div key={p.role} className="border-2 border-slate-100 hover:border-blue-200 rounded-2xl p-6 transition-all" data-aos="fade-up" data-aos-delay={i * 150}>
               <div className={`w-12 h-12 ${p.color} rounded-xl flex items-center justify-center mb-4`}>
                 <p.icon className="w-6 h-6 text-white" />
               </div>
@@ -490,15 +490,15 @@ export default async function SchoolPitchPage() {
       {/* ── Pricing ── */}
       <section className="bg-slate-50 border-y border-slate-100 py-20 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
+          <div className="text-center mb-10" data-aos="fade-up">
             <h2 className="text-3xl font-bold text-slate-900 mb-4">Plans for every school size.</h2>
-            <p className="text-slate-500 text-lg mb-5">No per-parent fees. No per-scan fees. One flat rate covers your entire school — contact us for your school&apos;s price.</p>
+            <p className="text-slate-500 text-lg mb-5">No per-parent fees. No per-scan fees. One flat rate covers your entire school, contact us for your school&apos;s price.</p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold">
-                🎉 First month free — no credit card
+                First month free, no credit card
               </div>
               <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold">
-                📅 Pay via Mobile Money (MoMo)
+                Pay via Mobile Money (MoMo)
               </div>
             </div>
           </div>
@@ -509,8 +509,8 @@ export default async function SchoolPitchPage() {
               { name: "Growth", students: "101 – 500 students", highlight: true, dark: false, badge: "Most Popular" },
               { name: "Premier", students: "501 – 1,000 students", highlight: false, dark: false, badge: null },
               { name: "Enterprise", students: "Multiple campuses or custom features", highlight: false, dark: true, badge: "Custom" },
-            ].map((t) => (
-              <div key={t.name} className={`rounded-2xl overflow-hidden relative ${t.highlight ? "bg-blue-600 ring-2 ring-blue-400 shadow-2xl shadow-blue-200" : t.dark ? "bg-slate-900" : "bg-white border border-slate-100 shadow-sm"}`}>
+            ].map((t, i) => (
+              <div key={t.name} data-aos="fade-up" data-aos-delay={i * 100} className={`rounded-2xl overflow-hidden relative ${t.highlight ? "bg-blue-600 ring-2 ring-blue-400 shadow-2xl shadow-blue-200" : t.dark ? "bg-slate-900" : "bg-white border border-slate-100 shadow-sm"}`}>
                 {t.badge && (
                   <span className="absolute top-0 right-0 bg-amber-400 text-amber-900 text-xs font-black px-3 py-1 rounded-bl-xl">
                     {t.badge}
@@ -537,7 +537,7 @@ export default async function SchoolPitchPage() {
           </div>
 
           <p className="text-center text-slate-400 text-sm">
-            Flat rate per school — no per-parent or per-scan fees. One price, everything included.
+            Flat rate per school, no per-parent or per-scan fees. One price, everything included.
           </p>
           <div className="text-center mt-4">
             <Link href="/pricing" className="text-blue-600 font-semibold text-sm hover:underline">
@@ -549,7 +549,7 @@ export default async function SchoolPitchPage() {
 
       {/* ── Setup timeline ── */}
       <section className="py-20 px-6 max-w-4xl mx-auto">
-        <div className="text-center mb-12">
+        <div className="text-center mb-12" data-aos="fade-up">
           <h2 className="text-3xl font-bold text-slate-900 mb-4">You can be live by tomorrow morning</h2>
           <p className="text-slate-500 text-lg">We handle everything. Here&apos;s how fast it goes:</p>
         </div>
@@ -562,7 +562,7 @@ export default async function SchoolPitchPage() {
             { time: "Day 2", title: "Parents get access", desc: "Parents receive a link to create their account. Takes under 2 minutes. No app download." },
             { time: "Day 3", title: "Gate goes digital", desc: "Your security guard scans their first QR code. The first SMS goes to a parent. You're live." },
           ].map((step, i) => (
-            <div key={i} className="flex gap-6 mb-8 relative">
+            <div key={i} className="flex gap-6 mb-8 relative" data-aos="fade-right" data-aos-delay={i * 80}>
               <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shrink-0 z-10">
                 <Clock className="w-5 h-5 text-white" />
               </div>
@@ -578,15 +578,15 @@ export default async function SchoolPitchPage() {
 
       {/* ── Final CTA ── */}
       <section className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 py-24 px-6 text-center">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto" data-aos="fade-up">
           <div className="inline-flex items-center gap-2 bg-green-500/20 border border-green-400/30 text-green-300 px-4 py-1.5 rounded-full text-sm font-semibold mb-8">
-            🎉 First month completely free — no card, no commitment
+            First month completely free, no card, no commitment
           </div>
           <h2 className="text-4xl sm:text-5xl font-black text-white mb-6 leading-tight">
             Ready to secure<br />your school gate?
           </h2>
           <p className="text-slate-300 text-lg mb-10 leading-relaxed">
-            Join us on WhatsApp right now. We&apos;ll have your school set up within 24 hours —
+            Join us on WhatsApp right now. We&apos;ll have your school set up within 24 hours,
             and your first month is completely free.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -607,7 +607,7 @@ export default async function SchoolPitchPage() {
             </Link>
           </div>
           <p className="text-slate-500 text-sm mt-8">
-            Or call/email us — contacts at{" "}
+            Or call/email us. Contact details at{" "}
             <Link href="/" className="text-blue-400 hover:underline">verifygate.app</Link>
           </p>
         </div>

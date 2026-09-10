@@ -25,7 +25,7 @@ export default function QRScanner() {
           scanner.stop().catch(() => {});
           const match = decodedText.match(/\/guard\/verify\/([^/?#]+)/);
           const code = match ? match[1] : decodedText.trim();
-          // Hard navigate — avoids race between scanner teardown and Next.js router
+          // Hard navigate, avoids race between scanner teardown and Next.js router
           window.location.href = `/guard/verify/${code}`;
         },
         () => {}
@@ -45,7 +45,7 @@ export default function QRScanner() {
 
   return (
     <div>
-      {/* Camera viewport — always in DOM so html5-qrcode can render into it */}
+      {/* Camera viewport, always in DOM so html5-qrcode can render into it */}
       <div className="relative rounded-2xl overflow-hidden bg-slate-800" style={{ minHeight: 300 }}>
         <div id="qr-reader" style={{ width: "100%" }} />
 

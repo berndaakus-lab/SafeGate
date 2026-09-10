@@ -44,7 +44,7 @@ export default function ResetPasswordForm({ staff }: { staff: { id: string; name
             className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
             <option value="">Select staff...</option>
             {staff.map((s) => (
-              <option key={s.id} value={s.id}>{s.name} — {s.email}</option>
+              <option key={s.id} value={s.id}>{s.name}, {s.email}</option>
             ))}
           </select>
         </div>

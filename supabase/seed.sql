@@ -24,9 +24,9 @@ insert into settings (key, value) values
   -- ImprovMX + Brevo). WhatsApp/phone are still the codebase's placeholder
   -- number and must be replaced with your real number, or every WhatsApp
   -- button site-wide links to a fake number.
-  ('whatsapp', '233XXXXXXXXX'), -- TODO: replace with your real WhatsApp number, no +
+  ('whatsapp', '233592637748'), -- CONFIRMED
   ('email', 'hello@verifygate.app'),
-  ('phone', ''), -- TODO: add if you want a phone link shown, optional
+  ('phone', '+233 59 263 7748'), -- CONFIRMED
 
   -- Social links — none confirmed yet, leave blank to hide them (footer only
   -- renders a social link when its value is non-empty) or fill in real URLs.
