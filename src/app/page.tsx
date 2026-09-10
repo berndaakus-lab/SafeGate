@@ -129,7 +129,7 @@ export default function Home() {
             </h2>
             <div className="space-y-4 text-slate-600 text-lg leading-relaxed">
               <p>
-                I&apos;m a software engineer from Ghana. Last year, I went to pick up my niece from her Montessori school.
+                I&apos;m a Software Engineer from Ghana. Last year, I went to pick up my niece from her Montessori school.
                 At the gate, the security guard opened a paper notebook. No photo. No ID check.
                 Anyone could have said &quot;I&apos;m here for Ama&quot; and walked out with a child.
               </p>
