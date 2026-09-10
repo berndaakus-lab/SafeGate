@@ -15,7 +15,6 @@ export const metadata: Metadata = {
 
 const FEATURES = [
   "Unlimited QR code scans",
-  "SMS notifications to parents",
   "Guard scanner — no app needed",
   "Parent & student accounts",
   "Multiple admin accounts",
@@ -30,12 +29,14 @@ const TIERS = [
   {
     name: "Standard",
     students: "Up to 100 students",
+    smsCap: "2,500 SMS included/month",
     highlight: false,
     extras: [],
   },
   {
     name: "Growth",
     students: "101 – 500 students",
+    smsCap: "12,000 SMS included/month",
     highlight: true,
     badge: "Most Popular",
     extras: [],
@@ -43,12 +44,14 @@ const TIERS = [
   {
     name: "Premier",
     students: "501 – 1,000 students",
+    smsCap: "24,000 SMS included/month",
     highlight: false,
     extras: [],
   },
   {
     name: "Enterprise",
     students: "Multiple campuses or custom",
+    smsCap: "Custom SMS volume",
     highlight: false,
     badge: "Custom",
     extras: [
@@ -166,6 +169,14 @@ export default async function PricingPage() {
                   </div>
 
                   <ul className="space-y-2 flex-1 mb-6">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${
+                        tier.highlight ? "text-blue-200" : isDark ? "text-blue-400" : "text-blue-500"
+                      }`} />
+                      <span className={`text-xs leading-relaxed font-semibold ${
+                        tier.highlight ? "text-blue-50" : isDark ? "text-slate-300" : "text-slate-600"
+                      }`}>{tier.smsCap}</span>
+                    </li>
                     {FEATURES.map((f) => (
                       <li key={f} className="flex items-start gap-2">
                         <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${
@@ -204,6 +215,10 @@ export default async function PricingPage() {
             );
           })}
         </div>
+
+        <p className="text-center text-xs text-slate-400 mb-14 -mt-8">
+          Extra SMS beyond your plan's included volume billed at GH₵0.05/SMS. Most schools never come close to their limit.
+        </p>
 
         {/* What's included — full feature breakdown */}
         <div className="bg-white border border-slate-100 rounded-2xl p-8 mb-12">
