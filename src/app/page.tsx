@@ -6,6 +6,7 @@ import {
   BookOpen, UserCheck,
 } from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
+import StoryIllustration from "@/components/StoryIllustration";
 
 export const dynamic = "force-dynamic";
 
@@ -113,6 +114,41 @@ export default function Home() {
           <p className="text-slate-400 text-sm mt-8">
             VerifyGate solves all three, with no hardware, no app, and no training needed.
           </p>
+        </div>
+      </section>
+
+      {/* ── The story behind this software ── */}
+      <section className="py-24 max-w-6xl mx-auto px-6">
+        <div className="flex flex-col lg:flex-row items-center gap-14">
+          <div className="flex-1 order-2 lg:order-1" data-aos="fade-right">
+            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-5">
+              The story behind this software
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-6 leading-tight">
+              I built VerifyGate after watching a guard release a child with no ID check.
+            </h2>
+            <div className="space-y-4 text-slate-600 text-lg leading-relaxed">
+              <p>
+                I&apos;m a software engineer from Ghana. Last year, I went to pick up my niece from her Montessori school.
+                At the gate, the security guard opened a paper notebook. No photo. No ID check.
+                Anyone could have said &quot;I&apos;m here for Ama&quot; and walked out with a child.
+              </p>
+              <p>
+                I asked the proprietress about it. She told me they&apos;d been looking for a system for years,
+                but everything out there needed expensive apps and reliable internet. Her guard has a basic phone.
+                Her parents didn&apos;t want to download another app.
+              </p>
+              <p>
+                So I built VerifyGate, right here in Ghana, for schools like hers.
+              </p>
+            </div>
+            <p className="text-slate-400 text-sm mt-6 font-medium">
+              Built by an engineer in Koforidua, for Ghana.
+            </p>
+          </div>
+          <div className="flex-1 order-1 lg:order-2 flex justify-center" data-aos="fade-left">
+            <StoryIllustration className="w-full max-w-sm" />
+          </div>
         </div>
       </section>
 
