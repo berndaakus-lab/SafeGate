@@ -7,7 +7,7 @@ export default function FinalCTA() {
       <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-1.5 rounded-full text-sm font-semibold mb-8" data-aos="fade-up">
         First month completely free, no credit card required
       </div>
-      <h2 className="text-4xl sm:text-5xl font-black text-slate-900 mb-6 leading-tight" data-aos="fade-up">
+      <h2 className="font-serif capitalize text-4xl sm:text-5xl font-bold text-slate-900 mb-6 leading-tight" data-aos="fade-up">
         Your school can be live<br />by tomorrow morning.
       </h2>
       <p className="text-slate-500 text-lg mb-10 leading-relaxed" data-aos="fade-up" data-aos-delay="100">

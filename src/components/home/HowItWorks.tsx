@@ -31,7 +31,7 @@ export default function HowItWorks() {
   return (
     <section className="py-24 max-w-6xl mx-auto px-6">
       <div className="text-center mb-16" data-aos="fade-up">
-        <h2 className="text-4xl font-bold text-slate-900 mb-4">How it works</h2>
+        <h2 className="font-serif capitalize text-4xl font-bold text-slate-900 mb-4">How it works</h2>
         <p className="text-slate-500 text-lg">Three steps. The whole school is covered.</p>
       </div>
 

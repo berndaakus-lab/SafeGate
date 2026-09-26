@@ -14,7 +14,7 @@ export default function ProblemSection() {
           <AlertTriangle className="w-3.5 h-3.5" />
           Sound familiar?
         </div>
-        <h2 className="text-3xl font-bold text-slate-900 mb-4" data-aos="fade-up">
+        <h2 className="font-serif capitalize text-3xl font-bold text-slate-900 mb-4" data-aos="fade-up">
           Is this still happening at your school gate?
         </h2>
         <p className="text-slate-600 text-lg mb-10" data-aos="fade-up">
