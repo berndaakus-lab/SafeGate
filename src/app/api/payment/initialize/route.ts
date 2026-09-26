@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { parseBody } from "@/lib/validate";
+
+const schema = z.object({
+  phone: z.string().trim().min(1).max(20),
+  amount_ghs: z.number().positive().max(1_000_000),
+});
 
 function detectNetwork(phone: string) {
   const prefix = phone.replace(/\s/g, "").slice(0, 3);
@@ -22,14 +29,15 @@ export async function POST(req: NextRequest) {
 
   if (!schoolId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { phone, amount_ghs } = await req.json();
-  if (!phone || !amount_ghs) return NextResponse.json({ error: "Missing phone or amount" }, { status: 400 });
+  const parsed = await parseBody(req, schema);
+  if (parsed.error) return parsed.error;
+  const { phone, amount_ghs } = parsed.data;
 
   const cleanPhone = phone.replace(/\s/g, "");
   if (cleanPhone.length !== 10) return NextResponse.json({ error: "Invalid phone number" }, { status: 400 });
 
   const network = detectNetwork(cleanPhone);
-  const pesewas = Math.round(parseFloat(amount_ghs) * 100);
+  const pesewas = Math.round(amount_ghs * 100);
   const reference = `SGT-${schoolId.slice(0, 8)}-${Date.now()}`;
   const email = userEmail || `${cleanPhone}@verifygate.app`;
 

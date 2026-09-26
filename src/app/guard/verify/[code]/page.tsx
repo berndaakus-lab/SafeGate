@@ -11,7 +11,23 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
   const { code } = await params;
 
   const session = await getServerSession(authOptions);
+  const role = (session?.user as any)?.role;
   const guardSchoolId = (session?.user as any)?.schoolId as string | null;
+
+  if (!session || role !== "guard" || !guardSchoolId) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center px-6 text-center">
+        <ShieldAlert className="w-14 h-14 text-red-400 mb-4" />
+        <h2 className="text-xl font-bold text-red-300 mb-2">Guard sign-in required</h2>
+        <p className="text-slate-400 text-sm mb-6 max-w-xs">
+          Sign in with your guard account to view and confirm this pickup.
+        </p>
+        <Link href="/login" className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-medium text-sm transition-colors">
+          Sign In
+        </Link>
+      </div>
+    );
+  }
 
   const { data: pickupCode } = await supabaseAdmin
     .from("pickup_codes")

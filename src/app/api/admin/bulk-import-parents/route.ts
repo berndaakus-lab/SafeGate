@@ -1,21 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { parseBody } from "@/lib/validate";
 import bcrypt from "bcryptjs";
+
+const schema = z.object({
+  schoolId: z.string().uuid(),
+  parentName: z.string().trim().min(1).max(200),
+  parentEmail: z.string().trim().email().max(255),
+  parentPhone: z.string().trim().max(30).optional().nullable(),
+  password: z.string().min(6).max(200),
+  childName: z.string().trim().max(200).optional().nullable(),
+  childClass: z.string().trim().max(100).optional().nullable(),
+});
 
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
+    const sessionSchoolId = (session?.user as any)?.schoolId;
     if ((session?.user as any)?.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { schoolId, parentName, parentEmail, parentPhone, password, childName, childClass } =
-      await req.json();
+    const parsed = await parseBody(req, schema);
+    if (parsed.error) return parsed.error;
+    const { schoolId, parentName, parentEmail, parentPhone, password, childName, childClass } = parsed.data;
 
-    if (!schoolId || !parentName || !parentEmail || !password) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (schoolId !== sessionSchoolId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const email = parentEmail.trim().toLowerCase();

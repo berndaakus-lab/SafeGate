@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { parseBody } from "@/lib/validate";
 import bcrypt from "bcryptjs";
+
+const schema = z.object({
+  staffId: z.string().uuid(),
+  newPassword: z.string().min(6, "Password must be at least 6 characters.").max(200),
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,13 +18,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { staffId, newPassword } = await req.json();
-    if (!staffId || !newPassword) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-    }
-    if (newPassword.length < 6) {
-      return NextResponse.json({ error: "Password must be at least 6 characters." }, { status: 400 });
-    }
+    const parsed = await parseBody(req, schema);
+    if (parsed.error) return parsed.error;
+    const { staffId, newPassword } = parsed.data;
 
     const hashed = await bcrypt.hash(newPassword, 12);
     const { error } = await supabaseAdmin

@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { parseBody } from "@/lib/validate";
 import bcrypt from "bcryptjs";
+
+// An admin may only create guard/teacher accounts, never admin or superadmin
+// (privilege escalation guard).
+const schema = z.object({
+  name: z.string().trim().min(1).max(200),
+  email: z.string().trim().email().max(255),
+  password: z.string().min(8).max(200),
+  role: z.enum(["guard", "teacher"]).optional(),
+  schoolId: z.string().uuid(),
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,11 +25,10 @@ export async function POST(req: NextRequest) {
     }
 
     const sessionSchoolId = (session?.user as any)?.schoolId;
-    const { name, email, password, role: staffRole, schoolId } = await req.json();
+    const parsed = await parseBody(req, schema);
+    if (parsed.error) return parsed.error;
+    const { name, email, password, role: staffRole, schoolId } = parsed.data;
 
-    if (!name || !email || !password || !schoolId) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
     if (schoolId !== sessionSchoolId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }

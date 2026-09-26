@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { sendNotification } from "@/lib/notifications";
+import { parseBody } from "@/lib/validate";
+
+const schema = z.object({
+  pickupCodeId: z.string().uuid(),
+  studentId: z.string().uuid(),
+  authorizedPersonId: z.string().uuid(),
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,10 +21,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { pickupCodeId, studentId, authorizedPersonId } = await req.json();
-    if (!pickupCodeId || !studentId || !authorizedPersonId) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-    }
+    const parsed = await parseBody(req, schema);
+    if (parsed.error) return parsed.error;
+    const { pickupCodeId, studentId, authorizedPersonId } = parsed.data;
 
     // Verify the pickup code belongs to the guard's own school
     const { data: codeSchool } = await supabaseAdmin

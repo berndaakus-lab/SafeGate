@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import Image from "next/image";
 import { LayoutDashboard, Users, UserCheck, QrCode, LogOut, ChevronDown, Settings } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import HomeLogoLink from "@/components/HomeLogoLink";
 
 const links = [
   { href: "/parent/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -25,10 +25,7 @@ export default function ParentNav() {
     <>
       {/* Desktop sidebar */}
       <aside className="hidden md:flex flex-col w-64 min-h-screen bg-white border-r border-slate-100 p-6 fixed left-0 top-0">
-        <Link href="/" className="flex items-center gap-2 mb-10">
-          <Image src="/icon-192.png" alt="VerifyGate" width={32} height={32} className="rounded-lg" />
-          <span className="font-bold text-lg text-slate-900">VerifyGate</span>
-        </Link>
+        <HomeLogoLink className="flex items-center gap-2 mb-10" />
 
         <nav className="flex-1 space-y-1">
           {links.map(({ href, label, icon: Icon }) => (
@@ -70,10 +67,7 @@ export default function ParentNav() {
 
       {/* Mobile top bar */}
       <header className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-slate-100 sticky top-0 z-50">
-        <Link href="/" className="flex items-center gap-2">
-          <Image src="/icon-192.png" alt="VerifyGate" width={28} height={28} className="rounded-lg" />
-          <span className="font-bold text-slate-900">VerifyGate</span>
-        </Link>
+        <HomeLogoLink size={28} textClassName="font-bold text-slate-900" />
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="flex items-center gap-1 text-sm text-slate-600 font-medium"

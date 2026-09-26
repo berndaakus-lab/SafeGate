@@ -1,8 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { parseBody } from "@/lib/validate";
 import bcrypt from "bcryptjs";
+
+const schema = z.object({
+  school: z.object({
+    name: z.string().trim().min(1).max(200),
+    address: z.string().trim().max(500).optional().nullable(),
+    phone: z.string().trim().max(30).optional().nullable(),
+  }),
+  admin: z.object({
+    name: z.string().trim().min(1).max(200),
+    email: z.string().trim().email().max(255),
+    password: z.string().min(8).max(200),
+  }),
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,11 +26,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { school, admin } = await req.json();
-
-    if (!school?.name || !admin?.name || !admin?.email || !admin?.password) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
+    const parsed = await parseBody(req, schema);
+    if (parsed.error) return parsed.error;
+    const { school, admin } = parsed.data;
 
     // Check email not already taken
     const { data: existing } = await supabaseAdmin

@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { parseBody } from "@/lib/validate";
+
+const schema = z.object({
+  name: z.string().trim().min(1).max(200),
+  className: z.string().trim().max(100).optional().nullable(),
+  parentId: z.string().uuid(),
+  schoolId: z.string().uuid(),
+  photoData: z.string().startsWith("data:image/").max(7_000_000).optional().nullable(),
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,12 +22,22 @@ export async function POST(req: NextRequest) {
     }
 
     const sessionSchoolId = (session?.user as any)?.schoolId;
-    const { name, className, parentId, schoolId, photoData } = await req.json();
-    if (!name || !parentId || !schoolId) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-    }
+    const parsed = await parseBody(req, schema);
+    if (parsed.error) return parsed.error;
+    const { name, className, parentId, schoolId, photoData } = parsed.data;
     if (role === "admin" && schoolId !== sessionSchoolId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Ensure the parent actually belongs to this school before linking a student to them
+    const { data: parentRecord } = await supabaseAdmin
+      .from("parents")
+      .select("id")
+      .eq("id", parentId)
+      .eq("school_id", schoolId)
+      .single();
+    if (!parentRecord) {
+      return NextResponse.json({ error: "Parent not found for this school" }, { status: 400 });
     }
 
     let photoUrl: string | null = null;

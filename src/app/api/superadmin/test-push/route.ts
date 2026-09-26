@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import webpush from "web-push";
+
+const schema = z.object({ parentId: z.string().uuid().optional() });
 
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(
@@ -22,7 +25,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "VAPID_PUBLIC_KEY not set in environment" }, { status: 500 });
   }
 
-  const { parentId } = await req.json().catch(() => ({}));
+  const body = await req.json().catch(() => ({}));
+  const result = schema.safeParse(body);
+  const parentId = result.success ? result.data.parentId : undefined;
 
   // If no parentId, get the first parent with a push subscription
   let query = supabaseAdmin.from("push_subscriptions").select("parent_id, endpoint, subscription_json").limit(1);

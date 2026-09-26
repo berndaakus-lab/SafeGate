@@ -5,11 +5,13 @@
   --foreground: #0f172a;
   --primary: #1d4ed8;
   --primary-foreground: #ffffff;
+  --border: #e2e8f0;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-border: var(--border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -23,4 +25,46 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+/* Hero entrance: a smooth rise + fade for the first thing visitors see,
+   distinct from AOS's scroll-triggered animations used further down the page. */
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes hero-rise-blur {
+  from { opacity: 0; transform: translateY(36px); filter: blur(8px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+.animate-hero-rise {
+  opacity: 0;
+  animation: hero-rise 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-hero-rise-blur {
+  opacity: 0;
+  animation: hero-rise-blur 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes hero-zoom {
+  from { transform: scale(1.08); }
+  to { transform: scale(1); }
+}
+
+.animate-hero-zoom {
+  animation: hero-zoom 8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-hero-rise,
+  .animate-hero-rise-blur,
+  .animate-hero-zoom {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
 }

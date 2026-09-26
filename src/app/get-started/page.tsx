@@ -24,7 +24,7 @@ export default async function GetStartedPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <nav className="bg-white border-b border-slate-100 px-6 py-4">
+      <nav className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100 px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Image src="/icon-192.png" alt="VerifyGate" width={32} height={32} className="rounded-lg" />
@@ -102,7 +102,7 @@ export default async function GetStartedPage() {
               <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
                 <MessageCircle className="w-7 h-7" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="font-bold text-lg">Chat on WhatsApp</p>
                 <p className="text-green-100 text-sm">Get a reply in minutes. Ask anything.</p>
               </div>
@@ -115,11 +115,11 @@ export default async function GetStartedPage() {
               <div className="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
                 <Mail className="w-7 h-7 text-blue-600" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="font-bold text-slate-900 text-lg">Send an email</p>
-                <span className="flex items-center gap-1.5">
-                  <span className="text-slate-400 text-sm">{email}</span>
-                  <CopyButton text={email} className="text-slate-300 hover:text-slate-500" />
+                <span className="flex items-center gap-1.5 min-w-0">
+                  <span className="text-slate-400 text-sm truncate">{email}</span>
+                  <CopyButton text={email} className="text-slate-300 hover:text-slate-500 shrink-0" />
                 </span>
               </div>
             </a>
@@ -132,7 +132,7 @@ export default async function GetStartedPage() {
                 <div className="w-14 h-14 bg-purple-50 rounded-xl flex items-center justify-center shrink-0">
                   <Phone className="w-7 h-7 text-purple-600" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="font-bold text-slate-900 text-lg">Call us</p>
                   <p className="text-slate-400 text-sm">{phone} · Mon–Fri, 8am–6pm</p>
                 </div>

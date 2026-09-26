@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import { headers } from "next/headers";
 import RegisterSW from "@/components/RegisterSW";
 import InstallBanner from "@/components/InstallBanner";
 import AOSInit from "@/components/AOSInit";
@@ -93,16 +94,19 @@ const structuredData = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
     <html lang="en" className={`${geist.variable} h-full`}>
-      <body className="min-h-full bg-slate-50 text-slate-900">
+      <body className="min-h-full bg-slate-50 text-slate-900" suppressHydrationWarning>
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
         <RegisterSW />

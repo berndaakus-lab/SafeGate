@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { parseBody } from "@/lib/validate";
+
+const schema = z.object({
+  name: z.string().trim().min(1).max(200),
+  phone: z.string().trim().max(30).optional().nullable(),
+  relation: z.string().trim().max(100).optional().nullable(),
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,10 +19,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { name, phone, relation } = await req.json();
-    if (!name) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-    }
+    const parsed = await parseBody(req, schema);
+    if (parsed.error) return parsed.error;
+    const { name, phone, relation } = parsed.data;
 
     const { data, error } = await supabaseAdmin
       .from("authorized_persons")
