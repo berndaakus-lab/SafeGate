@@ -17,17 +17,23 @@ export default function PushSubscriber() {
     async function subscribe() {
       try {
         const reg = await navigator.serviceWorker.ready;
-        const existing = await reg.pushManager.getSubscription();
-        if (existing) return; // already subscribed
+        let sub = await reg.pushManager.getSubscription();
 
-        const { key } = await fetch("/api/push/vapid-public-key").then((r) => r.json());
-        if (!key) return;
+        if (!sub) {
+          const { key } = await fetch("/api/push/vapid-public-key").then((r) => r.json());
+          if (!key) return;
 
-        const sub = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(key),
-        });
+          sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(key),
+          });
+        }
 
+        // Always sync with the server, even if the browser already had a
+        // subscription: a past server-side save could have failed silently
+        // while the browser-level subscription still succeeded, leaving our
+        // database with no record of it. This POST is an idempotent upsert,
+        // so re-sending an already-saved subscription is a harmless no-op.
         await fetch("/api/push/subscribe", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

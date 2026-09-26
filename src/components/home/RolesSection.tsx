@@ -44,7 +44,7 @@ export default function RolesSection() {
     <section className="bg-slate-900 py-24">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-16" data-aos="fade-up">
-          <h2 className="text-4xl font-bold text-white mb-4">Built for everyone at your school</h2>
+          <h2 className="font-serif capitalize text-4xl font-bold text-white mb-4">Built for everyone at your school</h2>
           <p className="text-slate-400 text-lg">Every role gets exactly what they need.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

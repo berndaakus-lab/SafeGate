@@ -12,7 +12,7 @@ export default function TrustStats() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
           {stats.map((s, i) => (
             <div key={s.label} data-aos="zoom-in" data-aos-delay={i * 100}>
-              <p className="text-5xl font-black text-blue-700 mb-2">{s.stat}</p>
+              <p className="font-serif text-5xl font-bold text-blue-700 mb-2">{s.stat}</p>
               <p className="text-slate-600 text-sm">{s.label}</p>
             </div>
           ))}

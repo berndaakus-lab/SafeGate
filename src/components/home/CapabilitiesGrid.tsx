@@ -37,7 +37,7 @@ export default function CapabilitiesGrid() {
   return (
     <section className="py-24 max-w-6xl mx-auto px-6">
       <div className="text-center mb-16" data-aos="fade-up">
-        <h2 className="text-4xl font-bold text-slate-900 mb-4">How VerifyGate helps your school</h2>
+        <h2 className="font-serif capitalize text-4xl font-bold text-slate-900 mb-4">How VerifyGate helps your school</h2>
         <p className="text-slate-500 text-lg max-w-xl mx-auto">
           One flat monthly fee. Everything below is included for every parent, guard, and admin.
         </p>

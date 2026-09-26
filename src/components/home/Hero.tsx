@@ -19,7 +19,8 @@ export default function Hero() {
         priority
         className="object-cover animate-hero-zoom"
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-slate-950/35 to-transparent" />
+      <div className="absolute inset-0 bg-slate-950/40" />
+      <div className="absolute inset-0 bg-gradient-to-r from-slate-950/60 via-slate-950/25 to-slate-950/45" />
 
       <div className="relative max-w-6xl mx-auto px-6 py-20 w-full">
         <div className="max-w-2xl">
@@ -32,7 +33,7 @@ export default function Hero() {
           </div>
 
           <h1
-            className="animate-hero-rise-blur text-4xl md:text-6xl font-extrabold tracking-tight text-white leading-[1.05] mb-6 drop-shadow-[0_2px_16px_rgba(0,0,0,0.75)]"
+            className="animate-hero-rise-blur font-serif capitalize text-4xl md:text-6xl font-bold tracking-tight text-white leading-[1.1] mb-6 drop-shadow-[0_2px_16px_rgba(0,0,0,0.75)]"
             style={{ animationDelay: "150ms" }}
           >
             Know exactly who picks up{" "}
