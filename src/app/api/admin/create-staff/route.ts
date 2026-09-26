@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
-import { authOptions } from "@/lib/auth";
+import { authOptions, isReservedSuperadminEmail } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { parseBody } from "@/lib/validate";
 import bcrypt from "bcryptjs";
@@ -31,6 +31,10 @@ export async function POST(req: NextRequest) {
 
     if (schoolId !== sessionSchoolId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    if (isReservedSuperadminEmail(email)) {
+      return NextResponse.json({ error: "That email is reserved and cannot be used for a staff account." }, { status: 409 });
     }
 
     const { data: existing } = await supabaseAdmin.from("staff").select("id").eq("email", email).single();
