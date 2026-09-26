@@ -8,6 +8,10 @@ import ResetPasswordForm from "./ResetPasswordForm";
 import PlanManager from "./PlanManager";
 import GoLiveToggle from "./GoLiveToggle";
 import PaymentLinkPanel from "./PaymentLinkPanel";
+import EditSchoolInfoForm from "./EditSchoolInfoForm";
+import StaffList from "./StaffList";
+import ParentsList from "./ParentsList";
+import DeleteSchoolButton from "./DeleteSchoolButton";
 
 export const dynamic = "force-dynamic";
 
@@ -52,12 +56,6 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
   const studentCount = studentIds.length;
 
   if (!school) return notFound();
-
-  const roleColors: Record<string, string> = {
-    admin: "bg-blue-100 text-blue-700",
-    guard: "bg-green-100 text-green-700",
-    teacher: "bg-purple-100 text-purple-700",
-  };
 
   return (
     <div className="p-6 max-w-4xl">
@@ -104,23 +102,7 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
           <div className="px-6 py-4 border-b border-slate-50">
             <h2 className="font-semibold text-slate-900">Staff Accounts</h2>
           </div>
-          {!staff?.length ? (
-            <p className="px-6 py-8 text-sm text-slate-400 text-center">No staff accounts yet.</p>
-          ) : (
-            <div className="divide-y divide-slate-50">
-              {staff.map((s: any) => (
-                <div key={s.id} className="flex items-center justify-between px-6 py-3">
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">{s.name}</p>
-                    <p className="text-xs text-slate-400">{s.email}</p>
-                  </div>
-                  <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${roleColors[s.role] ?? "bg-slate-100 text-slate-600"}`}>
-                    {s.role}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
+          <StaffList staff={staff ?? []} />
         </div>
 
         {/* Parents */}
@@ -128,21 +110,20 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
           <div className="px-6 py-4 border-b border-slate-50">
             <h2 className="font-semibold text-slate-900">Parents</h2>
           </div>
-          {!parents?.length ? (
-            <p className="px-6 py-8 text-sm text-slate-400 text-center">No parents registered yet.</p>
-          ) : (
-            <div className="divide-y divide-slate-50">
-              {parents.map((p: any) => (
-                <div key={p.id} className="flex items-center justify-between px-6 py-3">
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">{p.name}</p>
-                    <p className="text-xs text-slate-400">{p.email}{p.phone ? ` · ${p.phone}` : ""}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <ParentsList parents={parents ?? []} />
         </div>
+      </div>
+
+      {/* School info */}
+      <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-6">
+        <h2 className="font-semibold text-slate-900 mb-1">School Info</h2>
+        <p className="text-sm text-slate-400 mb-5">Edit this school&apos;s name, address, and phone number.</p>
+        <EditSchoolInfoForm
+          schoolId={id}
+          name={school.name}
+          address={school.address ?? null}
+          phone={school.phone ?? null}
+        />
       </div>
 
       {/* Recent pickups */}
@@ -219,6 +200,15 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
           Reset a password for any staff member at this school.
         </p>
         <ResetPasswordForm staff={staff ?? []} />
+      </div>
+
+      {/* Danger zone */}
+      <div className="bg-white rounded-2xl border border-red-100 p-6 mt-6">
+        <h2 className="font-semibold text-red-700 mb-1">Danger Zone</h2>
+        <p className="text-sm text-slate-400 mb-5">
+          Permanently delete this school. Only possible once all staff, parents, and students have been removed.
+        </p>
+        <DeleteSchoolButton schoolId={id} schoolName={school.name} />
       </div>
     </div>
   );

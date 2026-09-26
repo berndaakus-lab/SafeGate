@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
-import { authOptions } from "@/lib/auth";
+import { authOptions, isReservedSuperadminEmail } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { parseBody } from "@/lib/validate";
 import bcrypt from "bcryptjs";
@@ -33,6 +33,10 @@ export async function POST(req: NextRequest) {
     }
 
     const email = parentEmail.trim().toLowerCase();
+
+    if (isReservedSuperadminEmail(email)) {
+      return NextResponse.json({ error: `Row for ${email}: that email is reserved and cannot be used for a parent account.` }, { status: 409 });
+    }
 
     // Find or create parent
     let { data: parent } = await supabaseAdmin

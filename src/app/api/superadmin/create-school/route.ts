@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
-import { authOptions } from "@/lib/auth";
+import { authOptions, isReservedSuperadminEmail } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { parseBody } from "@/lib/validate";
 import bcrypt from "bcryptjs";
@@ -29,6 +29,10 @@ export async function POST(req: NextRequest) {
     const parsed = await parseBody(req, schema);
     if (parsed.error) return parsed.error;
     const { school, admin } = parsed.data;
+
+    if (isReservedSuperadminEmail(admin.email)) {
+      return NextResponse.json({ error: "That email is reserved for the platform superadmin account. Use a different email for this school's admin." }, { status: 409 });
+    }
 
     // Check email not already taken
     const { data: existing } = await supabaseAdmin

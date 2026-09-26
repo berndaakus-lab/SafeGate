@@ -15,6 +15,15 @@ function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(hashA, hashB);
 }
 
+// The superadmin identity is resolved by email+password match, checked
+// before any staff/parent lookup. If a staff or parent account is ever
+// created with this same email, it becomes permanently unreachable, since
+// login will always resolve to superadmin first. Creation routes must call
+// this to reject the reserved email up front.
+export function isReservedSuperadminEmail(email: string): boolean {
+  return email.trim().toLowerCase() === SUPERADMIN_EMAIL.trim().toLowerCase();
+}
+
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },

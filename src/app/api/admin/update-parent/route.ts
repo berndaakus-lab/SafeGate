@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
-import { authOptions } from "@/lib/auth";
+import { authOptions, isReservedSuperadminEmail } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { parseBody } from "@/lib/validate";
 
@@ -23,6 +23,10 @@ export async function PATCH(req: NextRequest) {
     const parsed = await parseBody(req, schema);
     if (parsed.error) return parsed.error;
     const { parentId, name, email, phone } = parsed.data;
+
+    if (isReservedSuperadminEmail(email)) {
+      return NextResponse.json({ error: "That email is reserved and cannot be used for a parent account." }, { status: 409 });
+    }
 
     // Check email not taken by another parent
     const { data: existing } = await supabaseAdmin
