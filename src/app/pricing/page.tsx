@@ -3,6 +3,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { CheckCircle2, ArrowRight, ArrowLeft, MessageCircle, Star } from "lucide-react";
 import { getSettings, s } from "@/lib/settings";
+import SiteFooter from "@/components/SiteFooter";
 
 export const dynamic = "force-dynamic";
 
@@ -74,7 +75,7 @@ export default async function PricingPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <nav className="bg-white border-b border-slate-100 px-6 py-4">
+      <nav className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100 px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Image src="/icon-192.png" alt="VerifyGate" width={32} height={32} className="rounded-lg" />
@@ -302,6 +303,8 @@ export default async function PricingPage() {
           </p>
         </div>
       </div>
+
+      <SiteFooter />
     </div>
   );
 }

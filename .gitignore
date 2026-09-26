@@ -43,6 +43,9 @@ supabase/.temp
 CLAUDE.md
 AGENTS.md
 
+# reference/inspiration material (competitor site source, screenshots) - not our content
+/public/inspiration/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

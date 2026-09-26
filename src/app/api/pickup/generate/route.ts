@@ -1,15 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { parseBody } from "@/lib/validate";
 import QRCode from "qrcode";
+import { randomInt } from "crypto";
 
 function shortCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I confusion
   let code = "";
-  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  for (let i = 0; i < 6; i++) code += chars[randomInt(chars.length)];
   return code;
 }
+
+const schema = z.object({
+  studentId: z.string().uuid(),
+  authorizedPersonId: z.string().uuid(),
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,11 +25,9 @@ export async function POST(req: NextRequest) {
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const parentId = (session.user as any).id;
-    const { studentId, authorizedPersonId } = await req.json();
-
-    if (!studentId || !authorizedPersonId) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-    }
+    const parsed = await parseBody(req, schema);
+    if (parsed.error) return parsed.error;
+    const { studentId, authorizedPersonId } = parsed.data;
 
     // Verify student belongs to this parent
     const { data: student } = await supabaseAdmin

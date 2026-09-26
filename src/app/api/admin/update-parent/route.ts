@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { parseBody } from "@/lib/validate";
+
+const schema = z.object({
+  parentId: z.string().uuid(),
+  name: z.string().trim().min(1).max(200),
+  email: z.string().trim().email().max(255),
+  phone: z.string().trim().max(30).optional().nullable(),
+});
 
 export async function PATCH(req: NextRequest) {
   try {
@@ -11,11 +20,9 @@ export async function PATCH(req: NextRequest) {
     }
 
     const schoolId = (session?.user as any)?.schoolId;
-    const { parentId, name, email, phone } = await req.json();
-
-    if (!parentId || !name || !email) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-    }
+    const parsed = await parseBody(req, schema);
+    if (parsed.error) return parsed.error;
+    const { parentId, name, email, phone } = parsed.data;
 
     // Check email not taken by another parent
     const { data: existing } = await supabaseAdmin

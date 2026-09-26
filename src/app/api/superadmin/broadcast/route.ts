@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { parseBody } from "@/lib/validate";
 import { broadcastToSchool } from "@/lib/notifications";
 import type { NotificationPayload } from "@/lib/notifications";
+
+const schema = z.object({
+  schoolId: z.string().uuid().optional().nullable(),
+  title: z.string().trim().min(1).max(200),
+  body: z.string().trim().min(1).max(1000),
+});
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -11,10 +19,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
-  const { schoolId, title, body } = await req.json();
-  if (!title || !body) {
-    return NextResponse.json({ error: "title and body required" }, { status: 400 });
-  }
+  const parsed = await parseBody(req, schema);
+  if (parsed.error) return parsed.error;
+  const { schoolId, title, body } = parsed.data;
 
   const payload: NotificationPayload = {
     title,

@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { parseBody } from "@/lib/validate";
+
+// Settings is a free-form key/value bag by design; still cap sizes to stop abuse.
+const schema = z.record(
+  z.string().min(1).max(100),
+  z.union([z.string().max(2000), z.number(), z.boolean(), z.null()])
+);
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,7 +18,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const data = await req.json();
+    const parsed = await parseBody(req, schema);
+    if (parsed.error) return parsed.error;
+    const data = parsed.data;
     const rows = Object.entries(data).map(([key, value]) => ({ key, value: String(value ?? "") }));
 
     const { error } = await supabaseAdmin

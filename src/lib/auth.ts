@@ -2,9 +2,18 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { supabaseAdmin } from "@/lib/supabase";
 import bcrypt from "bcryptjs";
+import { createHash, timingSafeEqual } from "crypto";
 
 const SUPERADMIN_EMAIL = process.env.SUPERADMIN_EMAIL!;
 const SUPERADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD!;
+
+// Constant-time string comparison (hash both sides to a fixed length first,
+// so timingSafeEqual never leaks length info via an early throw).
+function safeEqual(a: string, b: string): boolean {
+  const hashA = createHash("sha256").update(a).digest();
+  const hashB = createHash("sha256").update(b).digest();
+  return timingSafeEqual(hashA, hashB);
+}
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
@@ -22,7 +31,7 @@ export const authOptions: NextAuthOptions = {
         const { email, password } = credentials;
 
         // 1. Check superadmin first
-        if (email === SUPERADMIN_EMAIL && password === SUPERADMIN_PASSWORD) {
+        if (safeEqual(email, SUPERADMIN_EMAIL) && safeEqual(password, SUPERADMIN_PASSWORD)) {
           return {
             id: "superadmin",
             email: SUPERADMIN_EMAIL,

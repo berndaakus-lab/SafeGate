@@ -12,6 +12,17 @@ export async function GET(req: NextRequest) {
   if (!reference) return NextResponse.json({ error: "Missing reference" }, { status: 400 });
 
   try {
+    // Confirm this reference was actually issued to this school, not replayed from another tenant
+    const { data: school } = await supabaseAdmin
+      .from("schools")
+      .select("plan, paid_at, paystack_reference")
+      .eq("id", schoolId)
+      .single();
+
+    if (!school || school.paystack_reference !== reference) {
+      return NextResponse.json({ error: "Reference does not match this school" }, { status: 403 });
+    }
+
     const paystackRes = await fetch(`https://api.paystack.co/charge/${reference}`, {
       headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
     });
@@ -19,13 +30,6 @@ export async function GET(req: NextRequest) {
     const status = data?.data?.status;
 
     if (status === "success") {
-      // Check not already upgraded
-      const { data: school } = await supabaseAdmin
-        .from("schools")
-        .select("plan, paid_at")
-        .eq("id", schoolId)
-        .single();
-
       if (school && school.plan !== "school") {
         await supabaseAdmin
           .from("schools")

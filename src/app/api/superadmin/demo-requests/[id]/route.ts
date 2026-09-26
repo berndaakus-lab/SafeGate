@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { parseBody } from "@/lib/validate";
+
+const schema = z.object({ status: z.enum(["new", "contacted", "onboarded", "declined"]) });
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
@@ -10,7 +14,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const { id } = await params;
-  const { status } = await req.json();
+  const parsed = await parseBody(req, schema);
+  if (parsed.error) return parsed.error;
+  const { status } = parsed.data;
 
   const { error } = await supabaseAdmin
     .from("demo_requests")

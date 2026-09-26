@@ -1,15 +1,11 @@
 import QRScanner from "./QRScanner";
-import Image from "next/image";
-import Link from "next/link";
+import HomeLogoLink from "@/components/HomeLogoLink";
 
 export default function GuardScanPage() {
   return (
     <div className="min-h-screen bg-slate-900 text-white flex flex-col">
       <header className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
-        <Link href="/" className="flex items-center gap-2">
-          <Image src="/icon-192.png" alt="VerifyGate" width={32} height={32} className="rounded-lg" />
-          <span className="font-bold text-white">VerifyGate</span>
-        </Link>
+        <HomeLogoLink textClassName="font-bold text-white" />
         <span className="text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1 rounded-full font-medium">
           Guard Mode
         </span>
