@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import SessionProvider from "@/components/SessionProvider";
 
 export default async function GuardLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
@@ -11,5 +12,5 @@ export default async function GuardLayout({ children }: { children: React.ReactN
     redirect("/login");
   }
 
-  return <>{children}</>;
+  return <SessionProvider session={session}>{children}</SessionProvider>;
 }
