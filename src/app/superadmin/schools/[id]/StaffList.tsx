@@ -3,8 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Trash2, Loader2, X, Check } from "lucide-react";
+import FieldError, { readApiErrors, withErrorRing, type FieldErrors } from "@/components/FieldError";
 
-type Staff = { id: string; name: string; email: string; role: string };
+type Staff = { id: string; name: string; email: string | null; login_phone: string | null; role: string };
+type Draft = { name: string; email: string; loginPhone: string; role: string };
+
+const inputClass = "w-full px-2 py-1.5 border border-slate-200 rounded-lg text-sm";
 
 const roleColors: Record<string, string> = {
   admin: "bg-blue-100 text-blue-700",
@@ -17,17 +21,39 @@ export default function StaffList({ staff }: { staff: Staff[] }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [draft, setDraft] = useState<{ name: string; email: string; role: string }>({ name: "", email: "", role: "guard" });
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [draft, setDraft] = useState<Draft>({ name: "", email: "", loginPhone: "", role: "guard" });
 
   function startEdit(s: Staff) {
     setEditingId(s.id);
-    setDraft({ name: s.name, email: s.email, role: s.role });
+    setDraft({ name: s.name, email: s.email ?? "", loginPhone: s.login_phone ?? "", role: s.role });
     setError("");
+    setFieldErrors({});
+  }
+
+  function set(key: keyof Draft, value: string) {
+    setDraft((d) => ({ ...d, [key]: value }));
+    setFieldErrors((e) => {
+      const next = { ...e, [key]: "" };
+      if (key === "email" || key === "loginPhone") next.email = next.loginPhone = "";
+      return next;
+    });
+  }
+
+  function field(key: "name" | "email" | "loginPhone", placeholder: string, props: React.InputHTMLAttributes<HTMLInputElement> = {}) {
+    return (
+      <div>
+        <input {...props} aria-label={placeholder} placeholder={placeholder} value={draft[key]}
+          onChange={(e) => set(key, e.target.value)} className={withErrorRing(inputClass, !!fieldErrors[key])} />
+        <FieldError message={fieldErrors[key]} />
+      </div>
+    );
   }
 
   async function save(id: string) {
     setBusyId(id);
     setError("");
+    setFieldErrors({});
     const res = await fetch(`/api/superadmin/staff/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -35,8 +61,9 @@ export default function StaffList({ staff }: { staff: Staff[] }) {
     });
     setBusyId(null);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error || "Failed to save.");
+      const { message, fields } = await readApiErrors(res, "Failed to save.");
+      setFieldErrors(fields);
+      setError(message);
       return;
     }
     setEditingId(null);
@@ -68,22 +95,14 @@ export default function StaffList({ staff }: { staff: Staff[] }) {
         <div key={s.id} className="px-6 py-3">
           {editingId === s.id ? (
             <div className="flex flex-col gap-2">
-              <input
-                value={draft.name}
-                onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-                className="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-sm"
-                placeholder="Name"
-              />
-              <input
-                value={draft.email}
-                onChange={(e) => setDraft((d) => ({ ...d, email: e.target.value }))}
-                className="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-sm"
-                placeholder="Email"
-              />
+              {field("name", "Name")}
+              {field("email", "Email", { type: "email", autoCapitalize: "none" })}
+              {field("loginPhone", "Login phone", { type: "tel", inputMode: "tel" })}
               <select
+                aria-label="Role"
                 value={draft.role}
-                onChange={(e) => setDraft((d) => ({ ...d, role: e.target.value }))}
-                className="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-sm"
+                onChange={(e) => set("role", e.target.value)}
+                className={inputClass}
               >
                 <option value="admin">Admin</option>
                 <option value="guard">Guard</option>
@@ -110,7 +129,7 @@ export default function StaffList({ staff }: { staff: Staff[] }) {
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-slate-900 truncate">{s.name}</p>
-                <p className="text-xs text-slate-400 truncate">{s.email}</p>
+                <p className="text-xs text-slate-400 truncate">{[s.email, s.login_phone].filter(Boolean).join(" · ")}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${roleColors[s.role] ?? "bg-slate-100 text-slate-600"}`}>

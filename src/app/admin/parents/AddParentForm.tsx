@@ -3,69 +3,110 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Plus } from "lucide-react";
+import FieldError, { readApiErrors, withErrorRing, type FieldErrors } from "@/components/FieldError";
+
+const inputClass =
+  "w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
+
+const empty = { name: "", email: "", loginPhone: "", phone: "", password: "" };
 
 export default function AddParentForm({ schoolId }: { schoolId: string }) {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState(empty);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [success, setSuccess] = useState(false);
+
+  function set(key: keyof typeof empty, value: string) {
+    setForm((f) => ({ ...f, [key]: value }));
+    setFieldErrors((e) => {
+      const next = { ...e, [key]: "" };
+      if (key === "email" || key === "loginPhone") next.email = next.loginPhone = "";
+      return next;
+    });
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setFieldErrors({});
+    if (!form.email.trim() && !form.loginPhone.trim()) {
+      const msg = "Enter an email or a login phone number.";
+      setFieldErrors({ email: msg, loginPhone: msg });
+      return;
+    }
     setLoading(true);
 
     const res = await fetch("/api/admin/create-parent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, phone, password, schoolId }),
+      body: JSON.stringify({ ...form, schoolId }),
     });
 
     setLoading(false);
 
     if (!res.ok) {
-      const data = await res.json();
-      setError(data.error || "Failed to create parent account.");
+      const { message, fields } = await readApiErrors(res, "Failed to create parent account.");
+      setFieldErrors(fields);
+      setError(message);
       return;
     }
 
     setSuccess(true);
-    setName(""); setEmail(""); setPhone(""); setPassword("");
+    setForm(empty);
     setTimeout(() => setSuccess(false), 3000);
     router.refresh();
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">Parent name *</label>
-          <input required value={name} onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Abena Mensah"
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">Phone</label>
-          <input value={phone} onChange={(e) => setPhone(e.target.value)}
-            placeholder="e.g. 0244123456"
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+    <form onSubmit={handleSubmit} noValidate className="space-y-4">
+      <div>
+        <label htmlFor="ap-name" className="block text-sm font-medium text-slate-700 mb-1.5">Parent name *</label>
+        <input id="ap-name" value={form.name} onChange={(e) => set("name", e.target.value)}
+          placeholder="e.g. Abena Mensah" className={withErrorRing(inputClass, !!fieldErrors.name)} />
+        <FieldError message={fieldErrors.name} />
+      </div>
+
+      <div>
+        <p className="text-sm font-medium text-slate-700">Sign-in details *</p>
+        <p className="text-xs text-slate-400 mb-2">The parent signs in with either one. Fill in at least one.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <input type="email" aria-label="Email" value={form.email} onChange={(e) => set("email", e.target.value)}
+              autoCapitalize="none" placeholder="Email, e.g. parent@email.com"
+              className={withErrorRing(inputClass, !!fieldErrors.email)} />
+            <FieldError message={fieldErrors.email} />
+          </div>
+          <div>
+            <input type="tel" inputMode="tel" aria-label="Login phone" value={form.loginPhone}
+              onChange={(e) => set("loginPhone", e.target.value)} placeholder="Login phone, e.g. 0244123456"
+              className={withErrorRing(inputClass, !!fieldErrors.loginPhone)} />
+            <FieldError message={fieldErrors.loginPhone} />
+          </div>
         </div>
       </div>
+
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1.5">Email *</label>
-        <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-          placeholder="parent@email.com"
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+        <div className="flex items-center justify-between mb-1.5">
+          <label htmlFor="ap-phone" className="block text-sm font-medium text-slate-700">SMS alert phone</label>
+          {form.loginPhone.trim() && form.phone !== form.loginPhone && (
+            <button type="button" onClick={() => set("phone", form.loginPhone)} className="text-xs font-medium text-blue-600 hover:underline">
+              Same as login phone
+            </button>
+          )}
+        </div>
+        <input id="ap-phone" type="tel" inputMode="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)}
+          placeholder="Where pickup SMS alerts go" className={withErrorRing(inputClass, !!fieldErrors.phone)} />
+        <FieldError message={fieldErrors.phone} />
       </div>
+
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1.5">Temporary password *</label>
-        <input required type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-          placeholder="Share this with the parent"
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+        <label htmlFor="ap-password" className="block text-sm font-medium text-slate-700 mb-1.5">Temporary password *</label>
+        <input id="ap-password" type="password" value={form.password} onChange={(e) => set("password", e.target.value)}
+          placeholder="At least 8 characters. Share it with the parent."
+          className={withErrorRing(inputClass, !!fieldErrors.password)} />
+        <FieldError message={fieldErrors.password} />
       </div>
 
       {error && <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl border border-red-100">{error}</div>}

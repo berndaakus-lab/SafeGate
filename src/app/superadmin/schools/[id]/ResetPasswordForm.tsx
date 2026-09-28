@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Loader2, KeyRound } from "lucide-react";
 
-export default function ResetPasswordForm({ staff }: { staff: { id: string; name: string; email: string }[] }) {
+export default function ResetPasswordForm({ staff }: { staff: { id: string; name: string; email: string | null; login_phone: string | null }[] }) {
   const [staffId, setStaffId] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -44,7 +44,7 @@ export default function ResetPasswordForm({ staff }: { staff: { id: string; name
             className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
             <option value="">Select staff...</option>
             {staff.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}, {s.email}</option>
+              <option key={s.id} value={s.id}>{s.name}, {s.email ?? s.login_phone}</option>
             ))}
           </select>
         </div>

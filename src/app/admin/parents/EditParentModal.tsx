@@ -3,33 +3,65 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Pencil, X } from "lucide-react";
+import FieldError, { readApiErrors, withErrorRing, type FieldErrors } from "@/components/FieldError";
 
-export default function EditParentModal({ parent }: {
-  parent: { id: string; name: string; email: string; phone: string | null };
-}) {
+const inputClass =
+  "w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
+
+type Parent = { id: string; name: string; email: string | null; login_phone: string | null; phone: string | null };
+
+export default function EditParentModal({ parent }: { parent: Parent }) {
   const router = useRouter();
+  const initial = {
+    name: parent.name,
+    email: parent.email ?? "",
+    loginPhone: parent.login_phone ?? "",
+    phone: parent.phone ?? "",
+  };
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState(parent.name);
-  const [email, setEmail] = useState(parent.email);
-  const [phone, setPhone] = useState(parent.phone ?? "");
+  const [form, setForm] = useState(initial);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  function openModal() {
+    setForm(initial);
+    setError("");
+    setFieldErrors({});
+    setOpen(true);
+  }
+
+  function set(key: keyof typeof initial, value: string) {
+    setForm((f) => ({ ...f, [key]: value }));
+    setFieldErrors((e) => {
+      const next = { ...e, [key]: "" };
+      if (key === "email" || key === "loginPhone") next.email = next.loginPhone = "";
+      return next;
+    });
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setFieldErrors({});
+    if (!form.email.trim() && !form.loginPhone.trim()) {
+      const msg = "Enter an email or a login phone number.";
+      setFieldErrors({ email: msg, loginPhone: msg });
+      return;
+    }
     setLoading(true);
 
     const res = await fetch("/api/admin/update-parent", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ parentId: parent.id, name, email, phone }),
+      body: JSON.stringify({ parentId: parent.id, ...form }),
     });
 
     setLoading(false);
     if (!res.ok) {
-      const data = await res.json();
-      setError(data.error || "Failed to update.");
+      const { message, fields } = await readApiErrors(res, "Failed to update.");
+      setFieldErrors(fields);
+      setError(message);
       return;
     }
 
@@ -40,7 +72,7 @@ export default function EditParentModal({ parent }: {
   return (
     <>
       <button
-        onClick={() => setOpen(true)}
+        onClick={openModal}
         className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-blue-600 transition-colors"
       >
         <Pencil className="w-3 h-3" /> Edit
@@ -48,42 +80,48 @@ export default function EditParentModal({ parent }: {
 
       {open && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-bold text-slate-900 text-lg">Edit Parent</h2>
-              <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600" aria-label="Close">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} noValidate className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Full name</label>
-                <input
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                <label htmlFor="ep-name" className="block text-sm font-medium text-slate-700 mb-1.5">Full name</label>
+                <input id="ep-name" value={form.name} onChange={(e) => set("name", e.target.value)}
+                  className={withErrorRing(inputClass, !!fieldErrors.name)} />
+                <FieldError message={fieldErrors.name} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
-                <input
-                  required
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                <label htmlFor="ep-email" className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+                <input id="ep-email" type="email" autoCapitalize="none" value={form.email}
+                  onChange={(e) => set("email", e.target.value)} placeholder="Optional if a login phone is set"
+                  className={withErrorRing(inputClass, !!fieldErrors.email)} />
+                <FieldError message={fieldErrors.email} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Phone</label>
-                <input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="e.g. 0244123456"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                <label htmlFor="ep-login-phone" className="block text-sm font-medium text-slate-700 mb-1.5">Login phone</label>
+                <input id="ep-login-phone" type="tel" inputMode="tel" value={form.loginPhone}
+                  onChange={(e) => set("loginPhone", e.target.value)} placeholder="Optional if an email is set"
+                  className={withErrorRing(inputClass, !!fieldErrors.loginPhone)} />
+                <FieldError message={fieldErrors.loginPhone} />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="ep-phone" className="block text-sm font-medium text-slate-700">SMS alert phone</label>
+                  {form.loginPhone.trim() && form.phone !== form.loginPhone && (
+                    <button type="button" onClick={() => set("phone", form.loginPhone)} className="text-xs font-medium text-blue-600 hover:underline">
+                      Same as login phone
+                    </button>
+                  )}
+                </div>
+                <input id="ep-phone" type="tel" inputMode="tel" value={form.phone}
+                  onChange={(e) => set("phone", e.target.value)} placeholder="Where pickup SMS alerts go"
+                  className={withErrorRing(inputClass, !!fieldErrors.phone)} />
+                <FieldError message={fieldErrors.phone} />
               </div>
 
               {error && (

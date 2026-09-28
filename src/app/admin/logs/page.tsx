@@ -22,6 +22,8 @@ export default async function LogsPage() {
           id,
           picked_up_at,
           student_id,
+          confirmed_by_name,
+          confirmed_by_role,
           students(name, class_name),
           authorized_persons(name, relation),
           pickup_codes(parents(name, phone))
@@ -45,6 +47,8 @@ export default async function LogsPage() {
       collectedBy: l.authorized_persons?.name ?? "N/A",
       relation: l.authorized_persons?.relation ?? "",
       parentName: parent?.name ?? "N/A",
+      releasedBy: l.confirmed_by_name ?? null,
+      releasedByRole: l.confirmed_by_role ?? null,
     };
   });
 

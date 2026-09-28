@@ -6,6 +6,7 @@ import { Clock, XCircle, ShieldAlert } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatTime } from "@/lib/utils";
+import SchoolLogo from "@/components/SchoolLogo";
 
 export default async function VerifyPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
@@ -14,13 +15,13 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
   const role = (session?.user as any)?.role;
   const guardSchoolId = (session?.user as any)?.schoolId as string | null;
 
-  if (!session || role !== "guard" || !guardSchoolId) {
+  if (!session || !["guard", "teacher"].includes(role) || !guardSchoolId) {
     return (
       <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center px-6 text-center">
         <ShieldAlert className="w-14 h-14 text-red-400 mb-4" />
-        <h2 className="text-xl font-bold text-red-300 mb-2">Guard sign-in required</h2>
+        <h2 className="text-xl font-bold text-red-300 mb-2">Guard or teacher sign-in required</h2>
         <p className="text-slate-400 text-sm mb-6 max-w-xs">
-          Sign in with your guard account to view and confirm this pickup.
+          Sign in with your guard or teacher account to view and confirm this pickup.
         </p>
         <Link href="/login" className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-medium text-sm transition-colors">
           Sign In
@@ -33,7 +34,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
     .from("pickup_codes")
     .select(`
       *,
-      students(id, name, class_name, photo_url, school_id, schools(name)),
+      students(id, name, class_name, photo_url, school_id, schools(name, logo_url)),
       authorized_persons(name, phone, relation),
       parents(name),
       pickup_logs(id, picked_up_at)
@@ -99,9 +100,14 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
                 <span className="text-green-400 text-sm font-medium">Code Valid</span>
               </div>
 
-              <p className="text-center text-slate-400 text-xs mb-6 uppercase tracking-widest">
-                {pickupCode.students?.schools?.name}
-              </p>
+              <div className="flex flex-col items-center gap-2 mb-6">
+                {pickupCode.students?.schools?.logo_url && (
+                  <SchoolLogo name={pickupCode.students.schools.name} logoUrl={pickupCode.students.schools.logo_url} size="lg" />
+                )}
+                <p className="text-center text-slate-400 text-xs uppercase tracking-widest">
+                  {pickupCode.students?.schools?.name}
+                </p>
+              </div>
 
               <div className="bg-slate-800 rounded-2xl p-5 mb-4">
                 <p className="text-xs text-slate-500 uppercase tracking-widest mb-3">Child</p>

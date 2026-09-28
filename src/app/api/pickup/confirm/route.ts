@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     const role = (session?.user as any)?.role;
     const guardSchoolId = (session?.user as any)?.schoolId;
-    if (!session || role !== "guard" || !guardSchoolId) {
+    if (!session || !["guard", "teacher"].includes(role) || !guardSchoolId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -56,13 +56,15 @@ export async function POST(req: NextRequest) {
       .eq("id", pickupCodeId)
       .single();
 
-    // Create pickup log, only columns that exist in the table
     const { data: log, error } = await supabaseAdmin
       .from("pickup_logs")
       .insert({
         pickup_code_id: pickupCodeId,
         student_id: studentId,
         authorized_person_id: authorizedPersonId,
+        confirmed_by_staff_id: (session.user as any).id,
+        confirmed_by_name: session.user?.name ?? null,
+        confirmed_by_role: role,
       })
       .select()
       .single();

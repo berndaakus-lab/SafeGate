@@ -4,11 +4,12 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { parseBody } from "@/lib/validate";
+import { optionalPhone } from "@/lib/identity";
 
 const schema = z.object({
-  name: z.string().trim().min(1).max(200),
-  address: z.string().trim().max(500).optional().nullable(),
-  phone: z.string().trim().max(30).optional().nullable(),
+  name: z.string().trim().min(1, "Enter the school name.").max(200, "That name is too long."),
+  address: z.string().trim().max(500, "That address is too long.").optional().nullable(),
+  phone: optionalPhone,
 });
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

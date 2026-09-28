@@ -12,6 +12,8 @@ import EditSchoolInfoForm from "./EditSchoolInfoForm";
 import StaffList from "./StaffList";
 import ParentsList from "./ParentsList";
 import DeleteSchoolButton from "./DeleteSchoolButton";
+import SchoolLogo from "@/components/SchoolLogo";
+import SchoolLogoEditor from "./SchoolLogoEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -34,8 +36,8 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
     settings,
   ] = await Promise.all([
     supabaseAdmin.from("schools").select("*").eq("id", id).single(),
-    supabaseAdmin.from("staff").select("id, name, email, role").eq("school_id", id).order("role"),
-    supabaseAdmin.from("parents").select("id, name, email, phone").eq("school_id", id).order("name"),
+    supabaseAdmin.from("staff").select("id, name, email, login_phone, role").eq("school_id", id).order("role"),
+    supabaseAdmin.from("parents").select("id, name, email, login_phone, phone").eq("school_id", id).order("name"),
     studentIds.length > 0
       ? supabaseAdmin
           .from("pickup_logs")
@@ -65,9 +67,7 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
           <ArrowLeft className="w-4 h-4" /> Back to Schools
         </Link>
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center font-bold text-blue-700 text-lg">
-            {school.name[0].toUpperCase()}
-          </div>
+          <SchoolLogo name={school.name} logoUrl={school.logo_url} size="lg" />
           <div>
             <h1 className="text-2xl font-bold text-slate-900">{school.name}</h1>
             <p className="text-slate-400 text-sm">
@@ -117,7 +117,10 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
       {/* School info */}
       <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-6">
         <h2 className="font-semibold text-slate-900 mb-1">School Info</h2>
-        <p className="text-sm text-slate-400 mb-5">Edit this school&apos;s name, address, and phone number.</p>
+        <p className="text-sm text-slate-400 mb-5">Edit this school&apos;s logo, name, address, and phone number.</p>
+        <div className="mb-6">
+          <SchoolLogoEditor schoolId={id} schoolName={school.name} logoUrl={school.logo_url ?? null} />
+        </div>
         <EditSchoolInfoForm
           schoolId={id}
           name={school.name}
@@ -143,7 +146,10 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
                   </div>
                   <div>
                     <p className="text-sm font-medium text-slate-900">{log.students?.name}</p>
-                    <p className="text-xs text-slate-400">by {log.authorized_persons?.name}</p>
+                    <p className="text-xs text-slate-400">
+                      by {log.authorized_persons?.name}
+                      {log.confirmed_by_name && ` · released by ${log.confirmed_by_name}${log.confirmed_by_role ? ` (${log.confirmed_by_role})` : ""}`}
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">

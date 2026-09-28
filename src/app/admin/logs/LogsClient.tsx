@@ -12,7 +12,19 @@ type Log = {
   collectedBy: string;
   relation: string;
   parentName: string;
+  releasedBy: string | null;
+  releasedByRole: string | null;
 };
+
+function ReleasedBy({ log }: { log: Log }) {
+  if (!log.releasedBy) return <span className="text-slate-300">Not recorded</span>;
+  return (
+    <>
+      {log.releasedBy}
+      {log.releasedByRole && <span className="text-slate-400 capitalize"> ({log.releasedByRole})</span>}
+    </>
+  );
+}
 
 export default function LogsClient({ logs }: { logs: Log[] }) {
   const [search, setSearch] = useState("");
@@ -28,6 +40,7 @@ export default function LogsClient({ logs }: { logs: Log[] }) {
           log.studentName.toLowerCase().includes(q) ||
           log.collectedBy.toLowerCase().includes(q) ||
           log.parentName.toLowerCase().includes(q) ||
+          (log.releasedBy ?? "").toLowerCase().includes(q) ||
           log.className.toLowerCase().includes(q);
         if (!match) return false;
       }
@@ -71,7 +84,7 @@ export default function LogsClient({ logs }: { logs: Log[] }) {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search student, collector, parent..."
+            placeholder="Search student, collector, parent, staff..."
             className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -122,10 +135,11 @@ export default function LogsClient({ logs }: { logs: Log[] }) {
         ) : (
           <>
             {/* Desktop header */}
-            <div className="hidden md:grid grid-cols-[1fr_1fr_1fr_auto] px-6 py-3 bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-400 uppercase tracking-wider gap-4">
+            <div className="hidden md:grid grid-cols-[1fr_1fr_1fr_1fr_auto] px-6 py-3 bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-400 uppercase tracking-wider gap-4">
               <span>Student</span>
               <span>Picked by</span>
               <span>Parent</span>
+              <span>Released by</span>
               <span className="text-right">Time</span>
             </div>
 
@@ -133,7 +147,7 @@ export default function LogsClient({ logs }: { logs: Log[] }) {
               {filtered.map((log) => (
                 <div key={log.id} className="px-6 py-4">
                   {/* Desktop */}
-                  <div className="hidden md:grid grid-cols-[1fr_1fr_1fr_auto] items-center gap-4">
+                  <div className="hidden md:grid grid-cols-[1fr_1fr_1fr_1fr_auto] items-center gap-4">
                     <div>
                       <p className="text-sm font-medium text-slate-900">{log.studentName}</p>
                       {log.className && <p className="text-xs text-slate-400">{log.className}</p>}
@@ -143,6 +157,7 @@ export default function LogsClient({ logs }: { logs: Log[] }) {
                       {log.relation && <p className="text-xs text-slate-400">{log.relation}</p>}
                     </div>
                     <p className="text-sm text-slate-500">{log.parentName}</p>
+                    <p className="text-sm text-slate-700"><ReleasedBy log={log} /></p>
                     <div className="text-right shrink-0">
                       <p className="text-sm font-medium text-slate-700">{formatTime(log.picked_up_at)}</p>
                       <p className="text-xs text-slate-400">{formatDate(log.picked_up_at)}</p>
@@ -160,6 +175,7 @@ export default function LogsClient({ logs }: { logs: Log[] }) {
                       </p>
                       <p className="text-xs text-slate-500 mt-0.5">Picked by <strong>{log.collectedBy}</strong>{log.relation ? ` (${log.relation})` : ""}</p>
                       <p className="text-xs text-slate-400">Parent: {log.parentName}</p>
+                      <p className="text-xs text-slate-400">Released by: <ReleasedBy log={log} /></p>
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-xs font-medium text-slate-700">{formatTime(log.picked_up_at)}</p>

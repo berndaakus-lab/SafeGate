@@ -3,25 +3,51 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Trash2, Loader2, X, Check } from "lucide-react";
+import FieldError, { readApiErrors, withErrorRing, type FieldErrors } from "@/components/FieldError";
 
-type Parent = { id: string; name: string; email: string; phone: string | null };
+type Parent = { id: string; name: string; email: string | null; login_phone: string | null; phone: string | null };
+type Draft = { name: string; email: string; loginPhone: string; phone: string };
+
+const inputClass = "w-full px-2 py-1.5 border border-slate-200 rounded-lg text-sm";
 
 export default function ParentsList({ parents }: { parents: Parent[] }) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [draft, setDraft] = useState<{ name: string; email: string; phone: string }>({ name: "", email: "", phone: "" });
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [draft, setDraft] = useState<Draft>({ name: "", email: "", loginPhone: "", phone: "" });
 
   function startEdit(p: Parent) {
     setEditingId(p.id);
-    setDraft({ name: p.name, email: p.email, phone: p.phone ?? "" });
+    setDraft({ name: p.name, email: p.email ?? "", loginPhone: p.login_phone ?? "", phone: p.phone ?? "" });
     setError("");
+    setFieldErrors({});
+  }
+
+  function set(key: keyof Draft, value: string) {
+    setDraft((d) => ({ ...d, [key]: value }));
+    setFieldErrors((e) => {
+      const next = { ...e, [key]: "" };
+      if (key === "email" || key === "loginPhone") next.email = next.loginPhone = "";
+      return next;
+    });
+  }
+
+  function field(key: keyof Draft, placeholder: string, props: React.InputHTMLAttributes<HTMLInputElement> = {}) {
+    return (
+      <div>
+        <input {...props} aria-label={placeholder} placeholder={placeholder} value={draft[key]}
+          onChange={(e) => set(key, e.target.value)} className={withErrorRing(inputClass, !!fieldErrors[key])} />
+        <FieldError message={fieldErrors[key]} />
+      </div>
+    );
   }
 
   async function save(id: string) {
     setBusyId(id);
     setError("");
+    setFieldErrors({});
     const res = await fetch(`/api/superadmin/parents/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -29,8 +55,9 @@ export default function ParentsList({ parents }: { parents: Parent[] }) {
     });
     setBusyId(null);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error || "Failed to save.");
+      const { message, fields } = await readApiErrors(res, "Failed to save.");
+      setFieldErrors(fields);
+      setError(message);
       return;
     }
     setEditingId(null);
@@ -62,24 +89,10 @@ export default function ParentsList({ parents }: { parents: Parent[] }) {
         <div key={p.id} className="px-6 py-3">
           {editingId === p.id ? (
             <div className="flex flex-col gap-2">
-              <input
-                value={draft.name}
-                onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-                className="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-sm"
-                placeholder="Name"
-              />
-              <input
-                value={draft.email}
-                onChange={(e) => setDraft((d) => ({ ...d, email: e.target.value }))}
-                className="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-sm"
-                placeholder="Email"
-              />
-              <input
-                value={draft.phone}
-                onChange={(e) => setDraft((d) => ({ ...d, phone: e.target.value }))}
-                className="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-sm"
-                placeholder="Phone"
-              />
+              {field("name", "Name")}
+              {field("email", "Email", { type: "email", autoCapitalize: "none" })}
+              {field("loginPhone", "Login phone", { type: "tel", inputMode: "tel" })}
+              {field("phone", "SMS alert phone", { type: "tel", inputMode: "tel" })}
               <div className="flex items-center gap-2 mt-1">
                 <button
                   onClick={() => save(p.id)}
@@ -101,7 +114,10 @@ export default function ParentsList({ parents }: { parents: Parent[] }) {
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-slate-900 truncate">{p.name}</p>
-                <p className="text-xs text-slate-400 truncate">{p.email}{p.phone ? ` · ${p.phone}` : ""}</p>
+                <p className="text-xs text-slate-400 truncate">
+                  {[p.email, p.login_phone].filter(Boolean).join(" · ")}
+                  {p.phone ? ` · SMS ${p.phone}` : ""}
+                </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <button onClick={() => startEdit(p)} className="text-slate-400 hover:text-blue-600 p-1">
