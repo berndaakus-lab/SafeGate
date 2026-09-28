@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import bcrypt from "bcryptjs";
 import { createHash, timingSafeEqual } from "crypto";
 import { escapeLike, isEmailIdentifier, normalizeEmail, normalizePhone } from "@/lib/identity";
+import { IDLE_TIMEOUT_MINUTES } from "@/lib/session-policy";
 
 const SUPERADMIN_EMAIL = process.env.SUPERADMIN_EMAIL!;
 const SUPERADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD!;
@@ -32,7 +33,9 @@ async function findAccount(table: "staff" | "parents", identifier: string) {
 }
 
 export const authOptions: NextAuthOptions = {
-  session: { strategy: "jwt" },
+  // Rolling 1-hour lifetime: every /api/auth/session call re-issues the
+  // cookie, and IdleSessionGuard makes that call while the user is active.
+  session: { strategy: "jwt", maxAge: IDLE_TIMEOUT_MINUTES * 60 },
   pages: { signIn: "/login" },
   providers: [
     CredentialsProvider({

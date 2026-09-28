@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOutUser } from "@/lib/sign-out";
 import { LayoutDashboard, School, LogOut, Settings, Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HomeLogoLink from "@/components/HomeLogoLink";
@@ -49,7 +49,7 @@ export default function SuperAdminNav({ newLeads = 0 }: { newLeads?: number }) {
 
         <div className="border-t border-slate-800 pt-4 mt-4">
           <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => signOutUser("/login")}
             className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-xl transition-all"
           >
             <LogOut className="w-4 h-4" />

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import QRScanner from "./QRScanner";
 import HomeLogoLink from "@/components/HomeLogoLink";
+import SignOutButton from "./SignOutButton";
 
 export default async function GuardScanPage() {
   const session = await getServerSession(authOptions);
@@ -13,15 +14,14 @@ export default async function GuardScanPage() {
     <div className="min-h-screen bg-slate-900 text-white flex flex-col">
       <header className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
         <HomeLogoLink textClassName="font-bold text-white" />
-        {dashboard ? (
-          <Link href={dashboard} className="text-sm text-slate-300 hover:text-white">
-            ← Back to dashboard
-          </Link>
-        ) : (
-          <span className="text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1 rounded-full font-medium">
-            Scanner
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {dashboard && (
+            <Link href={dashboard} className="text-sm text-slate-300 hover:text-white">
+              ← Dashboard
+            </Link>
+          )}
+          <SignOutButton compact={!!dashboard} />
+        </div>
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-8">
