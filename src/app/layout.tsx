@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import RegisterSW from "@/components/RegisterSW";
 import InstallBanner from "@/components/InstallBanner";
 import AOSInit from "@/components/AOSInit";
+import TopProgressBar from "@/components/TopProgressBar";
 import "./globals.css";
 
 const geist = Geist({
@@ -114,6 +115,7 @@ export default async function RootLayout({
           nonce={nonce}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
+        <TopProgressBar />
         <RegisterSW />
         <InstallBanner />
         <AOSInit />

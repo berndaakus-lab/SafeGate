@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { QrCode, Loader2, Share2, Download, RefreshCw, Check } from "lucide-react";
 import Image from "next/image";
+import { buildPickupPassImage } from "@/lib/pickup-pass-image";
 
 type Child = { id: string; name: string; class_name: string | null };
 type Person = { id: string; name: string; relation: string | null };
-type QrData = { qrUrl: string; code: string; expiresAt: string; childNames: string[] };
+type QrData = { qrUrl: string; code: string; expiresAt: string; childNames: string[]; collectedBy: string };
 
 function joinNames(names: string[]) {
   return names.length <= 1 ? names[0] ?? "" : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
@@ -25,6 +26,9 @@ export default function GenerateForm({
   const [loading, setLoading] = useState(false);
   const [qrData, setQrData] = useState<QrData | null>(null);
   const [error, setError] = useState("");
+  const [sharing, setSharing] = useState(false);
+  const [shareNote, setShareNote] = useState("");
+  const [pass, setPass] = useState<File | null>(null);
 
   const allSelected = children.length > 0 && childIds.size === children.length;
 
@@ -59,28 +63,76 @@ export default function GenerateForm({
       return;
     }
 
-    setQrData(await res.json());
+    const person = authorizedPeople.find((p) => p.id === personId);
+    const data: QrData = {
+      ...(await res.json()),
+      collectedBy: person ? `${person.name}${person.relation ? ` (${person.relation})` : ""}` : "an authorised person",
+    };
+    setQrData(data);
+    setShareNote("");
+    // Build the shareable image now, so tapping Share can open the share
+    // sheet immediately (iOS Safari drops the tap if we await work first).
+    setPass(null);
+    buildPass(data).then(setPass).catch(() => setPass(null));
   }
 
-  function handleShare() {
+  // Share the pass image (WhatsApp, SMS, etc.) where the phone supports
+  // sharing files; otherwise share the text, and on desktop save the image.
+  async function handleShare() {
     if (!qrData) return;
-    if (navigator.share) {
-      navigator.share({
-        title: "VerifyGate Pickup Code",
-        text: `Pickup code for ${joinNames(qrData.childNames)}: ${qrData.code}`,
-      });
-    } else {
-      navigator.clipboard.writeText(qrData.code);
-      alert("Code copied to clipboard!");
+    setShareNote("");
+    const text = `VerifyGate pickup code for ${joinNames(qrData.childNames)}: ${qrData.code}. Show the QR code at the school gate.`;
+    setSharing(true);
+    try {
+      const file = await getPass(qrData);
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: "VerifyGate pickup pass", text });
+      } else if (navigator.share) {
+        await navigator.share({ title: "VerifyGate pickup pass", text });
+      } else {
+        downloadFile(file);
+        await navigator.clipboard?.writeText(text).catch(() => {});
+        setShareNote("Pickup pass image saved, and the code copied. Attach the image to your message.");
+      }
+    } catch (err: any) {
+      // The user closing the share sheet is not an error
+      if (err?.name !== "AbortError") setShareNote("Could not share. Use Save Pass and send the image instead.");
+    } finally {
+      setSharing(false);
     }
   }
 
-  async function handleDownload() {
-    if (!qrData?.qrUrl) return;
+  function buildPass(data: QrData) {
+    const until = new Date(data.expiresAt);
+    return buildPickupPassImage({
+      qrUrl: data.qrUrl,
+      code: data.code,
+      childNames: joinNames(data.childNames),
+      collectedBy: data.collectedBy,
+      validUntil: `Valid until ${until.toLocaleTimeString("en-GH", { hour: "2-digit", minute: "2-digit" })}, ${until.toLocaleDateString("en-GH", { weekday: "short", day: "numeric", month: "short" })}`,
+    });
+  }
+
+  async function getPass(data: QrData) {
+    return pass ?? (await buildPass(data));
+  }
+
+  function downloadFile(file: File) {
+    const url = URL.createObjectURL(file);
     const a = document.createElement("a");
-    a.href = qrData.qrUrl;
-    a.download = "verifygate-pickup-qr.png";
+    a.href = url;
+    a.download = file.name;
     a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function handleDownload() {
+    if (!qrData) return;
+    try {
+      downloadFile(await getPass(qrData));
+    } catch {
+      setShareNote("Could not create the image. Try again.");
+    }
   }
 
   const hasData = children.length > 0 && authorizedPeople.length > 0;
@@ -227,17 +279,20 @@ export default function GenerateForm({
           <div className="flex gap-3">
             <button
               onClick={handleShare}
-              className="flex-1 flex items-center justify-center gap-2 border-2 border-blue-600 text-blue-600 py-3 rounded-xl font-semibold hover:bg-blue-50 transition-colors"
+              disabled={sharing}
+              className="flex-1 flex items-center justify-center gap-2 border-2 border-blue-600 text-blue-600 py-3 rounded-xl font-semibold hover:bg-blue-50 transition-colors disabled:opacity-60"
             >
-              <Share2 className="w-4 h-4" /> Share
+              {sharing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />} Share pass
             </button>
             <button
               onClick={handleDownload}
               className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
             >
-              <Download className="w-4 h-4" /> Save QR
+              <Download className="w-4 h-4" /> Save pass
             </button>
           </div>
+          <p className="text-xs text-slate-400 mt-2">Shares a picture of the QR code with the children&apos;s names, so it works on WhatsApp.</p>
+          {shareNote && <p className="text-xs font-medium text-slate-600 mt-2">{shareNote}</p>}
 
           <button
             onClick={() => { setQrData(null); setChildIds(initialChildren()); setPersonId(""); }}

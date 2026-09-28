@@ -14,35 +14,52 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    const result = await signIn("credentials", {
-      identifier,
-      password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn("credentials", {
+        identifier,
+        password,
+        redirect: false,
+      });
 
-    setLoading(false);
+      if (result?.error) {
+        setError("Invalid email/phone number or password.");
+        setLoading(false);
+        return;
+      }
 
-    if (result?.error) {
-      setError("Invalid email/phone number or password.");
-      return;
+      // Stay in the loading state through the role lookup and the dashboard
+      // load; the page unmounts once navigation completes.
+      setRedirecting(true);
+      const res = await fetch("/api/auth/session");
+      const session = await res.json();
+      const role = session?.user?.role;
+
+      const destination =
+        role === "superadmin" ? "/superadmin/dashboard"
+        : role === "admin" ? "/admin/dashboard"
+        : role === "parent" ? "/parent/dashboard"
+        : role === "guard" || role === "teacher" ? "/guard/scan"
+        : null;
+
+      if (!destination) {
+        setError("Signed in, but your account has no role. Contact your school.");
+        setLoading(false);
+        setRedirecting(false);
+        return;
+      }
+      router.replace(destination);
+    } catch {
+      setError("Could not reach the server. Check your connection and try again.");
+      setLoading(false);
+      setRedirecting(false);
     }
-
-    // Fetch session to get role and redirect accordingly
-    const res = await fetch("/api/auth/session");
-    const session = await res.json();
-    const role = session?.user?.role;
-
-    if (role === "superadmin") router.push("/superadmin/dashboard");
-    else if (role === "admin") router.push("/admin/dashboard");
-    else if (role === "parent") router.push("/parent/dashboard");
-    else if (role === "guard" || role === "teacher") router.push("/guard/scan");
-    else router.push("/login");
   }
 
   return (
@@ -133,7 +150,7 @@ function LoginForm() {
               className="w-full bg-blue-600 text-white py-3.5 sm:py-3 rounded-xl font-semibold hover:bg-blue-700 active:bg-blue-800 transition-colors disabled:opacity-60 flex items-center justify-center gap-2 shadow-sm shadow-blue-600/20"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              {loading ? "Signing in..." : "Sign In"}
+              {redirecting ? "Opening your dashboard..." : loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
         </div>

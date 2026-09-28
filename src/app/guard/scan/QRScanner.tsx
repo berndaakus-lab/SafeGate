@@ -9,6 +9,7 @@ export default function QRScanner() {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "starting" | "scanning" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [foundCode, setFoundCode] = useState<string | null>(null);
 
   async function startScanner() {
     setStatus("starting");
@@ -25,6 +26,7 @@ export default function QRScanner() {
           scanner.stop().catch(() => {});
           const match = decodedText.match(/\/guard\/verify\/([^/?#]+)/);
           const code = match ? match[1] : decodedText.trim();
+          setFoundCode(code);
           // Hard navigate, avoids race between scanner teardown and Next.js router
           window.location.href = `/guard/verify/${code}`;
         },
@@ -38,6 +40,9 @@ export default function QRScanner() {
   }
 
   useEffect(() => {
+    // Download the scanner library while the guard is still reading the page,
+    // so tapping "Start Scanning" only has to open the camera.
+    import("html5-qrcode").catch(() => {});
     return () => {
       scannerRef.current?.stop().catch(() => {});
     };
@@ -84,8 +89,16 @@ export default function QRScanner() {
           </div>
         )}
 
+        {foundCode && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-slate-900/90 text-center p-6">
+            <Loader2 className="w-10 h-10 text-green-400 animate-spin" />
+            <p className="text-green-300 font-semibold">Code found</p>
+            <p className="text-slate-400 text-sm">Loading pickup details...</p>
+          </div>
+        )}
+
         {/* Scanning hint shown while active */}
-        {status === "scanning" && (
+        {status === "scanning" && !foundCode && (
           <div className="absolute bottom-3 inset-x-0 flex justify-center pointer-events-none">
             <span className="bg-black/60 text-white text-xs px-3 py-1.5 rounded-full">
               Point camera at QR code
