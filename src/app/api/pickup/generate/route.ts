@@ -35,50 +35,40 @@ export async function POST(req: NextRequest) {
     const studentIds = [...new Set(parsed.data.studentIds)];
     const { authorizedPersonId } = parsed.data;
 
-    // Every selected child must belong to this parent
-    const { data: students } = await supabaseAdmin
-      .from("students")
-      .select("id, name")
-      .in("id", studentIds)
-      .eq("parent_id", parentId);
+    // Ownership checks are independent, so run them together
+    const [{ data: students }, { data: person }] = await Promise.all([
+      supabaseAdmin.from("students").select("id, name").in("id", studentIds).eq("parent_id", parentId),
+      supabaseAdmin.from("authorized_persons").select("id").eq("id", authorizedPersonId).eq("parent_id", parentId).maybeSingle(),
+    ]);
     if (!students || students.length !== studentIds.length) {
       return NextResponse.json({ error: "One of the selected children was not found on your account." }, { status: 404 });
     }
-
-    const { data: person } = await supabaseAdmin
-      .from("authorized_persons")
-      .select("id")
-      .eq("id", authorizedPersonId)
-      .eq("parent_id", parentId)
-      .single();
     if (!person) return NextResponse.json({ error: "That pickup person was not found on your account." }, { status: 404 });
 
     // Code expires end of today
     const expiresAt = new Date();
     expiresAt.setHours(23, 59, 59, 999);
 
-    // pickup_codes.code is unique across all time, so retry on any existing match
-    let code = shortCode();
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const { data: existing } = await supabaseAdmin.from("pickup_codes").select("id").eq("code", code).maybeSingle();
-      if (!existing) break;
-      code = shortCode();
+    // pickup_codes.code is unique, so let the insert detect the (very rare)
+    // collision and retry, instead of paying for a lookup on every request.
+    let pickupCode: { code: string; expires_at: string } | null = null;
+    for (let attempt = 0; attempt < 5 && !pickupCode; attempt++) {
+      const { data, error } = await supabaseAdmin
+        .from("pickup_codes")
+        .insert({
+          code: shortCode(),
+          student_id: studentIds[0],
+          student_ids: studentIds,
+          parent_id: parentId,
+          authorized_person_id: authorizedPersonId,
+          expires_at: expiresAt.toISOString(),
+        })
+        .select("code, expires_at")
+        .single();
+      if (!error) pickupCode = data;
+      else if (error.code !== "23505") return NextResponse.json({ error: error.message }, { status: 500 });
     }
-
-    const { data: pickupCode, error } = await supabaseAdmin
-      .from("pickup_codes")
-      .insert({
-        code,
-        student_id: studentIds[0],
-        student_ids: studentIds,
-        parent_id: parentId,
-        authorized_person_id: authorizedPersonId,
-        expires_at: expiresAt.toISOString(),
-      })
-      .select()
-      .single();
-
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!pickupCode) return NextResponse.json({ error: "Could not create a unique code. Please try again." }, { status: 500 });
 
     const verifyUrl = `${process.env.NEXTAUTH_URL}/guard/verify/${pickupCode.code}`;
     const qrUrl = await QRCode.toDataURL(verifyUrl, {

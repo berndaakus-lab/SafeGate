@@ -59,6 +59,28 @@ body {
   animation: hero-zoom 8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Material Design indeterminate linear progress (two sliding segments),
+   used by TopProgressBar. */
+@keyframes progress-indeterminate-1 {
+  0% { left: -35%; right: 100%; }
+  60% { left: 100%; right: -90%; }
+  100% { left: 100%; right: -90%; }
+}
+
+@keyframes progress-indeterminate-2 {
+  0% { left: -200%; right: 100%; }
+  60% { left: 107%; right: -8%; }
+  100% { left: 107%; right: -8%; }
+}
+
+.progress-bar-1 {
+  animation: progress-indeterminate-1 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
+}
+
+.progress-bar-2 {
+  animation: progress-indeterminate-2 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) 1.15s infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-hero-rise,
   .animate-hero-rise-blur,

@@ -8,8 +8,9 @@ import { supabaseAdmin } from "@/lib/supabase";
 
 export default async function ParentLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
-  if (!session || (session.user as any)?.role !== "parent") {
-    redirect("/login?role=parent");
+  if (!session) redirect("/login?reason=signin&for=parent");
+  if ((session.user as any)?.role !== "parent") {
+    redirect(`/login?reason=role&for=parent&as=${(session.user as any)?.role}`);
   }
 
   const schoolId = (session.user as any)?.schoolId;

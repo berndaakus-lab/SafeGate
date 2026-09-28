@@ -9,8 +9,9 @@ export const dynamic = "force-dynamic";
 
 export default async function SuperAdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
-  if (!session || (session.user as any)?.role !== "superadmin") {
-    redirect("/login?role=superadmin");
+  if (!session) redirect("/login?reason=signin&for=superadmin");
+  if ((session.user as any)?.role !== "superadmin") {
+    redirect(`/login?reason=role&for=superadmin&as=${(session.user as any)?.role}`);
   }
 
   const { count: newLeads } = await supabaseAdmin
