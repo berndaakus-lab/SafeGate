@@ -4,8 +4,8 @@ import { supabaseAdmin } from "@/lib/supabase";
 import AddParentForm from "./AddParentForm";
 import AddChildInline from "./AddChildInline";
 import EditParentModal from "./EditParentModal";
-import ImportParentsModal from "./ImportParentsModal";
-import { GraduationCap, UserPlus } from "lucide-react";
+import Link from "next/link";
+import { GraduationCap, Upload, UserPlus } from "lucide-react";
 
 export default async function ParentsPage() {
   const session = await getServerSession(authOptions);
@@ -26,7 +26,13 @@ export default async function ParentsPage() {
             Create parent accounts and add their children. Set everything up before the parent logs in.
           </p>
         </div>
-        <ImportParentsModal schoolId={schoolId} />
+        <Link
+          href="/admin/import"
+          className="flex items-center gap-2 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors shrink-0"
+        >
+          <Upload className="w-4 h-4" />
+          Import many
+        </Link>
       </div>
 
       {parents && parents.length > 0 && (
