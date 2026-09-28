@@ -17,7 +17,7 @@ export default async function GeneratePage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900">Generate Pickup QR</h1>
         <p className="text-slate-500 mt-1">
-          Create a one-time QR code for today&apos;s pickup. Send it to the person collecting your child.
+          Create a one-time QR code for today&apos;s pickup. Send it to the person collecting your child or children.
         </p>
       </div>
       <GenerateForm children={children ?? []} authorizedPeople={authorizedPeople ?? []} />

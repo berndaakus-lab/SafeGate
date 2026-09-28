@@ -1,5 +1,5 @@
-import { supabaseAdmin } from "@/lib/supabase";
 import { getServerSession } from "next-auth";
+import { loadPickupCode } from "@/lib/pickup-codes";
 import { authOptions } from "@/lib/auth";
 import ConfirmPickup from "./ConfirmPickup";
 import { Clock, XCircle, ShieldAlert } from "lucide-react";
@@ -30,37 +30,26 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
     );
   }
 
-  const { data: pickupCode } = await supabaseAdmin
-    .from("pickup_codes")
-    .select(`
-      *,
-      students(id, name, class_name, photo_url, school_id, schools(name, logo_url)),
-      authorized_persons(name, phone, relation),
-      parents(name),
-      pickup_logs(id, picked_up_at)
-    `)
-    .eq("code", code)
-    .single();
+  const loaded = await loadPickupCode({ code });
 
-  // Code not found at all
-  if (!pickupCode) {
+  if (!loaded || loaded.children.length === 0) {
     return <WrongCode message="Invalid code. This QR code does not exist." />;
   }
+  const { pickupCode, children, school } = loaded;
 
-  const studentSchoolId = pickupCode.students?.school_id;
-
-  // Guard trying to verify a code from a different school
-  if (guardSchoolId && studentSchoolId && guardSchoolId !== studentSchoolId) {
+  // Staff trying to verify a code from a different school
+  if (children.some((c) => c.school_id !== guardSchoolId)) {
     return (
       <WrongSchool
         guardSchool={(session?.user as any)?.schoolName ?? "your school"}
-        codeSchool={pickupCode.students?.schools?.name ?? "another school"}
+        codeSchool={school?.name ?? "another school"}
       />
     );
   }
 
-  const isExpired = new Date() > new Date(pickupCode.expires_at);
-  const isUsed = pickupCode.pickup_logs && pickupCode.pickup_logs.length > 0;
+  const isExpired = new Date() > new Date(pickupCode.expiresAt);
+  const isUsed = children.every((c) => c.pickedUpAt);
+  const person = pickupCode.authorizedPerson;
 
   return (
     <div className="min-h-screen bg-slate-900 text-white flex flex-col">
@@ -78,10 +67,15 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
           {isUsed && (
             <div className="bg-amber-900/30 border border-amber-700/50 rounded-2xl p-6 text-center">
               <XCircle className="w-12 h-12 text-amber-400 mx-auto mb-3" />
-              <h2 className="text-xl font-bold text-amber-300 mb-1">Already Used</h2>
-              <p className="text-amber-400/70 text-sm">
-                Used at {formatTime(pickupCode.pickup_logs[0].picked_up_at)}.
-              </p>
+              <h2 className="text-xl font-bold text-amber-300 mb-3">Already Used</h2>
+              <ul className="space-y-1 text-amber-400/80 text-sm">
+                {children.map((c) => (
+                  <li key={c.id}>
+                    {c.name} picked up at {formatTime(c.pickedUpAt!)}
+                    {c.releasedBy ? ` by ${c.releasedBy}` : ""}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
@@ -101,65 +95,28 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
               </div>
 
               <div className="flex flex-col items-center gap-2 mb-6">
-                {pickupCode.students?.schools?.logo_url && (
-                  <SchoolLogo name={pickupCode.students.schools.name} logoUrl={pickupCode.students.schools.logo_url} size="lg" />
-                )}
-                <p className="text-center text-slate-400 text-xs uppercase tracking-widest">
-                  {pickupCode.students?.schools?.name}
-                </p>
+                {school?.logo_url && <SchoolLogo name={school.name} logoUrl={school.logo_url} size="lg" />}
+                <p className="text-center text-slate-400 text-xs uppercase tracking-widest">{school?.name}</p>
               </div>
 
               <div className="bg-slate-800 rounded-2xl p-5 mb-4">
-                <p className="text-xs text-slate-500 uppercase tracking-widest mb-3">Child</p>
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 bg-blue-600/20 flex items-center justify-center text-2xl font-bold text-blue-400">
-                    {pickupCode.students?.photo_url ? (
-                      <Image
-                        src={pickupCode.students.photo_url}
-                        alt={pickupCode.students.name}
-                        width={64}
-                        height={64}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      pickupCode.students?.name?.[0]?.toUpperCase()
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold text-white">{pickupCode.students?.name}</p>
-                    {pickupCode.students?.class_name && (
-                      <p className="text-slate-400 text-sm">{pickupCode.students.class_name}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-slate-800 rounded-2xl p-5 mb-6">
                 <p className="text-xs text-slate-500 uppercase tracking-widest mb-3">Authorized to Collect</p>
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-purple-600/20 rounded-full flex items-center justify-center text-2xl font-bold text-purple-400">
-                    {pickupCode.authorized_persons?.name?.[0]?.toUpperCase()}
+                  <div className="w-16 h-16 bg-purple-600/20 rounded-full flex items-center justify-center text-2xl font-bold text-purple-400 shrink-0">
+                    {person?.name?.[0]?.toUpperCase()}
                   </div>
-                  <div>
-                    <p className="text-xl font-bold text-white">{pickupCode.authorized_persons?.name}</p>
-                    <div className="flex gap-3 mt-0.5">
-                      {pickupCode.authorized_persons?.relation && (
-                        <p className="text-slate-400 text-sm">{pickupCode.authorized_persons.relation}</p>
-                      )}
-                      {pickupCode.authorized_persons?.phone && (
-                        <p className="text-slate-400 text-sm">{pickupCode.authorized_persons.phone}</p>
-                      )}
+                  <div className="min-w-0">
+                    <p className="text-xl font-bold text-white">{person?.name}</p>
+                    <div className="flex flex-wrap gap-x-3 mt-0.5">
+                      {person?.relation && <p className="text-slate-400 text-sm">{person.relation}</p>}
+                      {person?.phone && <p className="text-slate-400 text-sm">{person.phone}</p>}
                     </div>
-                    <p className="text-slate-500 text-xs mt-1">Parent: {pickupCode.parents?.name}</p>
+                    <p className="text-slate-500 text-xs mt-1">Parent: {pickupCode.parent?.name}</p>
                   </div>
                 </div>
               </div>
 
-              <ConfirmPickup
-                pickupCodeId={pickupCode.id}
-                studentId={pickupCode.student_id}
-                authorizedPersonId={pickupCode.authorized_person_id}
-              />
+              <ConfirmPickup pickupCodeId={pickupCode.id} childList={children} />
             </div>
           )}
         </div>

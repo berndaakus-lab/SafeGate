@@ -15,52 +15,52 @@ function shortCode(): string {
 }
 
 const schema = z.object({
-  studentId: z.string().uuid(),
-  authorizedPersonId: z.string().uuid(),
+  studentIds: z
+    .array(z.string().uuid())
+    .min(1, "Choose at least one child.")
+    .max(20, "Too many children selected."),
+  authorizedPersonId: z.string().uuid("Choose who is picking up."),
 });
 
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!session || (session.user as any).role !== "parent") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const parentId = (session.user as any).id;
     const parsed = await parseBody(req, schema);
     if (parsed.error) return parsed.error;
-    const { studentId, authorizedPersonId } = parsed.data;
+    const studentIds = [...new Set(parsed.data.studentIds)];
+    const { authorizedPersonId } = parsed.data;
 
-    // Verify student belongs to this parent
-    const { data: student } = await supabaseAdmin
+    // Every selected child must belong to this parent
+    const { data: students } = await supabaseAdmin
       .from("students")
-      .select("id")
-      .eq("id", studentId)
-      .eq("parent_id", parentId)
-      .single();
-    if (!student) return NextResponse.json({ error: "Not found" }, { status: 404 });
+      .select("id, name")
+      .in("id", studentIds)
+      .eq("parent_id", parentId);
+    if (!students || students.length !== studentIds.length) {
+      return NextResponse.json({ error: "One of the selected children was not found on your account." }, { status: 404 });
+    }
 
-    // Verify authorized person belongs to this parent
     const { data: person } = await supabaseAdmin
       .from("authorized_persons")
       .select("id")
       .eq("id", authorizedPersonId)
       .eq("parent_id", parentId)
       .single();
-    if (!person) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!person) return NextResponse.json({ error: "That pickup person was not found on your account." }, { status: 404 });
 
     // Code expires end of today
     const expiresAt = new Date();
     expiresAt.setHours(23, 59, 59, 999);
 
-    // Generate a unique short code
+    // pickup_codes.code is unique across all time, so retry on any existing match
     let code = shortCode();
     for (let attempt = 0; attempt < 5; attempt++) {
-      const { data: existing } = await supabaseAdmin
-        .from("pickup_codes")
-        .select("id")
-        .eq("code", code)
-        .eq("used", false)
-        .gte("expires_at", new Date().toISOString())
-        .maybeSingle();
+      const { data: existing } = await supabaseAdmin.from("pickup_codes").select("id").eq("code", code).maybeSingle();
       if (!existing) break;
       code = shortCode();
     }
@@ -69,7 +69,8 @@ export async function POST(req: NextRequest) {
       .from("pickup_codes")
       .insert({
         code,
-        student_id: studentId,
+        student_id: studentIds[0],
+        student_ids: studentIds,
         parent_id: parentId,
         authorized_person_id: authorizedPersonId,
         expires_at: expiresAt.toISOString(),
@@ -86,7 +87,9 @@ export async function POST(req: NextRequest) {
       color: { dark: "#0f172a", light: "#ffffff" },
     });
 
-    return NextResponse.json({ qrUrl, code: pickupCode.code, expiresAt: pickupCode.expires_at });
+    // Return names in the order the parent picked them
+    const names = studentIds.map((id) => students.find((s) => s.id === id)!.name);
+    return NextResponse.json({ qrUrl, code: pickupCode.code, expiresAt: pickupCode.expires_at, childNames: names });
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
