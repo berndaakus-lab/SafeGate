@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { signOutUser } from "@/lib/sign-out";
 import type { ReactNode } from "react";
 
 export default function HomeLogoLink({
@@ -25,7 +26,7 @@ export default function HomeLogoLink({
       "You're signed in. Going to the homepage will sign you out. Continue?"
     );
     if (confirmed) {
-      signOut({ callbackUrl: "/" });
+      signOutUser("/");
     }
   }
 

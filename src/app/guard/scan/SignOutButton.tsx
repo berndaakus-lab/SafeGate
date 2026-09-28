@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signOut } from "next-auth/react";
+import { signOutUser } from "@/lib/sign-out";
 import { Loader2, LogOut } from "lucide-react";
 
 export default function SignOutButton({ compact = false }: { compact?: boolean }) {
@@ -10,7 +10,7 @@ export default function SignOutButton({ compact = false }: { compact?: boolean }
   function handleClick() {
     if (!window.confirm("Sign out of the scanner? You'll need to sign in again to scan pickups.")) return;
     setBusy(true);
-    signOut({ callbackUrl: "/login" });
+    signOutUser("/login");
   }
 
   return (

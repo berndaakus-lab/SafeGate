@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { signOutUser } from "@/lib/sign-out";
 import { LayoutDashboard, Users, UserCheck, QrCode, LogOut, ChevronDown, Settings } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -64,7 +65,7 @@ export default function ParentNav({ schoolLogoUrl }: { schoolLogoUrl: string | n
             </div>
           </div>
           <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => signOutUser("/login")}
             className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
           >
             <LogOut className="w-4 h-4" />
@@ -104,7 +105,7 @@ export default function ParentNav({ schoolLogoUrl }: { schoolLogoUrl: string | n
             </Link>
           ))}
           <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => signOutUser("/login")}
             className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-red-600"
           >
             <LogOut className="w-4 h-4" /> Sign out

@@ -2,6 +2,7 @@
 
 import { SessionProvider as NextAuthSessionProvider } from "next-auth/react";
 import { Session } from "next-auth";
+import IdleSessionGuard from "./IdleSessionGuard";
 
 export default function SessionProvider({
   children,
@@ -12,6 +13,7 @@ export default function SessionProvider({
 }) {
   return (
     <NextAuthSessionProvider session={session}>
+      {session && <IdleSessionGuard />}
       {children}
     </NextAuthSessionProvider>
   );

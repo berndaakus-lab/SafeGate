@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useSyncExternalStore, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Eye, EyeOff, Info, Loader2 } from "lucide-react";
+import { Clock, Eye, EyeOff, Info, Loader2 } from "lucide-react";
+import { IDLE_TIMEOUT_MINUTES } from "@/lib/session-policy";
+import { clearActivity, wasSignedOutForIdle } from "@/lib/sign-out";
 
 const ROLE_HOME: Record<string, string> = {
   superadmin: "/superadmin/dashboard",
@@ -38,6 +40,25 @@ function RedirectNotice() {
   const reason = params.get("reason");
   const area = AREA[params.get("for") ?? ""];
   const as = params.get("as") ?? "";
+  // A closed app reopened after the limit arrives here as a plain "signin"
+  // redirect (the expired cookie is simply gone); the stale activity marker
+  // tells us it was actually an idle timeout.
+  const idleMarker = useSyncExternalStore(() => () => {}, wasSignedOutForIdle, () => false);
+
+  if (reason === "idle" || (reason === "signin" && idleMarker)) {
+    return (
+      <div role="status" className="mb-4 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50/90 px-4 py-3.5 text-sm text-amber-900">
+        <Clock className="w-4 h-4 mt-0.5 shrink-0 text-amber-600" />
+        <div className="space-y-1">
+          <p className="font-semibold">You were signed out</p>
+          <p className="text-amber-800/90">
+            For security, you&apos;re signed out after {IDLE_TIMEOUT_MINUTES} minutes without activity. Sign in again to continue.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (!area || (reason !== "signin" && reason !== "role")) return null;
 
   const wrongAccount = reason === "role";
@@ -87,6 +108,11 @@ function LoginForm() {
         setLoading(false);
         return;
       }
+
+      // A fresh sign-in starts a fresh idle clock; without this a stale marker
+      // (e.g. the previous person on a shared school laptop) would sign this
+      // user straight back out.
+      clearActivity();
 
       // Stay in the loading state through the role lookup and the dashboard
       // load; the page unmounts once navigation completes.
