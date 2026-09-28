@@ -1,18 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
-import { authOptions, isReservedSuperadminEmail } from "@/lib/auth";
+import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
-import { parseBody } from "@/lib/validate";
+import { fieldErrorResponse, parseBody } from "@/lib/validate";
+import { findLoginConflict, newPassword, optionalEmail, optionalPhone, requiredName } from "@/lib/identity";
 import bcrypt from "bcryptjs";
 
 // An admin may only create guard/teacher accounts, never admin or superadmin
 // (privilege escalation guard).
 const schema = z.object({
-  name: z.string().trim().min(1).max(200),
-  email: z.string().trim().email().max(255),
-  password: z.string().min(8).max(200),
-  role: z.enum(["guard", "teacher"]).optional(),
+  name: requiredName,
+  email: optionalEmail,
+  loginPhone: optionalPhone,
+  password: newPassword,
+  role: z.enum(["guard", "teacher"], "Choose guard or teacher.").optional(),
   schoolId: z.string().uuid(),
 });
 
@@ -27,22 +29,21 @@ export async function POST(req: NextRequest) {
     const sessionSchoolId = (session?.user as any)?.schoolId;
     const parsed = await parseBody(req, schema);
     if (parsed.error) return parsed.error;
-    const { name, email, password, role: staffRole, schoolId } = parsed.data;
+    const { name, email, loginPhone, password, role: staffRole, schoolId } = parsed.data;
 
     if (schoolId !== sessionSchoolId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    if (isReservedSuperadminEmail(email)) {
-      return NextResponse.json({ error: "That email is reserved and cannot be used for a staff account." }, { status: 409 });
-    }
-
-    const { data: existing } = await supabaseAdmin.from("staff").select("id").eq("email", email).single();
-    if (existing) return NextResponse.json({ error: "Email already in use." }, { status: 409 });
+    const conflict = await findLoginConflict({ email, loginPhone });
+    if (conflict) return fieldErrorResponse(conflict, 409);
 
     const hashedPassword = await bcrypt.hash(password, 12);
     const { error } = await supabaseAdmin.from("staff").insert({
-      name, email, password: hashedPassword,
+      name,
+      email,
+      login_phone: loginPhone,
+      password: hashedPassword,
       role: staffRole || "guard",
       school_id: schoolId,
     });

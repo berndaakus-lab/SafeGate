@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
-import { authOptions, isReservedSuperadminEmail } from "@/lib/auth";
+import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
-import { parseBody } from "@/lib/validate";
+import { fieldErrorResponse, parseBody } from "@/lib/validate";
+import { findLoginConflict, optionalEmail, optionalPhone, requiredName } from "@/lib/identity";
 
 // Superadmin may set any of these roles (unlike a school admin, who can only
 // create guard/teacher), since superadmin is trusted platform-wide.
 const schema = z.object({
-  name: z.string().trim().min(1).max(200),
-  email: z.string().trim().email().max(255),
-  role: z.enum(["admin", "guard", "teacher"]),
+  name: requiredName,
+  email: optionalEmail,
+  loginPhone: optionalPhone,
+  role: z.enum(["admin", "guard", "teacher"], "Choose admin, guard or teacher."),
 });
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -22,16 +24,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params;
   const parsed = await parseBody(req, schema);
   if (parsed.error) return parsed.error;
-  const { name, email, role } = parsed.data;
+  const { name, email, loginPhone, role } = parsed.data;
 
-  if (isReservedSuperadminEmail(email)) {
-    return NextResponse.json({ error: "That email is reserved and cannot be used for a staff account." }, { status: 409 });
-  }
+  const conflict = await findLoginConflict({ email, loginPhone, excludeStaffId: id });
+  if (conflict) return fieldErrorResponse(conflict, 409);
 
-  const { data: existing } = await supabaseAdmin.from("staff").select("id").eq("email", email).neq("id", id).single();
-  if (existing) return NextResponse.json({ error: "That email is already used by another staff account." }, { status: 409 });
-
-  const { error } = await supabaseAdmin.from("staff").update({ name, email, role }).eq("id", id);
+  const { error } = await supabaseAdmin
+    .from("staff")
+    .update({ name, email, login_phone: loginPhone, role })
+    .eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

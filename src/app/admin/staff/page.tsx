@@ -16,7 +16,7 @@ export default async function StaffPage() {
 
   const { data: staffList } = await supabaseAdmin
     .from("staff")
-    .select("id, name, email, role")
+    .select("id, name, email, login_phone, role")
     .eq("school_id", schoolId)
     .order("name");
 
@@ -35,9 +35,9 @@ export default async function StaffPage() {
                 <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-600">
                   {staff.name[0].toUpperCase()}
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <p className="font-medium text-slate-900">{staff.name}</p>
-                  <p className="text-xs text-slate-400">{staff.email}</p>
+                  <p className="text-xs text-slate-400 truncate">{[staff.email, staff.login_phone].filter(Boolean).join(" · ")}</p>
                 </div>
                 <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${roleColors[staff.role] ?? "bg-slate-100 text-slate-600"}`}>
                   {staff.role}
@@ -51,7 +51,7 @@ export default async function StaffPage() {
       <div className="bg-white rounded-2xl border border-slate-100 p-6">
         <h2 className="font-semibold text-slate-900 mb-1">Add Staff Member</h2>
         <p className="text-sm text-slate-400 mb-5">
-          Create accounts for admins, security guards, or teachers.
+          Create accounts for security guards, or for teachers who help with pickup when on duty. Both can scan pickup QR codes.
         </p>
         <AddStaffForm schoolId={schoolId} />
       </div>

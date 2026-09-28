@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
-import { authOptions, isReservedSuperadminEmail } from "@/lib/auth";
+import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
-import { parseBody } from "@/lib/validate";
+import { fieldErrorResponse, parseBody } from "@/lib/validate";
+import { findLoginConflict, optionalEmail, optionalPhone, requiredName } from "@/lib/identity";
 
 const schema = z.object({
-  name: z.string().trim().min(1).max(200),
-  email: z.string().trim().email().max(255),
-  phone: z.string().trim().max(30).optional().nullable(),
+  name: requiredName,
+  email: optionalEmail,
+  loginPhone: optionalPhone,
+  phone: optionalPhone,
 });
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -20,16 +22,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params;
   const parsed = await parseBody(req, schema);
   if (parsed.error) return parsed.error;
-  const { name, email, phone } = parsed.data;
+  const { name, email, loginPhone, phone } = parsed.data;
 
-  if (isReservedSuperadminEmail(email)) {
-    return NextResponse.json({ error: "That email is reserved and cannot be used for a parent account." }, { status: 409 });
-  }
+  const conflict = await findLoginConflict({ email, loginPhone, excludeParentId: id });
+  if (conflict) return fieldErrorResponse(conflict, 409);
 
-  const { data: existing } = await supabaseAdmin.from("parents").select("id").eq("email", email).neq("id", id).single();
-  if (existing) return NextResponse.json({ error: "That email is already used by another parent." }, { status: 409 });
-
-  const { error } = await supabaseAdmin.from("parents").update({ name, email, phone: phone || null }).eq("id", id);
+  const { error } = await supabaseAdmin
+    .from("parents")
+    .update({ name, email, login_phone: loginPhone, phone })
+    .eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

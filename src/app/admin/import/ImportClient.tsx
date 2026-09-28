@@ -4,17 +4,17 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, Download, CheckCircle2, AlertCircle, Loader2, X } from "lucide-react";
 
-type Row = { studentName: string; className: string; parentEmail: string; status?: "ok" | "error" | "pending"; message?: string };
+type Row = { studentName: string; className: string; parentLogin: string; status?: "ok" | "error" | "pending"; message?: string };
 
-const TEMPLATE = "Student Name,Class,Parent Email\nKwame Asante,Primary 3,parent@example.com\nAkosua Mensah,KG 2,another@example.com";
+const TEMPLATE = "Student Name,Class,Parent Email or Phone\nKwame Asante,Primary 3,parent@example.com\nAkosua Mensah,KG 2,0244123456";
 
 function parseCSV(text: string): Row[] {
   const lines = text.trim().split("\n").filter(Boolean);
   // skip header
   return lines.slice(1).map((line) => {
-    const [studentName = "", className = "", parentEmail = ""] = line.split(",").map((s) => s.trim());
-    return { studentName, className, parentEmail };
-  }).filter((r) => r.studentName && r.parentEmail);
+    const [studentName = "", className = "", parentLogin = ""] = line.split(",").map((s) => s.trim());
+    return { studentName, className, parentLogin };
+  }).filter((r) => r.studentName && r.parentLogin);
 }
 
 export default function ImportClient({ schoolId }: { schoolId: string }) {
@@ -64,7 +64,7 @@ export default function ImportClient({ schoolId }: { schoolId: string }) {
             schoolId,
             studentName: row.studentName,
             className: row.className,
-            parentEmail: row.parentEmail,
+            parentLogin: row.parentLogin,
           }),
         });
         const data = await res.json();
@@ -88,7 +88,7 @@ export default function ImportClient({ schoolId }: { schoolId: string }) {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900">Bulk Import Students</h1>
         <p className="text-slate-500 mt-1">
-          Upload a CSV with student names, classes, and parent emails. Students are linked to parents automatically.
+          Upload a CSV with student names, classes, and each parent&apos;s email or login phone. Students are linked to parents automatically.
         </p>
       </div>
 
@@ -108,12 +108,12 @@ export default function ImportClient({ schoolId }: { schoolId: string }) {
         </div>
 
         <div className="mt-4 bg-slate-50 rounded-xl p-3 font-mono text-xs text-slate-500 overflow-x-auto">
-          <p>Student Name, Class, Parent Email</p>
+          <p>Student Name, Class, Parent Email or Phone</p>
           <p>Kwame Asante, Primary 3, parent@example.com</p>
-          <p>Akosua Mensah, KG 2, another@example.com</p>
+          <p>Akosua Mensah, KG 2, 0244123456</p>
         </div>
         <p className="text-xs text-amber-600 mt-2">
-          Note: Parent accounts must already exist in VerifyGate. Students are matched by parent email.
+          Note: Parent accounts must already exist in VerifyGate. Students are matched by the parent&apos;s email or login phone.
         </p>
       </div>
 
@@ -158,7 +158,7 @@ export default function ImportClient({ schoolId }: { schoolId: string }) {
               <div key={i} className="px-6 py-3 flex items-center gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-slate-900 truncate">{row.studentName}</p>
-                  <p className="text-xs text-slate-400 truncate">{row.className ? `${row.className} · ` : ""}{row.parentEmail}</p>
+                  <p className="text-xs text-slate-400 truncate">{row.className ? `${row.className} · ` : ""}{row.parentLogin}</p>
                 </div>
                 {row.status === "ok" && <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />}
                 {row.status === "error" && (

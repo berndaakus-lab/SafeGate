@@ -21,7 +21,7 @@ export default async function ParentAccountPage() {
           </div>
           <div>
             <p className="font-semibold text-slate-900 text-lg">{session?.user?.name}</p>
-            <p className="text-slate-400 text-sm">{session?.user?.email}</p>
+            <p className="text-slate-400 text-sm">{session?.user?.email || (session?.user as any)?.loginPhone}</p>
             <p className="text-xs text-blue-600 mt-0.5">{(session?.user as any)?.schoolName}</p>
           </div>
         </div>

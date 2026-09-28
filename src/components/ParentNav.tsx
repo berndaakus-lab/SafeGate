@@ -7,6 +7,7 @@ import { LayoutDashboard, Users, UserCheck, QrCode, LogOut, ChevronDown, Setting
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import HomeLogoLink from "@/components/HomeLogoLink";
+import SchoolLogo from "@/components/SchoolLogo";
 
 const links = [
   { href: "/parent/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -16,16 +17,23 @@ const links = [
   { href: "/parent/account", label: "Account", icon: Settings },
 ];
 
-export default function ParentNav() {
+export default function ParentNav({ schoolLogoUrl }: { schoolLogoUrl: string | null }) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
+  const schoolName: string = (session?.user as any)?.schoolName ?? "";
 
   return (
     <>
       {/* Desktop sidebar */}
       <aside className="hidden md:flex flex-col w-64 min-h-screen bg-white border-r border-slate-100 p-6 fixed left-0 top-0">
-        <HomeLogoLink className="flex items-center gap-2 mb-10" />
+        <HomeLogoLink className="flex items-center gap-2 mb-5" />
+        {schoolName && (
+          <div className="flex items-center gap-2.5 mb-8 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-100">
+            <SchoolLogo name={schoolName} logoUrl={schoolLogoUrl} size="sm" />
+            <p className="text-sm font-medium text-slate-700 truncate">{schoolName}</p>
+          </div>
+        )}
 
         <nav className="flex-1 space-y-1">
           {links.map(({ href, label, icon: Icon }) => (
@@ -68,12 +76,15 @@ export default function ParentNav() {
       {/* Mobile top bar */}
       <header className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-slate-100 sticky top-0 z-50">
         <HomeLogoLink size={28} textClassName="font-bold text-slate-900" />
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="flex items-center gap-1 text-sm text-slate-600 font-medium"
-        >
-          Menu <ChevronDown className={cn("w-4 h-4 transition-transform", menuOpen && "rotate-180")} />
-        </button>
+        <div className="flex items-center gap-3">
+          {schoolName && <SchoolLogo name={schoolName} logoUrl={schoolLogoUrl} size="sm" />}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="flex items-center gap-1 text-sm text-slate-600 font-medium"
+          >
+            Menu <ChevronDown className={cn("w-4 h-4 transition-transform", menuOpen && "rotate-180")} />
+          </button>
+        </div>
       </header>
 
       {menuOpen && (

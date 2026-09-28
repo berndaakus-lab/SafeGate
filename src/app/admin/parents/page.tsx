@@ -13,7 +13,7 @@ export default async function ParentsPage() {
 
   const { data: parents } = await supabaseAdmin
     .from("parents")
-    .select("id, name, email, phone, students(id, name, class_name)")
+    .select("id, name, email, login_phone, phone, students(id, name, class_name)")
     .eq("school_id", schoolId)
     .order("name");
 
@@ -44,7 +44,8 @@ export default async function ParentsPage() {
                     <EditParentModal parent={parent} />
                   </div>
                   <p className="text-xs text-slate-400 truncate">
-                    {parent.email}{parent.phone ? ` · ${parent.phone}` : ""}
+                    {[parent.email, parent.login_phone].filter(Boolean).join(" · ")}
+                    {parent.phone ? ` · SMS ${parent.phone}` : " · No SMS number"}
                   </p>
                 </div>
                 <span className={`text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${

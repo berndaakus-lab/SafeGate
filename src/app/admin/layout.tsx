@@ -15,23 +15,25 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   const schoolId = (session.user as any)?.schoolId;
+  let logoUrl: string | null = null;
 
   if (schoolId) {
     const { data: school } = await supabaseAdmin
       .from("schools")
-      .select("is_active")
+      .select("is_active, logo_url")
       .eq("id", schoolId)
       .single();
 
     if (school && school.is_active === false) {
       redirect("/offline");
     }
+    logoUrl = school?.logo_url ?? null;
   }
 
   return (
     <SessionProvider session={session}>
       <div className="min-h-screen bg-slate-50">
-        <AdminNav />
+        <AdminNav schoolLogoUrl={logoUrl} />
         <main className="md:ml-64 pb-24 md:pb-0">{children}</main>
       </div>
     </SessionProvider>

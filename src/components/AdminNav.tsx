@@ -6,6 +6,7 @@ import { signOut, useSession } from "next-auth/react";
 import { LayoutDashboard, Users, UserCheck, ClipboardList, LogOut, Settings, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HomeLogoLink from "@/components/HomeLogoLink";
+import SchoolLogo from "@/components/SchoolLogo";
 
 const links = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -16,17 +17,23 @@ const links = [
   { href: "/admin/account", label: "Account", icon: Settings },
 ];
 
-export default function AdminNav() {
+export default function AdminNav({ schoolLogoUrl }: { schoolLogoUrl: string | null }) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const role = (session?.user as any)?.role;
+  const schoolName: string = (session?.user as any)?.schoolName ?? "";
 
   return (
     <>
       {/* Desktop sidebar */}
       <aside className="hidden md:flex flex-col w-64 min-h-screen bg-white border-r border-slate-100 p-6 fixed left-0 top-0">
-        <HomeLogoLink className="flex items-center gap-2 mb-2" />
-        <p className="text-xs text-slate-400 mb-10 pl-10">{(session?.user as any)?.schoolName}</p>
+        <HomeLogoLink className="flex items-center gap-2 mb-5" />
+        {schoolName && (
+          <div className="flex items-center gap-2.5 mb-8 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-100">
+            <SchoolLogo name={schoolName} logoUrl={schoolLogoUrl} size="sm" />
+            <p className="text-sm font-medium text-slate-700 truncate">{schoolName}</p>
+          </div>
+        )}
 
         <nav className="flex-1 space-y-1">
           {links.map(({ href, label, icon: Icon }) => (
@@ -69,7 +76,12 @@ export default function AdminNav() {
       {/* Mobile top bar */}
       <header className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-slate-100 sticky top-0 z-50">
         <HomeLogoLink size={28} textClassName="font-bold text-slate-900" />
-        <span className="text-xs text-slate-400">{(session?.user as any)?.schoolName}</span>
+        {schoolName && (
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-xs text-slate-500 truncate max-w-[40vw]">{schoolName}</span>
+            <SchoolLogo name={schoolName} logoUrl={schoolLogoUrl} size="sm" />
+          </div>
+        )}
       </header>
 
       {/* Mobile bottom nav */}

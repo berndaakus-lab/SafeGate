@@ -1,21 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
-import { authOptions, isReservedSuperadminEmail } from "@/lib/auth";
+import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
-import { parseBody } from "@/lib/validate";
+import { fieldErrorResponse, parseBody } from "@/lib/validate";
+import { findLoginConflict, newPassword, optionalEmail, optionalPhone, requiredName } from "@/lib/identity";
+import { deleteSchoolLogoFile, logoDataUrl, uploadSchoolLogo } from "@/lib/school-logo";
 import bcrypt from "bcryptjs";
 
 const schema = z.object({
   school: z.object({
-    name: z.string().trim().min(1).max(200),
-    address: z.string().trim().max(500).optional().nullable(),
-    phone: z.string().trim().max(30).optional().nullable(),
+    name: z.string().trim().min(1, "Enter the school name.").max(200, "That name is too long."),
+    address: z.string().trim().max(500, "That address is too long.").optional().nullable(),
+    phone: optionalPhone,
+    logoData: logoDataUrl.optional().nullable(),
   }),
   admin: z.object({
-    name: z.string().trim().min(1).max(200),
-    email: z.string().trim().email().max(255),
-    password: z.string().min(8).max(200),
+    name: requiredName,
+    email: optionalEmail,
+    loginPhone: optionalPhone,
+    password: newPassword,
   }),
 });
 
@@ -30,19 +34,12 @@ export async function POST(req: NextRequest) {
     if (parsed.error) return parsed.error;
     const { school, admin } = parsed.data;
 
-    if (isReservedSuperadminEmail(admin.email)) {
-      return NextResponse.json({ error: "That email is reserved for the platform superadmin account. Use a different email for this school's admin." }, { status: 409 });
-    }
-
-    // Check email not already taken
-    const { data: existing } = await supabaseAdmin
-      .from("staff")
-      .select("id")
-      .eq("email", admin.email)
-      .single();
-
-    if (existing) {
-      return NextResponse.json({ error: "A staff account with that email already exists." }, { status: 409 });
+    const conflict = await findLoginConflict({ email: admin.email, loginPhone: admin.loginPhone });
+    if (conflict) {
+      return fieldErrorResponse(
+        Object.fromEntries(Object.entries(conflict).map(([k, v]) => [`admin.${k}`, v])),
+        409
+      );
     }
 
     // Create school with 30-day trial defaults
@@ -69,6 +66,7 @@ export async function POST(req: NextRequest) {
       .insert({
         name: admin.name,
         email: admin.email,
+        login_phone: admin.loginPhone,
         password: hashedPassword,
         role: "admin",
         school_id: newSchool.id,
@@ -80,7 +78,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: staffError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ school: newSchool }, { status: 201 });
+    // The logo is optional: if its upload fails, keep the school and admin
+    // and tell the caller, since it can be added later from the school page.
+    let logoWarning: string | undefined;
+    if (school.logoData) {
+      let logoUrl: string | undefined;
+      try {
+        logoUrl = await uploadSchoolLogo(newSchool.id, school.logoData);
+        const { error } = await supabaseAdmin.from("schools").update({ logo_url: logoUrl }).eq("id", newSchool.id);
+        if (error) throw new Error(error.message);
+        newSchool.logo_url = logoUrl;
+      } catch (err: any) {
+        if (logoUrl) await deleteSchoolLogoFile(logoUrl);
+        console.error("[create-school] logo upload failed:", err?.message);
+        logoWarning = "The school was created, but the logo could not be uploaded. Add it from the school's page.";
+      }
+    }
+
+    return NextResponse.json({ school: newSchool, logoWarning }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

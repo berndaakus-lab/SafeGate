@@ -3,38 +3,93 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Plus, School, User, Check } from "lucide-react";
+import FieldError, { readApiErrors, withErrorRing, type FieldErrors } from "@/components/FieldError";
+import LogoPicker from "@/components/LogoPicker";
+
+const inputClass =
+  "w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
+
+const emptySchool = { name: "", address: "", phone: "" };
+const emptyAdmin = { name: "", email: "", loginPhone: "", password: "" };
 
 export default function CreateSchoolForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState<{ schoolName: string; adminEmail: string } | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [success, setSuccess] = useState<{ schoolName: string; adminLogin: string; logoWarning?: string } | null>(null);
 
-  const [school, setSchool] = useState({ name: "", address: "", phone: "" });
-  const [admin, setAdmin] = useState({ name: "", email: "", password: "" });
+  const [school, setSchool] = useState(emptySchool);
+  const [logoData, setLogoData] = useState<string | null>(null);
+  const [admin, setAdmin] = useState(emptyAdmin);
+
+  function clearError(key: string) {
+    setFieldErrors((e) => {
+      const next = { ...e, [key]: "" };
+      if (key === "admin.email" || key === "admin.loginPhone") next["admin.email"] = next["admin.loginPhone"] = "";
+      return next;
+    });
+  }
+
+  function schoolInput(key: keyof typeof emptySchool, placeholder: string, props: React.InputHTMLAttributes<HTMLInputElement> = {}) {
+    const path = `school.${key}`;
+    return (
+      <div>
+        <input {...props} aria-label={placeholder} placeholder={placeholder} value={school[key]}
+          onChange={(e) => { setSchool({ ...school, [key]: e.target.value }); clearError(path); }}
+          className={withErrorRing(inputClass, !!fieldErrors[path])} />
+        <FieldError message={fieldErrors[path]} />
+      </div>
+    );
+  }
+
+  function adminInput(key: keyof typeof emptyAdmin, placeholder: string, props: React.InputHTMLAttributes<HTMLInputElement> = {}) {
+    const path = `admin.${key}`;
+    return (
+      <div>
+        <input {...props} aria-label={placeholder} placeholder={placeholder} value={admin[key]}
+          onChange={(e) => { setAdmin({ ...admin, [key]: e.target.value }); clearError(path); }}
+          className={withErrorRing(inputClass, !!fieldErrors[path])} />
+        <FieldError message={fieldErrors[path]} />
+      </div>
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setFieldErrors({});
+    if (!admin.email.trim() && !admin.loginPhone.trim()) {
+      const msg = "Enter an email or a login phone number.";
+      setFieldErrors({ "admin.email": msg, "admin.loginPhone": msg });
+      return;
+    }
     setLoading(true);
 
     const res = await fetch("/api/superadmin/create-school", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ school, admin }),
+      body: JSON.stringify({ school: { ...school, logoData }, admin }),
     });
 
     setLoading(false);
 
     if (!res.ok) {
-      const data = await res.json();
-      setError(data.error || "Failed to create school.");
+      const { message, fields } = await readApiErrors(res, "Failed to create school.");
+      setFieldErrors(fields);
+      setError(message);
       return;
     }
 
-    setSuccess({ schoolName: school.name, adminEmail: admin.email });
-    setSchool({ name: "", address: "", phone: "" });
-    setAdmin({ name: "", email: "", password: "" });
+    const { logoWarning } = await res.json().catch(() => ({}));
+    setSuccess({
+      schoolName: school.name,
+      adminLogin: [admin.email, admin.loginPhone].filter(Boolean).join(" or "),
+      logoWarning,
+    });
+    setSchool(emptySchool);
+    setLogoData(null);
+    setAdmin(emptyAdmin);
     router.refresh();
   }
 
@@ -51,8 +106,9 @@ export default function CreateSchoolForm() {
           <strong>{success.schoolName}</strong> is live on VerifyGate.
         </p>
         <p className="text-green-600 text-sm mt-1">
-          Admin login: <strong>{success.adminEmail}</strong>
+          Admin login: <strong>{success.adminLogin}</strong>
         </p>
+        {success.logoWarning && <p className="text-amber-700 text-sm mt-2">{success.logoWarning}</p>}
         <button
           onClick={() => setSuccess(null)}
           className="mt-4 text-sm text-green-700 underline"
@@ -64,66 +120,36 @@ export default function CreateSchoolForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* School details */}
+    <form onSubmit={handleSubmit} noValidate className="space-y-6">
       <div>
         <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-3">
           <School className="w-4 h-4 text-blue-600" />
           School Details
         </div>
         <div className="space-y-3">
-          <input
-            required
-            placeholder="School name *"
-            value={school.name}
-            onChange={(e) => setSchool({ ...school, name: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          <LogoPicker
+            schoolName={school.name}
+            value={logoData}
+            onChange={(v) => { setLogoData(v); clearError("school.logoData"); }}
+            error={fieldErrors["school.logoData"]}
           />
-          <input
-            placeholder="Address (optional)"
-            value={school.address}
-            onChange={(e) => setSchool({ ...school, address: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <input
-            placeholder="Phone number (optional)"
-            value={school.phone}
-            onChange={(e) => setSchool({ ...school, phone: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+          {schoolInput("name", "School name *")}
+          {schoolInput("address", "Address (optional)")}
+          {schoolInput("phone", "Phone number (optional)", { type: "tel", inputMode: "tel" })}
         </div>
       </div>
 
-      {/* First admin */}
       <div>
         <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-3">
           <User className="w-4 h-4 text-purple-600" />
           First Admin Account
         </div>
         <div className="space-y-3">
-          <input
-            required
-            placeholder="Admin full name *"
-            value={admin.name}
-            onChange={(e) => setAdmin({ ...admin, name: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <input
-            required
-            type="email"
-            placeholder="Admin email *"
-            value={admin.email}
-            onChange={(e) => setAdmin({ ...admin, email: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <input
-            required
-            type="password"
-            placeholder="Temporary password *"
-            value={admin.password}
-            onChange={(e) => setAdmin({ ...admin, password: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+          {adminInput("name", "Admin full name *")}
+          {adminInput("email", "Admin email", { type: "email", autoCapitalize: "none" })}
+          {adminInput("loginPhone", "Admin login phone", { type: "tel", inputMode: "tel" })}
+          <p className="text-xs text-slate-400 -mt-1">Fill in an email, a login phone, or both. The admin can sign in with either.</p>
+          {adminInput("password", "Temporary password * (at least 8 characters)", { type: "password" })}
           <p className="text-xs text-slate-400">
             Share this password with the school admin. They can change it after first login.
           </p>

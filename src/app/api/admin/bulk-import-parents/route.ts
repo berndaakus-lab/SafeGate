@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
-import { authOptions, isReservedSuperadminEmail } from "@/lib/auth";
+import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { parseBody } from "@/lib/validate";
+import { escapeLike, findLoginConflict, optionalEmail, optionalPhone, requiredName } from "@/lib/identity";
 import bcrypt from "bcryptjs";
 
 const schema = z.object({
   schoolId: z.string().uuid(),
-  parentName: z.string().trim().min(1).max(200),
-  parentEmail: z.string().trim().email().max(255),
-  parentPhone: z.string().trim().max(30).optional().nullable(),
-  password: z.string().min(6).max(200),
+  parentName: requiredName,
+  parentEmail: optionalEmail,
+  parentLoginPhone: optionalPhone,
+  parentPhone: optionalPhone,
+  password: z.string().min(6, "default_password must be at least 6 characters.").max(200),
   childName: z.string().trim().max(200).optional().nullable(),
   childClass: z.string().trim().max(100).optional().nullable(),
 });
@@ -26,35 +28,46 @@ export async function POST(req: NextRequest) {
 
     const parsed = await parseBody(req, schema);
     if (parsed.error) return parsed.error;
-    const { schoolId, parentName, parentEmail, parentPhone, password, childName, childClass } = parsed.data;
+    const { schoolId, parentName, parentEmail: email, parentLoginPhone: loginPhone, parentPhone, password, childName, childClass } =
+      parsed.data;
 
     if (schoolId !== sessionSchoolId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-
-    const email = parentEmail.trim().toLowerCase();
-
-    if (isReservedSuperadminEmail(email)) {
-      return NextResponse.json({ error: `Row for ${email}: that email is reserved and cannot be used for a parent account.` }, { status: 409 });
+    const label = email ?? loginPhone;
+    if (!label) {
+      return NextResponse.json({ error: "Each row needs a parent email or login phone." }, { status: 400 });
     }
 
-    // Find or create parent
-    let { data: parent } = await supabaseAdmin
-      .from("parents")
-      .select("id")
-      .eq("email", email)
-      .eq("school_id", schoolId)
-      .single();
+    // Re-running an import (or a parent with several children on separate
+    // rows) reuses the existing parent in this school instead of failing.
+    let parent: { id: string } | null = null;
+    if (email) {
+      const { data } = await supabaseAdmin
+        .from("parents").select("id").ilike("email", escapeLike(email)).eq("school_id", schoolId).maybeSingle();
+      parent = data;
+    }
+    if (!parent && loginPhone) {
+      const { data } = await supabaseAdmin
+        .from("parents").select("id").eq("login_phone", loginPhone).eq("school_id", schoolId).maybeSingle();
+      parent = data;
+    }
 
     let created = false;
     if (!parent) {
+      const conflict = await findLoginConflict({ email, loginPhone });
+      if (conflict) {
+        return NextResponse.json({ error: `Row for ${label}: ${conflict.email ?? conflict.loginPhone}` }, { status: 409 });
+      }
+
       const hashedPassword = await bcrypt.hash(password.trim(), 12);
       const { data: newParent, error: parentError } = await supabaseAdmin
         .from("parents")
         .insert({
-          name: parentName.trim(),
+          name: parentName,
           email,
-          phone: parentPhone?.trim() || null,
+          login_phone: loginPhone,
+          phone: parentPhone,
           password: hashedPassword,
           school_id: schoolId,
         })
@@ -68,12 +81,11 @@ export async function POST(req: NextRequest) {
       created = true;
     }
 
-    // Add child if provided
     let childAdded = false;
-    if (childName?.trim()) {
+    if (childName) {
       const { error: childError } = await supabaseAdmin.from("students").insert({
-        name: childName.trim(),
-        class_name: childClass?.trim() || null,
+        name: childName,
+        class_name: childClass || null,
         parent_id: parent!.id,
         school_id: schoolId,
       });

@@ -4,12 +4,13 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { parseBody } from "@/lib/validate";
+import { escapeLike, isEmailIdentifier, normalizeEmail, normalizePhone } from "@/lib/identity";
 
 const schema = z.object({
   schoolId: z.string().uuid(),
   studentName: z.string().trim().min(1).max(200),
   className: z.string().trim().max(100).optional().nullable(),
-  parentEmail: z.string().trim().email().max(255),
+  parentLogin: z.string().trim().min(1).max(255),
 });
 
 export async function POST(req: NextRequest) {
@@ -22,29 +23,32 @@ export async function POST(req: NextRequest) {
     const sessionSchoolId = (session?.user as any)?.schoolId;
     const parsed = await parseBody(req, schema);
     if (parsed.error) return parsed.error;
-    const { schoolId, studentName, className, parentEmail } = parsed.data;
+    const { schoolId, studentName, className, parentLogin } = parsed.data;
     if (schoolId !== sessionSchoolId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Find parent by email within this school
-    const { data: parent } = await supabaseAdmin
-      .from("parents")
-      .select("id")
-      .eq("email", parentEmail.trim().toLowerCase())
-      .eq("school_id", schoolId)
-      .single();
+    // The CSV column accepts either the parent's email or their login phone
+    let q = supabaseAdmin.from("parents").select("id").eq("school_id", schoolId);
+    if (isEmailIdentifier(parentLogin)) {
+      q = q.ilike("email", escapeLike(normalizeEmail(parentLogin)!));
+    } else {
+      const phone = normalizePhone(parentLogin);
+      if (!phone) return NextResponse.json({ error: `Invalid parent email or phone: ${parentLogin}` }, { status: 400 });
+      q = q.eq("login_phone", phone);
+    }
+    const { data: parent } = await q.maybeSingle();
 
     if (!parent) {
       return NextResponse.json(
-        { error: `No parent account found for ${parentEmail}` },
+        { error: `No parent account found for ${parentLogin}` },
         { status: 404 }
       );
     }
 
     const { error } = await supabaseAdmin.from("students").insert({
-      name: studentName.trim(),
-      class_name: className?.trim() || null,
+      name: studentName,
+      class_name: className || null,
       parent_id: parent.id,
       school_id: schoolId,
     });

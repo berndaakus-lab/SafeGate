@@ -2,6 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import CreateSchoolForm from "./CreateSchoolForm";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
+import SchoolLogo from "@/components/SchoolLogo";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ const PLAN_BADGE: Record<string, string> = {
 export default async function SchoolsPage() {
   const { data: schools } = await supabaseAdmin
     .from("schools")
-    .select("id, name, address, phone, created_at, plan, trial_ends_at, max_students")
+    .select("id, name, address, phone, logo_url, created_at, plan, trial_ends_at, max_students")
     .order("created_at", { ascending: false });
 
   return (
@@ -34,9 +35,7 @@ export default async function SchoolsPage() {
             {schools.map((school: any) => (
               <div key={school.id} className="flex items-center justify-between px-6 py-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center font-bold text-blue-700">
-                    {school.name[0].toUpperCase()}
-                  </div>
+                  <SchoolLogo name={school.name} logoUrl={school.logo_url} />
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-slate-900">{school.name}</p>

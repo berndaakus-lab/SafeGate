@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { supabaseAdmin } from "@/lib/supabase";
 import bcrypt from "bcryptjs";
 import { createHash, timingSafeEqual } from "crypto";
+import { escapeLike, isEmailIdentifier, normalizeEmail, normalizePhone } from "@/lib/identity";
 
 const SUPERADMIN_EMAIL = process.env.SUPERADMIN_EMAIL!;
 const SUPERADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD!;
@@ -15,13 +16,19 @@ function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(hashA, hashB);
 }
 
-// The superadmin identity is resolved by email+password match, checked
-// before any staff/parent lookup. If a staff or parent account is ever
-// created with this same email, it becomes permanently unreachable, since
-// login will always resolve to superadmin first. Creation routes must call
-// this to reject the reserved email up front.
-export function isReservedSuperadminEmail(email: string): boolean {
-  return email.trim().toLowerCase() === SUPERADMIN_EMAIL.trim().toLowerCase();
+async function findAccount(table: "staff" | "parents", identifier: string) {
+  let q = supabaseAdmin.from(table).select("*, schools(name)");
+  if (isEmailIdentifier(identifier)) {
+    const email = normalizeEmail(identifier);
+    if (!email) return null;
+    q = q.ilike("email", escapeLike(email));
+  } else {
+    const phone = normalizePhone(identifier);
+    if (!phone) return null;
+    q = q.eq("login_phone", phone);
+  }
+  const { data } = await q.maybeSingle();
+  return data;
 }
 
 export const authOptions: NextAuthOptions = {
@@ -31,16 +38,20 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        identifier: { label: "Email or phone", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
-
-        const { email, password } = credentials;
+        const identifier = credentials?.identifier?.trim();
+        const password = credentials?.password;
+        if (!identifier || !password) return null;
 
         // 1. Check superadmin first
-        if (safeEqual(email, SUPERADMIN_EMAIL) && safeEqual(password, SUPERADMIN_PASSWORD)) {
+        if (
+          isEmailIdentifier(identifier) &&
+          safeEqual(identifier.toLowerCase(), SUPERADMIN_EMAIL.trim().toLowerCase()) &&
+          safeEqual(password, SUPERADMIN_PASSWORD)
+        ) {
           return {
             id: "superadmin",
             email: SUPERADMIN_EMAIL,
@@ -48,46 +59,38 @@ export const authOptions: NextAuthOptions = {
             role: "superadmin",
             schoolId: null,
             schoolName: null,
+            loginPhone: null,
           };
         }
 
-        // 2. Check staff table
-        const { data: staff } = await supabaseAdmin
-          .from("staff")
-          .select("*, schools(name)")
-          .eq("email", email)
-          .single();
-
+        // 2. Staff, then 3. parents
+        const staff = await findAccount("staff", identifier);
         if (staff) {
           const valid = await bcrypt.compare(password, staff.password);
           if (!valid) return null;
           return {
             id: staff.id,
-            email: staff.email,
+            email: staff.email ?? null,
             name: staff.name,
             role: staff.role,
             schoolId: staff.school_id,
             schoolName: staff.schools?.name,
+            loginPhone: staff.login_phone ?? null,
           };
         }
 
-        // 3. Check parents table
-        const { data: parent } = await supabaseAdmin
-          .from("parents")
-          .select("*, schools(name)")
-          .eq("email", email)
-          .single();
-
+        const parent = await findAccount("parents", identifier);
         if (parent) {
           const valid = await bcrypt.compare(password, parent.password);
           if (!valid) return null;
           return {
             id: parent.id,
-            email: parent.email,
+            email: parent.email ?? null,
             name: parent.name,
             role: "parent",
             schoolId: parent.school_id,
             schoolName: parent.schools?.name,
+            loginPhone: parent.login_phone ?? null,
           };
         }
 
@@ -101,6 +104,7 @@ export const authOptions: NextAuthOptions = {
         token.role = (user as any).role;
         token.schoolId = (user as any).schoolId;
         token.schoolName = (user as any).schoolName;
+        token.loginPhone = (user as any).loginPhone;
       }
       return token;
     },
@@ -110,6 +114,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).role = token.role;
         (session.user as any).schoolId = token.schoolId;
         (session.user as any).schoolName = token.schoolName;
+        (session.user as any).loginPhone = token.loginPhone;
       }
       return session;
     },

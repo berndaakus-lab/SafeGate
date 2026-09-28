@@ -7,6 +7,7 @@ import { Upload, X, FileText, Download, CheckCircle2, XCircle, Loader2, AlertCir
 type Row = {
   parent_name: string;
   parent_email: string;
+  parent_login_phone?: string;
   parent_phone: string;
   default_password: string;
   child_name: string;
@@ -31,10 +32,20 @@ function parseCSV(text: string): Row[] {
   });
 }
 
-const TEMPLATE = `parent_name,parent_email,parent_phone,default_password,child_name,child_class
-Abena Mensah,abena@email.com,0244123456,Parent@2025,Kofi Mensah,Class 3A
-Abena Mensah,abena@email.com,0244123456,Parent@2025,Ama Mensah,Class 1B
-Kwame Asante,kwame@email.com,0277654321,Parent@2025,Yaw Asante,Class 5C`;
+const TEMPLATE = `parent_name,parent_email,parent_login_phone,parent_phone,default_password,child_name,child_class
+Abena Mensah,abena@email.com,,0244123456,Parent@2025,Kofi Mensah,Class 3A
+Abena Mensah,abena@email.com,,0244123456,Parent@2025,Ama Mensah,Class 1B
+Kwame Asante,,0277654321,0277654321,Parent@2025,Yaw Asante,Class 5C`;
+
+const CSV_COLUMN: Record<string, string> = {
+  parentName: "parent_name",
+  parentEmail: "parent_email",
+  parentLoginPhone: "parent_login_phone",
+  parentPhone: "parent_phone",
+  password: "default_password",
+  childName: "child_name",
+  childClass: "child_class",
+};
 
 export default function ImportParentsModal({ schoolId }: { schoolId: string }) {
   const router = useRouter();
@@ -75,8 +86,8 @@ export default function ImportParentsModal({ schoolId }: { schoolId: string }) {
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
-      if (!row.parent_name || !row.parent_email || !row.default_password) {
-        updated[i] = { row, status: "error", message: "Missing name, email, or password" };
+      if (!row.parent_name || (!row.parent_email && !row.parent_login_phone) || !row.default_password) {
+        updated[i] = { row, status: "error", message: "Missing name, email/login phone, or password" };
         setResults([...updated]);
         continue;
       }
@@ -88,6 +99,7 @@ export default function ImportParentsModal({ schoolId }: { schoolId: string }) {
           schoolId,
           parentName: row.parent_name,
           parentEmail: row.parent_email,
+          parentLoginPhone: row.parent_login_phone,
           parentPhone: row.parent_phone,
           password: row.default_password,
           childName: row.child_name,
@@ -98,7 +110,11 @@ export default function ImportParentsModal({ schoolId }: { schoolId: string }) {
       const data = await res.json();
 
       if (!res.ok) {
-        updated[i] = { row, status: "error", message: data.error || "Failed" };
+        const fields: Record<string, string> = data.fields ?? {};
+        const message = Object.keys(fields).length
+          ? Object.entries(fields).map(([k, v]) => `${CSV_COLUMN[k] ?? k}: ${v}`).join(" ")
+          : data.error || "Failed";
+        updated[i] = { row, status: "error", message };
       } else if (data.parentExisted && !data.childAdded) {
         updated[i] = { row, status: "skipped", message: "Parent already exists, no child added" };
       } else if (data.parentExisted && data.childAdded) {
@@ -150,8 +166,9 @@ export default function ImportParentsModal({ schoolId }: { schoolId: string }) {
             <div>
               <p className="text-sm font-medium text-blue-900">Use the template CSV</p>
               <p className="text-xs text-blue-600 mt-0.5">
-                Columns: parent_name, parent_email, parent_phone, default_password, child_name, child_class.
-                One row per child, same parent email on multiple rows adds multiple children.
+                Columns: parent_name, parent_email, parent_login_phone, parent_phone, default_password, child_name, child_class.
+                Each parent needs an email or a login phone (or both). parent_phone is where SMS alerts go.
+                One row per child; the same parent on multiple rows adds multiple children.
               </p>
             </div>
             <button
@@ -197,7 +214,7 @@ export default function ImportParentsModal({ schoolId }: { schoolId: string }) {
                     {r.status === "error" && <XCircle className="w-4 h-4 text-red-500 shrink-0" />}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-slate-800 truncate">
-                        {r.row.parent_name}, {r.row.parent_email}
+                        {r.row.parent_name}, {r.row.parent_email || r.row.parent_login_phone}
                         {r.row.child_name && <span className="text-slate-400"> · {r.row.child_name}</span>}
                       </p>
                       {r.message && (

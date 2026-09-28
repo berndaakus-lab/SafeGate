@@ -22,7 +22,7 @@ export default async function AdminAccountPage() {
           </div>
           <div>
             <p className="font-semibold text-slate-900 text-lg">{session?.user?.name}</p>
-            <p className="text-slate-400 text-sm">{session?.user?.email}</p>
+            <p className="text-slate-400 text-sm">{session?.user?.email || (session?.user as any)?.loginPhone}</p>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full capitalize">{role}</span>
               <span className="text-xs text-slate-400">{(session?.user as any)?.schoolName}</span>
