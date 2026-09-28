@@ -26,7 +26,8 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     const role = (session?.user as any)?.role;
     const guardSchoolId = (session?.user as any)?.schoolId;
-    if (!session || !["guard", "teacher"].includes(role) || !guardSchoolId) {
+    // School admins can cover the gate too; the superadmin has no school
+    if (!session || !["guard", "teacher", "admin"].includes(role) || !guardSchoolId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

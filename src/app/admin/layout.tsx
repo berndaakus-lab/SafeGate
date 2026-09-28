@@ -9,9 +9,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await getServerSession(authOptions);
   const role = (session?.user as any)?.role;
 
-  if (!session || role !== "admin") {
+  if (!session) redirect("/login?reason=signin&for=admin");
+  if (role !== "admin") {
     if (role === "guard" || role === "teacher") redirect("/guard/scan");
-    redirect("/login");
+    redirect(`/login?reason=role&for=admin&as=${role}`);
   }
 
   const schoolId = (session.user as any)?.schoolId;

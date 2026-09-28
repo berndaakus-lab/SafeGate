@@ -34,7 +34,7 @@ const FEATURES = [
 export default async function SubscribePage() {
   const session = await getServerSession(authOptions);
   const schoolId = (session?.user as any)?.schoolId;
-  if (!schoolId) redirect("/login");
+  if (!schoolId) redirect("/login?reason=signin&for=admin");
 
   const [{ data: school }, settings] = await Promise.all([
     supabaseAdmin.from("schools").select("name, plan, trial_ends_at, max_students, custom_price").eq("id", schoolId).single(),

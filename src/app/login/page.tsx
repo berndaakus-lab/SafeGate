@@ -2,10 +2,64 @@
 
 import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Info, Loader2 } from "lucide-react";
+
+const ROLE_HOME: Record<string, string> = {
+  superadmin: "/superadmin/dashboard",
+  admin: "/admin/dashboard",
+  parent: "/parent/dashboard",
+  guard: "/guard/scan",
+  teacher: "/guard/scan",
+};
+
+const ROLE_LABEL: Record<string, string> = {
+  superadmin: "a platform admin",
+  admin: "a school admin",
+  parent: "a parent",
+  guard: "a guard",
+  teacher: "a teacher",
+};
+
+// Where the person was trying to go, and who that area is for
+const AREA: Record<string, { name: string; who: string }> = {
+  scanner: { name: "The pickup scanner", who: "guards, on-duty teachers and school admins" },
+  admin: { name: "The school admin area", who: "school admins" },
+  parent: { name: "The parent area", who: "parents" },
+  superadmin: { name: "The platform admin area", who: "the VerifyGate platform admin" },
+};
+
+/** Explains why the person was sent to the login page, based on the
+ * ?reason=&for=&as= set by the protected layouts' redirects. */
+function RedirectNotice() {
+  const params = useSearchParams();
+  const reason = params.get("reason");
+  const area = AREA[params.get("for") ?? ""];
+  const as = params.get("as") ?? "";
+  if (!area || (reason !== "signin" && reason !== "role")) return null;
+
+  const wrongAccount = reason === "role";
+  return (
+    <div role="status" className="mb-4 flex gap-3 rounded-2xl border border-blue-100 bg-blue-50/90 px-4 py-3.5 text-sm text-blue-900">
+      <Info className="w-4 h-4 mt-0.5 shrink-0 text-blue-600" />
+      <div className="space-y-1">
+        <p className="font-semibold">{wrongAccount ? "This page isn't for your account" : "Please sign in first"}</p>
+        <p className="text-blue-800/90">
+          {wrongAccount && ROLE_LABEL[as] ? `You're signed in as ${ROLE_LABEL[as]}. ` : ""}
+          {area.name} is only for {area.who}.
+          {wrongAccount ? " Sign in with the right account below." : " Sign in to continue."}
+        </p>
+        {wrongAccount && ROLE_HOME[as] && (
+          <Link href={ROLE_HOME[as]} className="inline-block font-semibold text-blue-700 underline underline-offset-2">
+            Go back to your dashboard
+          </Link>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function LoginForm() {
   const router = useRouter();
@@ -41,12 +95,7 @@ function LoginForm() {
       const session = await res.json();
       const role = session?.user?.role;
 
-      const destination =
-        role === "superadmin" ? "/superadmin/dashboard"
-        : role === "admin" ? "/admin/dashboard"
-        : role === "parent" ? "/parent/dashboard"
-        : role === "guard" || role === "teacher" ? "/guard/scan"
-        : null;
+      const destination = ROLE_HOME[role] ?? null;
 
       if (!destination) {
         setError("Signed in, but your account has no role. Contact your school.");
@@ -88,6 +137,8 @@ function LoginForm() {
           </Link>
           <p className="text-slate-500 text-sm">Sign in to your account</p>
         </div>
+
+        <RedirectNotice />
 
         {/* Card */}
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200/80 p-6 sm:p-8">
