@@ -14,6 +14,7 @@ import ParentsList from "./ParentsList";
 import DeleteSchoolButton from "./DeleteSchoolButton";
 import SchoolLogo from "@/components/SchoolLogo";
 import SchoolLogoEditor from "./SchoolLogoEditor";
+import AddStaffPanel from "./AddStaffPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -103,6 +104,7 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
             <h2 className="font-semibold text-slate-900">Staff Accounts</h2>
           </div>
           <StaffList staff={staff ?? []} />
+          <AddStaffPanel schoolId={id} />
         </div>
 
         {/* Parents */}
