@@ -3,28 +3,21 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Loader2, GraduationCap, Camera, X, Check } from "lucide-react";
+import { loadImageFile } from "@/lib/load-image";
 
 async function compressImage(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      const SIZE = 200;
-      const canvas = document.createElement("canvas");
-      canvas.width = SIZE;
-      canvas.height = SIZE;
-      const ctx = canvas.getContext("2d")!;
-      // Crop to square from center
-      const min = Math.min(img.width, img.height);
-      const sx = (img.width - min) / 2;
-      const sy = (img.height - min) / 2;
-      ctx.drawImage(img, sx, sy, min, min, 0, 0, SIZE, SIZE);
-      URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/jpeg", 0.72));
-    };
-    img.onerror = reject;
-    img.src = url;
-  });
+  const img = await loadImageFile(file);
+  const SIZE = 200;
+  const canvas = document.createElement("canvas");
+  canvas.width = SIZE;
+  canvas.height = SIZE;
+  const ctx = canvas.getContext("2d")!;
+  // Crop to square from center
+  const min = Math.min(img.width, img.height);
+  const sx = (img.width - min) / 2;
+  const sy = (img.height - min) / 2;
+  ctx.drawImage(img, sx, sy, min, min, 0, 0, SIZE, SIZE);
+  return canvas.toDataURL("image/jpeg", 0.72);
 }
 
 export default function AddChildInline({
