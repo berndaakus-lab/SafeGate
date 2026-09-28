@@ -3,19 +3,23 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
-import { parseBody } from "@/lib/validate";
-import { escapeLike, findLoginConflict, optionalEmail, optionalPhone, requiredName } from "@/lib/identity";
+import { fieldErrorResponse, parseBody, type FieldErrors } from "@/lib/validate";
+import { escapeLike, findLoginConflict, newPassword, optionalEmail, optionalPhone } from "@/lib/identity";
 import bcrypt from "bcryptjs";
 
+// One CSV row: a parent (new or existing) plus optionally one child.
+// New parents need a name and password; rows for a parent who already exists
+// in this school only need their email or login phone, and never overwrite
+// that parent's saved details.
 const schema = z.object({
   schoolId: z.string().uuid(),
-  parentName: requiredName,
+  parentName: z.string().trim().max(200, "That name is too long.").optional().nullable(),
   parentEmail: optionalEmail,
   parentLoginPhone: optionalPhone,
   parentPhone: optionalPhone,
-  password: z.string().min(6, "default_password must be at least 6 characters.").max(200),
-  childName: z.string().trim().max(200).optional().nullable(),
-  childClass: z.string().trim().max(100).optional().nullable(),
+  password: z.string().trim().max(200).optional().nullable(),
+  childName: z.string().trim().max(200, "That name is too long.").optional().nullable(),
+  childClass: z.string().trim().max(100, "That class name is too long.").optional().nullable(),
 });
 
 export async function POST(req: NextRequest) {
@@ -34,13 +38,11 @@ export async function POST(req: NextRequest) {
     if (schoolId !== sessionSchoolId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    const label = email ?? loginPhone;
-    if (!label) {
-      return NextResponse.json({ error: "Each row needs a parent email or login phone." }, { status: 400 });
+    if (!email && !loginPhone) {
+      const text = "Each row needs the parent's email or login phone.";
+      return fieldErrorResponse({ parentEmail: text, parentLoginPhone: text });
     }
 
-    // Re-running an import (or a parent with several children on separate
-    // rows) reuses the existing parent in this school instead of failing.
     let parent: { id: string } | null = null;
     if (email) {
       const { data } = await supabaseAdmin
@@ -53,14 +55,22 @@ export async function POST(req: NextRequest) {
       parent = data;
     }
 
-    let created = false;
+    let parentCreated = false;
     if (!parent) {
+      const errors: FieldErrors = {};
+      if (!parentName) errors.parentName = "Enter the parent's name (needed for a new parent).";
+      const pw = newPassword.safeParse(password ?? "");
+      if (!pw.success) errors.password = password ? pw.error.issues[0].message : "Enter a password (needed for a new parent).";
+      if (Object.keys(errors).length) return fieldErrorResponse(errors);
+
       const conflict = await findLoginConflict({ email, loginPhone });
       if (conflict) {
-        return NextResponse.json({ error: `Row for ${label}: ${conflict.email ?? conflict.loginPhone}` }, { status: 409 });
+        return fieldErrorResponse(
+          { ...(conflict.email && { parentEmail: conflict.email }), ...(conflict.loginPhone && { parentLoginPhone: conflict.loginPhone }) },
+          409
+        );
       }
 
-      const hashedPassword = await bcrypt.hash(password.trim(), 12);
       const { data: newParent, error: parentError } = await supabaseAdmin
         .from("parents")
         .insert({
@@ -68,36 +78,43 @@ export async function POST(req: NextRequest) {
           email,
           login_phone: loginPhone,
           phone: parentPhone,
-          password: hashedPassword,
+          password: await bcrypt.hash(pw.data!, 12),
           school_id: schoolId,
         })
         .select("id")
         .single();
 
-      if (parentError) {
-        return NextResponse.json({ error: parentError.message }, { status: 500 });
-      }
+      if (parentError) return NextResponse.json({ error: parentError.message }, { status: 500 });
       parent = newParent;
-      created = true;
+      parentCreated = true;
     }
 
+    // Re-uploading the same file (e.g. after fixing a few bad rows) must not
+    // add the same child twice.
     let childAdded = false;
+    let childExisted = false;
     if (childName) {
-      const { error: childError } = await supabaseAdmin.from("students").insert({
-        name: childName,
-        class_name: childClass || null,
-        parent_id: parent!.id,
-        school_id: schoolId,
-      });
-      if (!childError) childAdded = true;
+      const { data: existingChild } = await supabaseAdmin
+        .from("students")
+        .select("id")
+        .eq("parent_id", parent!.id)
+        .ilike("name", escapeLike(childName))
+        .limit(1);
+      if (existingChild?.length) {
+        childExisted = true;
+      } else {
+        const { error: childError } = await supabaseAdmin.from("students").insert({
+          name: childName,
+          class_name: childClass || null,
+          parent_id: parent!.id,
+          school_id: schoolId,
+        });
+        if (childError) return NextResponse.json({ error: childError.message }, { status: 500 });
+        childAdded = true;
+      }
     }
 
-    return NextResponse.json({
-      ok: true,
-      parentCreated: created,
-      parentExisted: !created,
-      childAdded,
-    });
+    return NextResponse.json({ ok: true, parentCreated, childAdded, childExisted });
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
