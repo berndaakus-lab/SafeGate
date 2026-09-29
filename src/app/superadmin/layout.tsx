@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase";
 import SessionProvider from "@/components/SessionProvider";
 import SuperAdminNav from "@/components/SuperAdminNav";
+import { scheduleBackgroundJobs } from "@/lib/jobs";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ export default async function SuperAdminLayout({ children }: { children: React.R
   if ((session.user as any)?.role !== "superadmin") {
     redirect(`/login?reason=role&for=superadmin&as=${(session.user as any)?.role}`);
   }
+  scheduleBackgroundJobs();
 
   const { count: newLeads } = await supabaseAdmin
     .from("demo_requests")

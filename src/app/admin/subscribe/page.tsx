@@ -7,17 +7,17 @@ import SubscribeForm from "./SubscribeForm";
 import Image from "next/image";
 import { CheckCircle2, MessageCircle } from "lucide-react";
 import Link from "next/link";
+import { formatDate } from "@/lib/utils";
+import {
+  BILLING_PERIODS,
+  TIERS,
+  monthlyPriceGhs,
+  periodPriceGhs,
+  subscriptionState,
+  tierOf,
+} from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
-
-const PAID_PLANS = ["standard", "growth", "premier", "international", "school", "enterprise"];
-
-const TIER_KEYS: Record<string, { monthly: string; annual: string; label: string; sub: string }> = {
-  standard:      { monthly: "tier_standard_monthly",     annual: "tier_standard_annual",     label: "Standard",     sub: "Up to 100 students" },
-  growth:        { monthly: "tier_growth_monthly",       annual: "tier_growth_annual",       label: "Growth",       sub: "101 – 500 students" },
-  premier:       { monthly: "tier_premier_monthly",      annual: "tier_premier_annual",      label: "Premier",      sub: "500+ students" },
-  international: { monthly: "tier_international_monthly", annual: "tier_international_annual", label: "International", sub: "Any size · premium" },
-};
 
 const FEATURES = [
   "Unlimited QR code scans",
@@ -28,7 +28,6 @@ const FEATURES = [
   "Student photo ID",
   "Bulk parent & student import",
   "Full pickup audit trail",
-  "Priority support",
 ];
 
 export default async function SubscribePage() {
@@ -37,45 +36,52 @@ export default async function SubscribePage() {
   if (!schoolId) redirect("/login?reason=signin&for=admin");
 
   const [{ data: school }, settings] = await Promise.all([
-    supabaseAdmin.from("schools").select("name, plan, trial_ends_at, max_students, custom_price").eq("id", schoolId).single(),
+    supabaseAdmin
+      .from("schools")
+      .select("name, plan, trial_ends_at, paid_until, custom_price")
+      .eq("id", schoolId)
+      .single(),
     getSettings(),
   ]);
 
-  // Already on a paid plan, nothing to do
-  if (school?.plan && PAID_PLANS.includes(school.plan)) {
-    redirect("/admin/dashboard");
-  }
-
-  const currentPlan = school?.plan ?? "trial";
-  const tier = TIER_KEYS[currentPlan] ?? TIER_KEYS.growth;
-
-  // Use the school's individually negotiated price if set, otherwise fall back to tier default
-  const agreedPrice = school?.custom_price
-    ? school.custom_price
-    : parseFloat(s(settings, tier.monthly, "150").replace(/[^\d.]/g, "")) || 150;
+  const tier = TIERS[tierOf(school?.plan)];
+  const monthly = school ? monthlyPriceGhs(school, settings) : null;
+  const state = school ? subscriptionState(school) : { kind: "none" as const };
+  const periods = monthly ? BILLING_PERIODS.map((months) => ({ months, amount: periodPriceGhs(monthly, months) })) : [];
 
   const whatsapp = s(settings, "whatsapp", "");
   const waMsg = encodeURIComponent(
-    `Hi VerifyGate! I'd like to upgrade my school (${school?.name ?? ""}) and need help with the payment. Can you assist?`
+    `Hi VerifyGate! I'd like to pay for my school (${school?.name ?? ""}) and need help with the payment. Can you assist?`
   );
+
+  const statusLine =
+    state.kind === "paid"
+      ? `Paid until ${formatDate(state.endsAt.toISOString())}. Paying now adds time after that date.`
+      : state.kind === "trial"
+        ? `Free trial until ${formatDate(state.endsAt.toISOString())}. Your paid time starts after the trial, so you don't lose any free days.`
+        : state.kind === "expired"
+          ? `Your ${state.wasPaid ? "subscription" : "free trial"} ended on ${formatDate(state.endedAt.toISOString())}.`
+          : null;
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
-
-        {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/admin/dashboard" className="inline-flex items-center gap-2 mb-5">
             <Image src="/icon-192.png" alt="VerifyGate" width={32} height={32} className="rounded-lg" />
             <span className="font-bold text-xl text-slate-900">VerifyGate</span>
           </Link>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Activate your subscription</h1>
-          <p className="text-slate-500 text-sm">
-            {school?.name} · Pay via Mobile Money to keep your school running.
-          </p>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">
+            {state.kind === "paid" ? "Renew your subscription" : "Activate your subscription"}
+          </h1>
+          <p className="text-slate-500 text-sm">{school?.name} · Pay via Mobile Money.</p>
+          {statusLine && (
+            <p className={`mt-3 text-sm rounded-xl px-4 py-2.5 ${state.kind === "expired" ? "bg-red-50 text-red-700" : "bg-blue-50 text-blue-800"}`}>
+              {statusLine}
+            </p>
+          )}
         </div>
 
-        {/* Plan summary */}
         <div className="bg-blue-600 rounded-2xl p-6 mb-5 text-white">
           <div className="flex items-start justify-between mb-4">
             <div>
@@ -83,23 +89,14 @@ export default async function SubscribePage() {
               <p className="text-white font-black text-2xl">{tier.label}</p>
               <p className="text-blue-200 text-sm">{tier.sub}</p>
             </div>
-            <div className="text-right">
-              <p className="text-blue-200 text-xs mb-1">Price</p>
-              <p className="text-white font-black text-xl">
-                GHS {agreedPrice.toLocaleString()}
-              </p>
-              <p className="text-blue-200 text-xs">/month</p>
-            </div>
+            {monthly && (
+              <div className="text-right">
+                <p className="text-blue-200 text-xs mb-1">{school?.custom_price ? "Your agreed price" : "Price"}</p>
+                <p className="text-white font-black text-xl">GHS {monthly.toLocaleString()}</p>
+                <p className="text-blue-200 text-xs">/month</p>
+              </div>
+            )}
           </div>
-
-          {/* Annual option callout */}
-          {s(settings, tier.annual, "") && (
-            <div className="bg-blue-500/40 rounded-xl px-4 py-2.5 mb-4 flex items-center justify-between">
-              <p className="text-blue-100 text-xs">Annual billing (2 months free)</p>
-              <p className="text-white font-bold text-sm">{s(settings, tier.annual, "")}/yr</p>
-            </div>
-          )}
-
           <div className="grid grid-cols-2 gap-2">
             {FEATURES.map((f) => (
               <div key={f} className="flex items-center gap-2">
@@ -110,19 +107,25 @@ export default async function SubscribePage() {
           </div>
         </div>
 
-        {/* MoMo payment form */}
         <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-4">
-          <h2 className="font-semibold text-slate-900 mb-1">Pay via Mobile Money</h2>
-          <p className="text-sm text-slate-400 mb-5">
-            Enter your MoMo number below. You&apos;ll receive a payment prompt on your phone, approve it to activate your account.
-          </p>
-          <SubscribeForm
-            amountGhs={agreedPrice}
-            reference={schoolId}
-          />
+          {monthly ? (
+            <>
+              <h2 className="font-semibold text-slate-900 mb-1">Pay via Mobile Money</h2>
+              <p className="text-sm text-slate-400 mb-5">
+                Choose how long to pay for, then enter your MoMo number. Approve the prompt on your phone to confirm.
+              </p>
+              <SubscribeForm periods={periods} />
+            </>
+          ) : (
+            <div className="text-center py-2">
+              <h2 className="font-semibold text-slate-900 mb-1">Your price is being arranged</h2>
+              <p className="text-sm text-slate-500">
+                The VerifyGate team will agree a price with your school. Contact us below to pay.
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* WhatsApp fallback */}
         {whatsapp && (
           <a
             href={`https://wa.me/${whatsapp}?text=${waMsg}`}
@@ -136,15 +139,9 @@ export default async function SubscribePage() {
         )}
 
         <p className="text-center text-xs text-slate-400">
-          Your plan and pricing were set by the VerifyGate team based on your school size.{" "}
-          {whatsapp && (
-            <a href={`https://wa.me/${whatsapp}`} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
-              Contact us
-            </a>
-          )}{" "}
-          if you have questions.
+          Your plan and price were set by the VerifyGate team for your school.{" "}
+          <Link href="/admin/dashboard" className="text-blue-600 hover:underline">Back to dashboard</Link>
         </p>
-
       </div>
     </div>
   );
