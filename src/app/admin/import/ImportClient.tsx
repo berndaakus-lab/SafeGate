@@ -2,11 +2,34 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, Download, CheckCircle2, XCircle, AlertCircle, Loader2, FileText, RotateCcw } from "lucide-react";
+import { Upload, Download, CheckCircle2, XCircle, AlertCircle, Loader2, FileText, RotateCcw, Info, Check } from "lucide-react";
 import { parseCsvRecords } from "@/lib/csv";
 import { IMPORT_CONFIGS, type ImportKind, type RowValues } from "./importConfigs";
 
 type Row = { line: number; values: RowValues };
+
+function StepHeader({ n, title, hint, done = false }: { n: number; title: string; hint?: string; done?: boolean }) {
+  return (
+    <div className="flex items-start gap-3 min-w-0">
+      <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${done ? "bg-green-600 text-white" : "bg-blue-600 text-white"}`}>
+        {done ? <Check className="w-4 h-4" /> : n}
+      </span>
+      <div className="min-w-0 pt-0.5">
+        <h2 className="font-semibold text-slate-900 text-base leading-snug">{title}</h2>
+        {hint && <p className="text-sm text-slate-500 mt-0.5">{hint}</p>}
+      </div>
+    </div>
+  );
+}
+
+/** Turns the config's "when needed" text into an easy-to-scan badge. */
+function NeedBadge({ when }: { when: string }) {
+  const style =
+    when === "Optional" ? "bg-slate-100 text-slate-600"
+    : when.toLowerCase().includes("email or") ? "bg-blue-100 text-blue-800"
+    : "bg-amber-100 text-amber-800";
+  return <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full ${style}`}>{when}</span>;
+}
 type Status = "pending" | "ok" | "skipped" | "error";
 type Result = { status: Status; message: string };
 
@@ -23,6 +46,7 @@ export default function ImportClient({ schoolId, kind }: { schoolId: string; kin
   const [done, setDone] = useState(false);
   const [onlyProblems, setOnlyProblems] = useState(false);
   const [counts, setCounts] = useState<Record<string, number>>({});
+  const [dragging, setDragging] = useState(false);
 
   function downloadTemplate() {
     const url = URL.createObjectURL(new Blob([config.template], { type: "text/csv" }));
@@ -41,7 +65,23 @@ export default function ImportClient({ schoolId, kind }: { schoolId: string; kin
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
+    if (file) loadFile(file);
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragging(false);
+    if (importing) return;
+    const file = e.dataTransfer.files?.[0];
     if (!file) return;
+    if (!/\.csv$/i.test(file.name) && file.type !== "text/csv") {
+      setFileError("That isn't a CSV file. In Excel use File, Save As, CSV UTF-8, then try again.");
+      return;
+    }
+    loadFile(file);
+  }
+
+  function loadFile(file: File) {
     reset();
     const reader = new FileReader();
     reader.onload = () => {
@@ -118,78 +158,119 @@ export default function ImportClient({ schoolId, kind }: { schoolId: string; kin
 
   return (
     <div>
-      <p className="text-slate-500 mb-6">{config.intro}</p>
+      <p className="text-slate-600 mb-6">{config.intro}</p>
 
       {/* Step 1 */}
-      <section className="bg-white rounded-2xl border border-slate-100 p-6 mb-4">
-        <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-          <div>
-            <h2 className="font-semibold text-slate-900 text-sm">Step 1: Download the template</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Fill it in, or export these columns from your school management system.</p>
-          </div>
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 mb-4">
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
+          <StepHeader n={1} title="Download the template" hint="Fill it in, or export these columns from your school management system." />
           <button
             onClick={downloadTemplate}
-            className="inline-flex items-center gap-2 border border-slate-200 text-slate-700 text-sm font-medium px-4 py-2.5 rounded-xl hover:bg-slate-50 transition-colors"
+            className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white text-sm font-semibold px-5 py-3 rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-sm shadow-blue-600/20 w-full sm:w-auto"
           >
             <Download className="w-4 h-4" /> Download template
           </button>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-100">
+        {/* Phones: one small card per column, no sideways scrolling */}
+        <ul className="sm:hidden divide-y divide-slate-100 rounded-xl border border-slate-200">
+          {config.columns.map((c) => (
+            <li key={c.name} className="px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-mono text-sm font-medium text-slate-800 break-all">{c.name}</span>
+                <NeedBadge when={c.when} />
+              </div>
+              <p className="text-sm text-slate-600 mt-1">{c.note}</p>
+            </li>
+          ))}
+        </ul>
+
+        <div className="hidden sm:block overflow-x-auto rounded-xl border border-slate-200">
           <table className="w-full text-sm min-w-[560px]">
-            <thead className="bg-slate-50 text-xs text-slate-500 uppercase tracking-wider">
+            <thead className="bg-slate-50 text-xs text-slate-600 uppercase tracking-wider">
               <tr>
-                <th className="text-left font-semibold px-4 py-2.5">Column</th>
-                <th className="text-left font-semibold px-4 py-2.5">Required for</th>
-                <th className="text-left font-semibold px-4 py-2.5">Notes</th>
+                <th className="text-left font-semibold px-4 py-3">Column</th>
+                <th className="text-left font-semibold px-4 py-3">Needed?</th>
+                <th className="text-left font-semibold px-4 py-3">What to put</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-slate-100">
               {config.columns.map((c) => (
                 <tr key={c.name}>
-                  <td className="px-4 py-2.5 font-mono text-xs text-slate-700 whitespace-nowrap">{c.name}</td>
-                  <td className="px-4 py-2.5 text-xs text-slate-600 whitespace-nowrap">{c.when}</td>
-                  <td className="px-4 py-2.5 text-xs text-slate-500">{c.note}</td>
+                  <td className="px-4 py-3 font-mono text-sm font-medium text-slate-800 whitespace-nowrap">{c.name}</td>
+                  <td className="px-4 py-3 whitespace-nowrap"><NeedBadge when={c.when} /></td>
+                  <td className="px-4 py-3 text-sm text-slate-600">{c.note}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        <ul className="mt-4 space-y-1.5 text-xs text-slate-500 list-disc pl-4">
-          {config.notes.map((n) => <li key={n}>{n}</li>)}
-        </ul>
+        <div className="mt-4 flex gap-3 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
+          <Info className="w-4 h-4 mt-0.5 shrink-0 text-blue-600" />
+          <ul className="space-y-1 text-sm text-blue-900">
+            {config.notes.map((n) => <li key={n}>{n}</li>)}
+          </ul>
+        </div>
       </section>
 
       {/* Step 2 */}
-      <section className="bg-white rounded-2xl border border-slate-100 p-6 mb-4">
-        <h2 className="font-semibold text-slate-900 text-sm mb-3">Step 2: Upload your CSV</h2>
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 mb-4">
+        <div className="mb-4">
+          <StepHeader n={2} title="Upload your CSV file" hint="In Excel: File, Save As, then choose CSV UTF-8." />
+        </div>
         <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={handleFile} />
         <button
           onClick={() => fileRef.current?.click()}
+          onDragOver={(e) => { e.preventDefault(); if (!importing) setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={handleDrop}
           disabled={importing}
-          className="w-full flex flex-col items-center gap-2 border-2 border-dashed border-slate-200 rounded-xl py-8 hover:border-blue-300 hover:bg-blue-50/30 transition-colors disabled:opacity-50"
+          className={`w-full flex flex-col items-center gap-3 border-2 border-dashed rounded-2xl px-4 py-10 transition-colors disabled:opacity-50 ${
+            dragging
+              ? "border-blue-500 bg-blue-50"
+              : fileName
+                ? "border-green-300 bg-green-50/50 hover:border-green-400"
+                : "border-blue-200 bg-blue-50/30 hover:border-blue-400 hover:bg-blue-50"
+          }`}
         >
-          {fileName ? <FileText className="w-8 h-8 text-blue-500" /> : <Upload className="w-8 h-8 text-slate-400" />}
-          <span className="text-sm text-slate-600 font-medium">
-            {fileName ? `${fileName}, ${rows.length} row${rows.length !== 1 ? "s" : ""}. Click to choose a different file.` : "Click to choose a CSV file"}
+          <span className={`w-14 h-14 rounded-full flex items-center justify-center ${fileName ? "bg-green-100" : "bg-blue-100"}`}>
+            {fileName ? <FileText className="w-7 h-7 text-green-600" /> : <Upload className="w-7 h-7 text-blue-600" />}
           </span>
-          <span className="text-xs text-slate-400">In Excel: File, Save As, CSV UTF-8</span>
+          {fileName ? (
+            <>
+              <span className="text-base font-semibold text-slate-900 break-all">{fileName}</span>
+              <span className="text-sm text-slate-600">{rows.length} row{rows.length !== 1 ? "s" : ""} ready to check below</span>
+              <span className="text-sm font-medium text-blue-700 underline underline-offset-2">Choose a different file</span>
+            </>
+          ) : (
+            <>
+              <span className="text-base font-semibold text-slate-900">{dragging ? "Drop the file here" : "Drag your CSV file here"}</span>
+              <span className="text-sm text-slate-500">or</span>
+              <span className="inline-flex items-center gap-2 bg-white border border-blue-200 text-blue-700 text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm">
+                <Upload className="w-4 h-4" /> Choose file
+              </span>
+            </>
+          )}
         </button>
-        {fileError && <p role="alert" className="text-xs font-medium text-red-600 mt-2">{fileError}</p>}
+        {fileError && <p role="alert" className="text-sm font-medium text-red-600 mt-3">{fileError}</p>}
       </section>
 
       {/* Step 3 */}
       {rows.length > 0 && (
-        <section className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-50 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-semibold text-slate-900 text-sm">
-              {importing
-                ? `Importing ${progress} of ${rows.length}...`
-                : done
-                  ? "Import finished"
-                  : `Step 3: Review and import ${rows.length} row${rows.length !== 1 ? "s" : ""}`}
-            </h2>
+        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+            <StepHeader
+              n={3}
+              title={
+                importing
+                  ? `Importing ${progress} of ${rows.length}...`
+                  : done
+                    ? "Import finished"
+                    : `Review and import ${rows.length} row${rows.length !== 1 ? "s" : ""}`
+              }
+              done={done}
+            />
             <div className="flex items-center gap-3">
               {done && errors > 0 && (
                 <label className="flex items-center gap-2 text-xs text-slate-600">
@@ -198,17 +279,17 @@ export default function ImportClient({ schoolId, kind }: { schoolId: string; kin
                 </label>
               )}
               {done ? (
-                <button onClick={reset} className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-700">
-                  <RotateCcw className="w-3.5 h-3.5" /> Import another file
+                <button onClick={reset} className="inline-flex items-center gap-2 border border-slate-200 text-slate-700 text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-slate-50">
+                  <RotateCcw className="w-4 h-4" /> Import another file
                 </button>
               ) : (
                 <button
                   onClick={runImport}
                   disabled={importing}
-                  className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-60"
+                  className="inline-flex items-center justify-center gap-2 bg-green-600 text-white text-base font-semibold px-6 py-3 rounded-xl hover:bg-green-700 active:bg-green-800 transition-colors shadow-sm shadow-green-600/20 disabled:opacity-60 w-full sm:w-auto"
                 >
-                  {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                  {importing ? "Importing..." : "Import all"}
+                  {importing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
+                  {importing ? "Importing..." : `Import ${rows.length} row${rows.length !== 1 ? "s" : ""}`}
                 </button>
               )}
             </div>
