@@ -2,7 +2,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import AddStaffForm from "./AddStaffForm";
-import { Shield, UserCheck } from "lucide-react";
+import Link from "next/link";
+import { Upload } from "lucide-react";
 
 const roleColors: Record<string, string> = {
   admin: "bg-blue-100 text-blue-700",
@@ -22,9 +23,18 @@ export default async function StaffPage() {
 
   return (
     <div className="p-6 max-w-2xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Staff Accounts</h1>
-        <p className="text-slate-500 mt-1">Manage admin, guard and teacher accounts for your school.</p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Staff Accounts</h1>
+          <p className="text-slate-500 mt-1">Manage admin, guard and teacher accounts for your school.</p>
+        </div>
+        <Link
+          href="/admin/import?type=staff"
+          className="flex items-center gap-2 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors shrink-0"
+        >
+          <Upload className="w-4 h-4" />
+          Import many
+        </Link>
       </div>
 
       {staffList && staffList.length > 0 && (
