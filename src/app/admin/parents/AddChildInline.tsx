@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Loader2, GraduationCap, Camera, X, Check } from "lucide-react";
+import { Plus, Loader2, Camera, Check } from "lucide-react";
 import { loadImageFile } from "@/lib/load-image";
 import { btnPrimary, btnSecondary, btnSmall, inputBase } from "@/components/ui";
 

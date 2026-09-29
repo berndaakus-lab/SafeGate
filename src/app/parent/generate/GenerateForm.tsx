@@ -15,10 +15,10 @@ function joinNames(names: string[]) {
 }
 
 export default function GenerateForm({
-  children,
+  students: children,
   authorizedPeople,
 }: {
-  children: Child[];
+  students: Child[];
   authorizedPeople: Person[];
 }) {
   const initialChildren = () => new Set(children.length === 1 ? [children[0].id] : []);
