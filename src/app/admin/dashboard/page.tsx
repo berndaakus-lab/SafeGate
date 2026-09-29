@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { Users, UserCheck, ClipboardList, CheckCircle2, AlertTriangle, Clock } from "lucide-react";
 import { formatDate, formatTime } from "@/lib/utils";
+import { subscriptionState } from "@/lib/subscription";
 import Link from "next/link";
 
 export default async function AdminDashboard() {
@@ -38,22 +39,42 @@ export default async function AdminDashboard() {
       : Promise.resolve({ data: [] }),
     supabaseAdmin
       .from("schools")
-      .select("plan, trial_ends_at, max_students")
+      .select("plan, trial_ends_at, paid_until, max_students")
       .eq("id", schoolId)
       .single(),
   ]);
 
-  // Trial banner logic
-  const plan = school?.plan ?? "trial";
-  const trialEndsAt = school?.trial_ends_at ? new Date(school.trial_ends_at) : null;
+  // Subscription banner: trial or paid period ending soon, or ended
+  const sub = school ? subscriptionState(school) : { kind: "none" as const };
   const maxStudents = school?.max_students ?? 100;
-  const daysLeft = trialEndsAt
-    ? Math.ceil((trialEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-    : null;
-  const trialExpired = daysLeft !== null && daysLeft <= 0;
-  const nearLimit = (studentCount ?? 0) >= maxStudents * 0.9;
-  const atLimit = (studentCount ?? 0) >= maxStudents;
-  const showBanner = plan === "trial" && (trialExpired || daysLeft !== null && daysLeft <= 14 || nearLimit);
+  const nearLimit = sub.kind === "trial" && (studentCount ?? 0) >= maxStudents * 0.9;
+  const atLimit = sub.kind === "trial" && (studentCount ?? 0) >= maxStudents;
+  const ended = sub.kind === "expired";
+  const endingSoon = (sub.kind === "trial" || sub.kind === "paid") && sub.daysLeft <= 14;
+  const showBanner = ended || endingSoon || nearLimit;
+  const urgent = ended || atLimit;
+  const days = (n: number) => `${n} day${n === 1 ? "" : "s"}`;
+
+  let bannerTitle = "";
+  let bannerText = "";
+  let bannerCta = "Pay now";
+  if (sub.kind === "expired") {
+    bannerTitle = sub.wasPaid ? "Your subscription has ended" : "Your free trial has ended";
+    bannerText = `It ended on ${formatDate(sub.endedAt.toISOString())}. Pay now to keep VerifyGate running for your school.`;
+  } else if (sub.kind === "paid" && endingSoon) {
+    bannerTitle = `Subscription ends in ${days(sub.daysLeft)}`;
+    bannerText = `Paid until ${formatDate(sub.endsAt.toISOString())}. Renew to avoid interruption.`;
+    bannerCta = "Renew now";
+  } else if (atLimit) {
+    bannerTitle = `Student limit reached (${studentCount}/${maxStudents})`;
+    bannerText = "You've reached your trial limit. Choose a plan for more students.";
+  } else if (sub.kind === "trial" && endingSoon) {
+    bannerTitle = `${days(sub.daysLeft)} left on your free trial`;
+    bannerText = `Trial ends ${formatDate(sub.endsAt.toISOString())}.${nearLimit ? ` ${studentCount}/${maxStudents} students used.` : ""}`;
+  } else if (nearLimit) {
+    bannerTitle = `${studentCount}/${maxStudents} students used`;
+    bannerText = "Approaching your trial student limit.";
+  }
 
   const stats = [
     { label: "Parents", value: parentCount ?? 0, icon: Users, href: "/admin/parents", color: "bg-blue-50 text-blue-600" },
@@ -66,53 +87,25 @@ export default async function AdminDashboard() {
       {/* Trial banner */}
       {showBanner && (
         <div className={`rounded-2xl p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
-          trialExpired || atLimit ? "bg-red-50 border border-red-200" : "bg-amber-50 border border-amber-200"
+          urgent ? "bg-red-50 border border-red-200" : "bg-amber-50 border border-amber-200"
         }`}>
           <div className="flex items-start gap-3">
-            {trialExpired || atLimit
+            {urgent
               ? <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
               : <Clock className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
             }
             <div>
-              {trialExpired ? (
-                <>
-                  <p className="font-semibold text-red-800">Your free trial has ended</p>
-                  <p className="text-sm text-red-600 mt-0.5">
-                    Upgrade to keep VerifyGate running for your school.
-                  </p>
-                </>
-              ) : atLimit ? (
-                <>
-                  <p className="font-semibold text-red-800">Student limit reached ({studentCount}/{maxStudents})</p>
-                  <p className="text-sm text-red-600 mt-0.5">
-                    You&apos;ve reached your trial limit. Upgrade for unlimited students.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="font-semibold text-amber-800">
-                    {daysLeft !== null && daysLeft <= 14
-                      ? `${daysLeft} day${daysLeft !== 1 ? "s" : ""} left on your free trial`
-                      : `${studentCount}/${maxStudents} students used`}
-                  </p>
-                  <p className="text-sm text-amber-700 mt-0.5">
-                    {nearLimit && !atLimit
-                      ? "Approaching student limit. Upgrade for unlimited students."
-                      : `Trial ends ${trialEndsAt ? formatDate(trialEndsAt.toISOString()) : "soon"}.`}
-                  </p>
-                </>
-              )}
+              <p className={`font-semibold ${urgent ? "text-red-800" : "text-amber-800"}`}>{bannerTitle}</p>
+              <p className={`text-sm mt-0.5 ${urgent ? "text-red-600" : "text-amber-700"}`}>{bannerText}</p>
             </div>
           </div>
           <Link
             href="/admin/subscribe"
             className={`shrink-0 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-              trialExpired || atLimit
-                ? "bg-red-600 text-white hover:bg-red-700"
-                : "bg-amber-500 text-white hover:bg-amber-600"
+              urgent ? "bg-red-600 text-white hover:bg-red-700" : "bg-amber-500 text-white hover:bg-amber-600"
             }`}
           >
-            Upgrade to School Plan →
+            {bannerCta} →
           </Link>
         </div>
       )}

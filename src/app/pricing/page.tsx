@@ -238,7 +238,7 @@ export default async function PricingPage() {
               { title: "Student Photo ID", desc: "Upload student photos so guards can visually confirm the right child every time." },
               { title: "Bulk Import", desc: "Upload a spreadsheet to add hundreds of students and parents at once. No manual entry." },
               { title: "Authorised Collectors", desc: "Parents can set different collectors per pickup, not just one saved contact." },
-              { title: "Annual Billing Option", desc: "Pay annually and get 2 months free. Simple mobile money payment, no bank card needed." },
+              { title: "Flexible Billing", desc: "Pay for 1, 3, 6 or 12 months at a time. Simple mobile money payment, no bank card needed." },
               { title: "No Hardware Needed", desc: "Runs on any smartphone. No devices, scanners, or equipment to buy or maintain." },
               { title: "Fast Setup", desc: "Your school can be live and scanning in under 24 hours. We handle the onboarding." },
             ].map((f) => (
@@ -260,7 +260,7 @@ export default async function PricingPage() {
             {[
               { q: "How much does it cost?", a: "Pricing depends on your school size and needs. Contact us on WhatsApp and we'll give you an exact quote, usually within minutes." },
               { q: "Do I need a credit card to start?", a: "No. Your first month is completely free with no payment details required. We'll reach out before the trial ends." },
-              { q: "What happens after the free month?", a: "We'll contact you to arrange payment via mobile money. Monthly or annual, your choice. Annual saves you 2 months." },
+              { q: "What happens after the free month?", a: "We'll contact you to arrange payment via mobile money. Pay for 1, 3, 6 or 12 months at a time, your choice." },
               { q: "Can parents use VerifyGate for free?", a: "Yes. Parents never pay anything. The school subscription covers every parent, student, and guard account." },
               { q: "Is the price per branch or per school?", a: "Per school campus. Running multiple branches? Contact us and we'll work out a group rate." },
               { q: "Do you support international schools?", a: "Yes, our International plan includes a custom SMS sender ID with your school name, co-branded experience, and a dedicated support contact." },

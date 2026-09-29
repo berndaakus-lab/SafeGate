@@ -72,7 +72,7 @@ export default function SettingsClient({ settings }: { settings: Settings }) {
           <h2 className="font-semibold text-slate-900">Pricing Tiers</h2>
         </div>
         <p className="text-xs text-slate-400 mb-6">
-          For internal use and proposals only, prices are not shown publicly. Annual = 10× monthly (2 months free).
+          For internal use and proposals only, prices are not shown publicly. Schools pay the monthly price × months (1, 3, 6 or 12), no discounts; a school&apos;s agreed price overrides these.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="space-y-3 bg-slate-50 rounded-xl p-4">

@@ -5,6 +5,7 @@ import ParentNav from "@/components/ParentNav";
 import SessionProvider from "@/components/SessionProvider";
 import PushSubscriber from "@/components/PushSubscriber";
 import { supabaseAdmin } from "@/lib/supabase";
+import { scheduleBackgroundJobs } from "@/lib/jobs";
 
 export default async function ParentLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
@@ -13,10 +14,13 @@ export default async function ParentLayout({ children }: { children: React.React
     redirect(`/login?reason=role&for=parent&as=${(session.user as any)?.role}`);
   }
 
+  scheduleBackgroundJobs();
+
   const schoolId = (session.user as any)?.schoolId;
   const { data: school } = schoolId
-    ? await supabaseAdmin.from("schools").select("logo_url").eq("id", schoolId).maybeSingle()
+    ? await supabaseAdmin.from("schools").select("logo_url, is_active").eq("id", schoolId).maybeSingle()
     : { data: null };
+  if (school?.is_active === false) redirect("/offline");
 
   return (
     <SessionProvider session={session}>

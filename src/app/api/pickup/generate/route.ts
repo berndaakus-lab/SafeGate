@@ -36,10 +36,15 @@ export async function POST(req: NextRequest) {
     const { authorizedPersonId } = parsed.data;
 
     // Ownership checks are independent, so run them together
-    const [{ data: students }, { data: person }] = await Promise.all([
+    const schoolId = (session.user as any).schoolId;
+    const [{ data: students }, { data: person }, { data: school }] = await Promise.all([
       supabaseAdmin.from("students").select("id, name").in("id", studentIds).eq("parent_id", parentId),
       supabaseAdmin.from("authorized_persons").select("id").eq("id", authorizedPersonId).eq("parent_id", parentId).maybeSingle(),
+      supabaseAdmin.from("schools").select("is_active").eq("id", schoolId).maybeSingle(),
     ]);
+    if (school?.is_active === false) {
+      return NextResponse.json({ error: "Your school's VerifyGate account is currently offline. Contact the school." }, { status: 403 });
+    }
     if (!students || students.length !== studentIds.length) {
       return NextResponse.json({ error: "One of the selected children was not found on your account." }, { status: 404 });
     }

@@ -6,6 +6,7 @@ import {
 import Link from "next/link";
 import { formatDate, formatTime } from "@/lib/utils";
 import BroadcastPanel from "./BroadcastPanel";
+import { subscriptionState } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ export default async function SuperAdminDashboard() {
     { data: schools },
     { data: recentLeads },
     { data: notifLogs },
+    { data: adminPhones },
   ] = await Promise.all([
     supabaseAdmin.from("schools").select("*", { count: "exact", head: true }),
     supabaseAdmin.from("parents").select("*", { count: "exact", head: true }),
@@ -29,10 +31,23 @@ export default async function SuperAdminDashboard() {
     supabaseAdmin.from("demo_requests").select("*", { count: "exact", head: true }),
     supabaseAdmin.from("demo_requests").select("*", { count: "exact", head: true }).eq("status", "new"),
     supabaseAdmin.from("demo_requests").select("*", { count: "exact", head: true }).eq("status", "onboarded"),
-    supabaseAdmin.from("schools").select("id, name, plan, is_active, created_at").order("created_at", { ascending: false }),
+    supabaseAdmin.from("schools").select("id, name, plan, is_active, created_at, trial_ends_at, paid_until").order("created_at", { ascending: false }),
     supabaseAdmin.from("demo_requests").select("id, name, school_name, status, created_at").order("created_at", { ascending: false }).limit(5),
     supabaseAdmin.from("notification_logs").select("outcome, error, created_at").order("created_at", { ascending: false }).limit(200),
+    supabaseAdmin.from("staff").select("school_id").eq("role", "admin").not("login_phone", "is", null),
   ]);
+
+  // Schools whose trial/paid period ends within 14 days or has ended, soonest first
+  const schoolsWithPhone = new Set((adminPhones ?? []).map((a: any) => a.school_id));
+  const watchList = (schools ?? [])
+    .filter((s: any) => s.is_active !== false)
+    .map((s: any) => ({ school: s, sub: subscriptionState(s) }))
+    .filter(({ sub }) => sub.kind === "expired" || ((sub.kind === "trial" || sub.kind === "paid") && sub.daysLeft <= 14))
+    .sort((a, b) => {
+      const at = a.sub.kind === "expired" ? a.sub.endedAt.getTime() : a.sub.kind !== "none" ? a.sub.endsAt.getTime() : 0;
+      const bt = b.sub.kind === "expired" ? b.sub.endedAt.getTime() : b.sub.kind !== "none" ? b.sub.endsAt.getTime() : 0;
+      return at - bt;
+    });
 
   const conversionRate = leadsTotal ? Math.round(((leadsOnboarded ?? 0) / leadsTotal) * 100) : 0;
 
@@ -69,6 +84,48 @@ export default async function SuperAdminDashboard() {
             <p className="text-sm text-slate-500 mt-0.5">{s.label}</p>
           </div>
         ))}
+      </div>
+
+      {/* Subscriptions to watch */}
+      <div className="bg-white rounded-2xl border border-slate-100 p-6">
+        <div className="flex items-center gap-2 mb-1">
+          <AlertCircle className="w-5 h-5 text-amber-500" />
+          <h2 className="font-semibold text-slate-900">Subscriptions to watch</h2>
+        </div>
+        <p className="text-sm text-slate-400 mb-4">
+          Trials and paid periods ending within 14 days, or already ended. Admins get SMS reminders at 14, 7 and 3 days.
+        </p>
+        {watchList.length === 0 ? (
+          <p className="text-sm text-slate-500">Nothing ending in the next 14 days.</p>
+        ) : (
+          <div className="divide-y divide-slate-50">
+            {watchList.map(({ school, sub }) => {
+              const label =
+                sub.kind === "expired"
+                  ? `${sub.wasPaid ? "Subscription" : "Trial"} ended ${formatDate(sub.endedAt.toISOString())}`
+                  : sub.kind === "trial" || sub.kind === "paid"
+                    ? `${sub.kind === "trial" ? "Trial" : "Paid period"} ends ${formatDate(sub.endsAt.toISOString())} · ${sub.daysLeft} day${sub.daysLeft === 1 ? "" : "s"}`
+                    : "";
+              return (
+                <Link
+                  key={school.id}
+                  href={`/superadmin/schools/${school.id}`}
+                  className="flex flex-wrap items-center justify-between gap-2 py-3 hover:bg-slate-50 -mx-2 px-2 rounded-lg"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-900 truncate">{school.name}</p>
+                    <p className={`text-xs ${sub.kind === "expired" ? "text-red-600" : "text-amber-700"}`}>{label}</p>
+                  </div>
+                  {!schoolsWithPhone.has(school.id) && (
+                    <span className="text-xs font-medium text-amber-800 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
+                      No admin phone, SMS can&apos;t reach them
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Lead overview + School health */}

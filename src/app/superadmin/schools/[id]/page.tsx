@@ -15,6 +15,7 @@ import DeleteSchoolButton from "./DeleteSchoolButton";
 import SchoolLogo from "@/components/SchoolLogo";
 import SchoolLogoEditor from "./SchoolLogoEditor";
 import AddStaffPanel from "./AddStaffPanel";
+import { TIERS, monthlyPriceGhs, type Tier } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,7 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
     { data: recentLogs },
     { count: pickupCount },
     settings,
+    { data: payments },
   ] = await Promise.all([
     supabaseAdmin.from("schools").select("*").eq("id", id).single(),
     supabaseAdmin.from("staff").select("id, name, email, login_phone, role").eq("school_id", id).order("role"),
@@ -54,11 +56,22 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
           .in("student_id", studentIds)
       : Promise.resolve({ count: 0 }),
     getSettings(),
+    supabaseAdmin
+      .from("payments")
+      .select("reference, months, amount_pesewas, status, failure_reason, created_at, paid_at")
+      .eq("school_id", id)
+      .order("created_at", { ascending: false })
+      .limit(8),
   ]);
 
   const studentCount = studentIds.length;
 
   if (!school) return notFound();
+
+  const tierDefaults = Object.fromEntries(
+    (Object.keys(TIERS) as Tier[]).map((t) => [t, monthlyPriceGhs({ plan: t, custom_price: null }, settings)])
+  ) as Record<Tier, number | null>;
+  const adminsWithPhone = (staff ?? []).filter((s: any) => s.role === "admin" && s.login_phone).length;
 
   return (
     <div className="p-6 max-w-4xl">
@@ -168,15 +181,61 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
       <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-6">
         <h2 className="font-semibold text-slate-900 mb-1">Subscription Plan</h2>
         <p className="text-sm text-slate-400 mb-5">
-          Activate or change the plan for this school. Trial schools see a countdown banner on their dashboard.
+          Set the tier, price and dates. School admins get SMS reminders 14, 7 and 3 days before their trial or paid period ends.
         </p>
+        {adminsWithPhone === 0 && (
+          <p className="text-sm text-amber-800 bg-amber-50 border border-amber-100 rounded-lg px-4 py-2.5 mb-5">
+            No admin at this school has a login phone, so reminder SMS can&apos;t reach them. Add a phone to an admin in Staff Accounts.
+          </p>
+        )}
         <PlanManager
           schoolId={id}
           currentPlan={school.plan ?? "trial"}
           trialEndsAt={school.trial_ends_at ?? null}
+          paidUntil={school.paid_until ?? null}
           maxStudents={school.max_students ?? 100}
           customPrice={school.custom_price ?? null}
+          tierDefaults={tierDefaults}
         />
+
+        {payments && payments.length > 0 && (
+          <div className="mt-6 border-t border-slate-100 pt-5">
+            <p className="text-xs font-medium text-slate-600 mb-3">Recent MoMo payments</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[480px]">
+                <thead className="text-xs text-slate-400 text-left">
+                  <tr>
+                    <th className="font-medium pb-2">Date</th>
+                    <th className="font-medium pb-2">Period</th>
+                    <th className="font-medium pb-2">Amount</th>
+                    <th className="font-medium pb-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {payments.map((p: any) => (
+                    <tr key={p.reference}>
+                      <td className="py-2 text-slate-600">{formatDate(p.paid_at ?? p.created_at)}</td>
+                      <td className="py-2 text-slate-600">{p.months} month{p.months === 1 ? "" : "s"}</td>
+                      <td className="py-2 text-slate-900 tabular-nums">GHS {(p.amount_pesewas / 100).toLocaleString()}</td>
+                      <td className="py-2">
+                        <span
+                          title={p.failure_reason ?? undefined}
+                          className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                            p.status === "success" ? "bg-green-50 text-green-700"
+                            : p.status === "failed" ? "bg-red-50 text-red-600"
+                            : "bg-amber-50 text-amber-700"
+                          }`}
+                        >
+                          {p.status === "success" ? "Paid" : p.status === "failed" ? "Failed" : "Pending"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Go-live toggle */}

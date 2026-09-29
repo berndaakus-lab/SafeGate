@@ -35,7 +35,13 @@ export async function POST(req: NextRequest) {
     if (parsed.error) return parsed.error;
     const { pickupCodeId, studentIds } = parsed.data;
 
-    const loaded = await loadPickupCode({ id: pickupCodeId });
+    const [loaded, { data: school }] = await Promise.all([
+      loadPickupCode({ id: pickupCodeId }),
+      supabaseAdmin.from("schools").select("is_active").eq("id", guardSchoolId).maybeSingle(),
+    ]);
+    if (school?.is_active === false) {
+      return NextResponse.json({ error: "This school's VerifyGate account is offline. Contact the VerifyGate team." }, { status: 403 });
+    }
     if (!loaded) return NextResponse.json({ error: "Pickup code not found." }, { status: 404 });
     const { pickupCode, children } = loaded;
 

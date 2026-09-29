@@ -2,6 +2,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import SessionProvider from "@/components/SessionProvider";
+import { supabaseAdmin } from "@/lib/supabase";
+import { scheduleBackgroundJobs } from "@/lib/jobs";
 
 export default async function GuardLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
@@ -12,6 +14,14 @@ export default async function GuardLayout({ children }: { children: React.ReactN
   if (!session) redirect("/login?reason=signin&for=scanner");
   if (!["guard", "teacher", "admin", "superadmin"].includes(role)) {
     redirect(`/login?reason=role&for=scanner&as=${role}`);
+  }
+
+  scheduleBackgroundJobs();
+
+  const schoolId = (session.user as any)?.schoolId;
+  if (schoolId) {
+    const { data: school } = await supabaseAdmin.from("schools").select("is_active").eq("id", schoolId).maybeSingle();
+    if (school?.is_active === false) redirect("/offline");
   }
 
   return <SessionProvider session={session}>{children}</SessionProvider>;
