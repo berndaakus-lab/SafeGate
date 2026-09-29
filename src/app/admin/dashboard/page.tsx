@@ -115,14 +115,14 @@ export default async function AdminDashboard() {
         <p className="text-slate-500 mt-1">School admin dashboard.</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-8">
         {stats.map((s) => (
-          <Link key={s.label} href={s.href} className="bg-white rounded-2xl p-5 border border-slate-100 hover:border-blue-200 hover:shadow-sm transition-all">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${s.color}`}>
+          <Link key={s.label} href={s.href} className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm hover:border-blue-300 transition-all">
+            <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center mb-3 ${s.color}`}>
               <s.icon className="w-5 h-5" />
             </div>
-            <p className="text-2xl font-bold text-slate-900">{s.value}</p>
-            <p className="text-sm text-slate-500 mt-0.5">{s.label}</p>
+            <p className="text-2xl font-bold text-slate-900 tabular-nums">{s.value}</p>
+            <p className="text-xs sm:text-sm text-slate-600 mt-0.5 leading-tight">{s.label}</p>
           </Link>
         ))}
       </div>

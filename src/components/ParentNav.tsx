@@ -5,16 +5,17 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { signOutUser } from "@/lib/sign-out";
 import { LayoutDashboard, Users, UserCheck, QrCode, LogOut, ChevronDown, Settings } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import HomeLogoLink from "@/components/HomeLogoLink";
 import SchoolLogo from "@/components/SchoolLogo";
 
-const links = [
-  { href: "/parent/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/parent/children", label: "My Children", icon: Users },
-  { href: "/parent/authorized", label: "Pickup Persons", icon: UserCheck },
-  { href: "/parent/generate", label: "Generate QR", icon: QrCode },
+const links: { href: string; label: string; short?: string; icon: LucideIcon }[] = [
+  { href: "/parent/dashboard", label: "Dashboard", short: "Home", icon: LayoutDashboard },
+  { href: "/parent/children", label: "My Children", short: "Children", icon: Users },
+  { href: "/parent/authorized", label: "Pickup Persons", short: "People", icon: UserCheck },
+  { href: "/parent/generate", label: "Generate QR", short: "Get QR", icon: QrCode },
   { href: "/parent/account", label: "Account", icon: Settings },
 ];
 
@@ -114,8 +115,8 @@ export default function ParentNav({ schoolLogoUrl }: { schoolLogoUrl: string | n
       )}
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex z-50">
-        {links.map(({ href, label, icon: Icon }) => (
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex z-50 safe-area-pb">
+        {links.map(({ href, label, short, icon: Icon }) => (
           <Link
             key={href}
             href={href}
@@ -125,7 +126,7 @@ export default function ParentNav({ schoolLogoUrl }: { schoolLogoUrl: string | n
             )}
           >
             <Icon className="w-5 h-5" />
-            {label.split(" ")[0]}
+            {short ?? label}
           </Link>
         ))}
       </nav>

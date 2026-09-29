@@ -38,7 +38,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <SessionProvider session={session}>
       <div className="min-h-screen bg-slate-50">
         <AdminNav schoolLogoUrl={logoUrl} />
-        <main className="md:ml-64 pb-24 md:pb-0">{children}</main>
+        <main className="md:ml-64 pb-nav md:pb-0">{children}</main>
       </div>
     </SessionProvider>
   );

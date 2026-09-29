@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Playfair_Display } from "next/font/google";
 import { headers } from "next/headers";
 import RegisterSW from "@/components/RegisterSW";
@@ -36,7 +36,6 @@ export const metadata: Metadata = {
     "school SMS alerts",
   ],
   manifest: "/manifest.json",
-  themeColor: "#1d4ed8",
   alternates: {
     canonical: "/",
   },
@@ -79,6 +78,16 @@ export const metadata: Metadata = {
     description: siteDescription,
     images: ["/icon-512.png"],
   },
+};
+
+// viewportFit "cover" lets iPhones report the notch/home-bar safe areas, so
+// the fixed bottom navs can pad themselves above the home indicator.
+// Pinch-zoom is deliberately left enabled for accessibility.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#1d4ed8",
 };
 
 const structuredData = {

@@ -27,7 +27,7 @@ export default async function ParentLayout({ children }: { children: React.React
       <div className="min-h-screen bg-slate-50">
         <PushSubscriber />
         <ParentNav schoolLogoUrl={school?.logo_url ?? null} />
-        <main className="md:ml-64 pb-24 md:pb-0">
+        <main className="md:ml-64 pb-nav md:pb-0">
           {children}
         </main>
       </div>
