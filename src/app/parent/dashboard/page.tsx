@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import Link from "next/link";
 import { Users, UserCheck, QrCode, Clock, ArrowRight, CheckCircle2 } from "lucide-react";
 import { formatDate, formatTime } from "@/lib/utils";
+import { PageHeader, Section } from "@/components/ui";
 
 export default async function ParentDashboard() {
   const session = await getServerSession(authOptions);
@@ -32,90 +33,93 @@ export default async function ParentDashboard() {
         .in("student_id", studentIds)
     : { count: 0 };
 
+  const childCount = children?.length ?? 0;
+  const personCount = authorizedPeople?.length ?? 0;
   const stats = [
-    { label: "Children", value: children?.length ?? 0, icon: Users, href: "/parent/children", color: "bg-blue-50 text-blue-600" },
-    { label: "Pickup Persons", value: authorizedPeople?.length ?? 0, icon: UserCheck, href: "/parent/authorized", color: "bg-purple-50 text-purple-600" },
-    { label: "Total Pickups", value: totalPickups ?? 0, icon: CheckCircle2, href: "#", color: "bg-green-50 text-green-600" },
+    { label: "Children", value: childCount, icon: Users, href: "/parent/children", color: "bg-blue-50 text-blue-600" },
+    { label: "Pickup persons", value: personCount, icon: UserCheck, href: "/parent/authorized", color: "bg-purple-50 text-purple-600" },
+    { label: "Pickups", value: totalPickups ?? 0, icon: CheckCircle2, href: null, color: "bg-green-50 text-green-600" },
   ];
+  const ready = childCount > 0 && personCount > 0;
 
   return (
     <div className="p-6 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">
-          Welcome back, {session?.user?.name?.split(" ")[0]}
-        </h1>
-        <p className="text-slate-500 mt-1">Here&apos;s an overview of your children&apos;s pickup status.</p>
-      </div>
+      <PageHeader
+        title={`Welcome back, ${session?.user?.name?.split(" ")[0] ?? ""}`}
+        subtitle="Your children's pickups at a glance."
+      />
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        {stats.map((s) => (
-          <Link key={s.label} href={s.href} className="bg-white rounded-2xl p-5 border border-slate-100 hover:border-blue-200 hover:shadow-sm transition-all">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${s.color}`}>
-              <s.icon className="w-5 h-5" />
-            </div>
-            <p className="text-2xl font-bold text-slate-900">{s.value}</p>
-            <p className="text-sm text-slate-500 mt-0.5">{s.label}</p>
-          </Link>
-        ))}
-      </div>
-
-      {/* Quick action */}
-      <div className="bg-blue-600 rounded-2xl p-6 mb-8 text-white">
-        <h2 className="font-semibold text-lg mb-1">Generate a Pickup Code</h2>
-        <p className="text-blue-100 text-sm mb-4">
-          Someone picking up your child today? Generate a QR code and send it to them.
-        </p>
+      {/* Main action first: it's what parents open the app for */}
+      <div className="bg-blue-600 rounded-2xl p-6 mb-6 text-white shadow-lg shadow-blue-600/20">
+        <h2 className="font-semibold text-xl mb-1">Someone collecting today?</h2>
+        <p className="text-blue-100 mb-5">Make a pickup QR code and send it to them. It works for one child or several.</p>
         <Link
-          href="/parent/generate"
-          className="inline-flex items-center gap-2 bg-white text-blue-600 px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-50 transition-colors"
+          href={ready ? "/parent/generate" : personCount === 0 ? "/parent/authorized" : "/parent/children"}
+          className="inline-flex items-center justify-center gap-2 bg-white text-blue-700 px-6 py-3.5 rounded-xl font-bold hover:bg-blue-50 transition-colors w-full sm:w-auto"
         >
-          <QrCode className="w-4 h-4" />
-          Generate QR Code
-          <ArrowRight className="w-4 h-4" />
+          <QrCode className="w-5 h-5" />
+          {ready ? "Generate QR Code" : personCount === 0 ? "First, add a pickup person" : "See my children"}
+          <ArrowRight className="w-5 h-5" />
         </Link>
+        {!ready && (
+          <p className="text-blue-100 text-sm mt-3">
+            {childCount === 0
+              ? "Your school hasn't added your children yet. They'll appear automatically."
+              : "Add at least one trusted person (even yourself) before making a QR code."}
+          </p>
+        )}
       </div>
 
-      {/* Recent pickups */}
-      <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-        <div className="flex items-center px-6 py-4 border-b border-slate-50">
-          <h2 className="font-semibold text-slate-900 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-slate-400" />
-            Recent Pickups
-          </h2>
-        </div>
+      <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-8">
+        {stats.map((s) => {
+          const inner = (
+            <>
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${s.color}`}>
+                <s.icon className="w-5 h-5" />
+              </div>
+              <p className="text-2xl font-bold text-slate-900 tabular-nums">{s.value}</p>
+              <p className="text-sm text-slate-600 mt-0.5">{s.label}</p>
+            </>
+          );
+          const cls = "bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm";
+          return s.href ? (
+            <Link key={s.label} href={s.href} className={`${cls} hover:border-blue-300 transition-colors`}>{inner}</Link>
+          ) : (
+            <div key={s.label} className={cls}>{inner}</div>
+          );
+        })}
+      </div>
+
+      <Section icon={Clock} title="Recent pickups">
         {!recentPickups?.length ? (
-          <div className="px-6 py-12 text-center">
-            <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Clock className="w-6 h-6 text-slate-400" />
-            </div>
-            <p className="text-slate-500 text-sm">No pickups recorded yet.</p>
-            <p className="text-slate-400 text-xs mt-1">Pickup activity will appear here.</p>
+          <div className="py-6 text-center">
+            <p className="text-slate-700 font-medium">No pickups recorded yet</p>
+            <p className="text-slate-500 text-sm mt-1">When your child is collected, it shows here and you get an alert.</p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-50">
+          <div className="divide-y divide-slate-100 -mx-5 sm:-mx-6 -mb-5 sm:-mb-6 border-t border-slate-100">
             {recentPickups.map((log: any) => (
-              <div key={log.id} className="flex items-center justify-between px-6 py-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-green-100 rounded-full flex items-center justify-center">
-                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+              <div key={log.id} className="flex items-center justify-between gap-3 px-5 sm:px-6 py-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-5 h-5 text-green-600" />
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">{log.students?.name}</p>
-                    <p className="text-xs text-slate-400">
-                      Picked up by <span className="font-medium text-slate-600">{log.authorized_persons?.name}</span>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slate-900 truncate">{log.students?.name}</p>
+                    <p className="text-sm text-slate-600 truncate">
+                      Picked up by <span className="font-medium text-slate-800">{log.authorized_persons?.name}</span>
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs font-medium text-slate-700">{formatTime(log.picked_up_at)}</p>
-                  <p className="text-xs text-slate-400">{formatDate(log.picked_up_at)}</p>
+                <div className="text-right shrink-0">
+                  <p className="text-sm font-semibold text-slate-800">{formatTime(log.picked_up_at)}</p>
+                  <p className="text-xs text-slate-500">{formatDate(log.picked_up_at)}</p>
                 </div>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </Section>
     </div>
   );
 }

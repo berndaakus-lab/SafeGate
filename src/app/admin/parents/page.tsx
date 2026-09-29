@@ -5,7 +5,8 @@ import AddParentForm from "./AddParentForm";
 import AddChildInline from "./AddChildInline";
 import EditParentModal from "./EditParentModal";
 import Link from "next/link";
-import { GraduationCap, Upload, UserPlus } from "lucide-react";
+import { GraduationCap, Upload, UserPlus, Users, MessageSquareOff } from "lucide-react";
+import { Badge, EmptyState, InfoNote, PageHeader, Section, btnPrimary, btnSecondary } from "@/components/ui";
 
 export default async function ParentsPage() {
   const session = await getServerSession(authOptions);
@@ -17,88 +18,113 @@ export default async function ParentsPage() {
     .eq("school_id", schoolId)
     .order("name");
 
+  const list = parents ?? [];
+  const childCount = list.reduce((n: number, p: any) => n + (p.students?.length ?? 0), 0);
+  const noSms = list.filter((p: any) => !p.phone).length;
+
   return (
     <div className="p-6 max-w-3xl">
-      <div className="mb-8 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Parents & Students</h1>
-          <p className="text-slate-500 mt-1">
-            Create parent accounts and add their children. Set everything up before the parent logs in.
-          </p>
-        </div>
-        <Link
-          href="/admin/import"
-          className="flex items-center gap-2 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors shrink-0"
-        >
-          <Upload className="w-4 h-4" />
-          Import many
-        </Link>
-      </div>
+      <PageHeader
+        title="Parents & Students"
+        subtitle="Create parent accounts and add their children. Set everything up before the parent logs in."
+        actions={
+          <>
+            <a href="#add-parent" className={btnPrimary}>
+              <UserPlus className="w-4 h-4" /> Add parent
+            </a>
+            <Link href="/admin/import" className={btnSecondary}>
+              <Upload className="w-4 h-4" /> Import many
+            </Link>
+          </>
+        }
+      />
 
-      {parents && parents.length > 0 && (
-        <div className="space-y-4 mb-8">
-          {parents.map((parent: any) => (
-            <div key={parent.id} className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-              {/* Parent row */}
-              <div className="flex items-center gap-4 px-6 py-4">
-                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center font-bold text-purple-700 shrink-0">
-                  {parent.name[0].toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-slate-900">{parent.name}</p>
-                    <EditParentModal parent={parent} />
-                  </div>
-                  <p className="text-xs text-slate-400 truncate">
-                    {[parent.email, parent.login_phone].filter(Boolean).join(" · ")}
-                    {parent.phone ? ` · SMS ${parent.phone}` : " · No SMS number"}
-                  </p>
-                </div>
-                <span className={`text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${
-                  parent.students?.length > 0
-                    ? "bg-green-50 text-green-700"
-                    : "bg-amber-50 text-amber-600"
-                }`}>
-                  {parent.students?.length ?? 0} child{parent.students?.length !== 1 ? "ren" : ""}
-                </span>
-              </div>
-
-              {/* Children list */}
-              {parent.students && parent.students.length > 0 && (
-                <div className="px-6 pb-3 flex flex-wrap gap-2 pl-20">
-                  {parent.students.map((s: any) => (
-                    <span key={s.id} className="inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
-                      <GraduationCap className="w-3 h-3" />
-                      {s.name}{s.class_name ? ` · ${s.class_name}` : ""}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Add child inline */}
-              <div className="border-t border-slate-50 px-6 py-4 bg-slate-50/50">
-                <AddChildInline
-                  parentId={parent.id}
-                  schoolId={schoolId}
-                  parentName={parent.name}
-                />
-              </div>
-            </div>
-          ))}
+      {list.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          <Badge tone="blue">{list.length} parent{list.length === 1 ? "" : "s"}</Badge>
+          <Badge tone="green">{childCount} child{childCount === 1 ? "" : "ren"}</Badge>
+          {noSms > 0 && <Badge tone="red">{noSms} without an SMS number</Badge>}
         </div>
       )}
 
-      {/* Add parent form */}
-      <div className="bg-white rounded-2xl border border-slate-100 p-6">
-        <h2 className="font-semibold text-slate-900 mb-1 flex items-center gap-2">
-          <UserPlus className="w-4 h-4 text-blue-600" />
-          Add Parent Account
-        </h2>
-        <p className="text-sm text-slate-400 mb-5">
-          Create a login for the parent. Add their children right after.
-        </p>
+      {noSms > 0 && (
+        <div className="mb-6">
+          <InfoNote tone="amber">
+            Parents without an SMS number only get pickup alerts if they have enabled app notifications. Use <strong>Edit</strong> to add one.
+          </InfoNote>
+        </div>
+      )}
+
+      {list.length === 0 ? (
+        <div className="mb-8">
+          <EmptyState
+            icon={Users}
+            title="No parents yet"
+            text="Add parents one at a time below, or import your whole list from a spreadsheet."
+            action={
+              <Link href="/admin/import" className={btnSecondary}>
+                <Upload className="w-4 h-4" /> Import from a spreadsheet
+              </Link>
+            }
+          />
+        </div>
+      ) : (
+        <div className="space-y-4 mb-8">
+          {list.map((parent: any) => {
+            const kids = parent.students ?? [];
+            return (
+              <div key={parent.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="flex items-start gap-4 px-5 sm:px-6 py-4">
+                  <div className="w-11 h-11 bg-purple-100 rounded-full flex items-center justify-center font-bold text-purple-700 shrink-0">
+                    {parent.name[0].toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-slate-900 text-base">{parent.name}</p>
+                    <p className="text-sm text-slate-600 break-words">
+                      {[parent.email, parent.login_phone].filter(Boolean).join(" · ")}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      <Badge tone={kids.length ? "green" : "amber"}>
+                        {kids.length} child{kids.length === 1 ? "" : "ren"}
+                      </Badge>
+                      {parent.phone ? (
+                        <Badge tone="slate">SMS {parent.phone}</Badge>
+                      ) : (
+                        <Badge tone="red"><MessageSquareOff className="w-3 h-3" /> No SMS number</Badge>
+                      )}
+                    </div>
+                  </div>
+                  <EditParentModal parent={parent} />
+                </div>
+
+                {kids.length > 0 && (
+                  <div className="px-5 sm:px-6 pb-4 flex flex-wrap gap-2 sm:pl-20">
+                    {kids.map((s: any) => (
+                      <span key={s.id} className="inline-flex items-center gap-1.5 text-sm bg-slate-100 text-slate-700 px-3 py-1.5 rounded-full">
+                        <GraduationCap className="w-4 h-4 text-slate-500" />
+                        {s.name}{s.class_name ? ` · ${s.class_name}` : ""}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="border-t border-slate-100 px-5 sm:px-6 py-3 bg-slate-50/60">
+                  <AddChildInline parentId={parent.id} schoolId={schoolId} parentName={parent.name} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <Section
+        id="add-parent"
+        icon={UserPlus}
+        title="Add a parent"
+        hint="Create a login for the parent, then add their children from their card above."
+      >
         <AddParentForm schoolId={schoolId} />
-      </div>
+      </Section>
     </div>
   );
 }

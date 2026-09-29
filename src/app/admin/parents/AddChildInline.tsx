@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Loader2, GraduationCap, Camera, X, Check } from "lucide-react";
 import { loadImageFile } from "@/lib/load-image";
+import { btnPrimary, btnSecondary, btnSmall, inputBase } from "@/components/ui";
 
 async function compressImage(file: File): Promise<string> {
   const img = await loadImageFile(file);
@@ -84,18 +85,15 @@ export default function AddChildInline({
   return (
     <div>
       {success && (
-        <p className="text-xs text-green-600 font-medium mb-2 flex items-center gap-1">
-          <Check className="w-3.5 h-3.5" /> Child added to {parentName}&apos;s account
+        <p role="status" className="text-sm text-green-700 font-semibold mb-2 flex items-center gap-1.5">
+          <Check className="w-4 h-4" /> Child added to {parentName}&apos;s account
         </p>
       )}
 
       {!open ? (
-        <button
-          onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-1.5 text-xs text-blue-600 font-medium hover:text-blue-700 transition-colors"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Add child for {parentName}
+        <button onClick={() => setOpen(true)} className={btnSmall}>
+          <Plus className="w-4 h-4" />
+          Add child
         </button>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -112,13 +110,17 @@ export default function AddChildInline({
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                className="relative w-14 h-14 rounded-xl border-2 border-dashed border-slate-300 hover:border-blue-400 transition-colors flex items-center justify-center bg-slate-50 overflow-hidden"
+                aria-label="Add child photo"
+                className="relative w-16 h-16 rounded-xl border-2 border-dashed border-blue-300 hover:border-blue-500 transition-colors flex flex-col items-center justify-center gap-0.5 bg-white overflow-hidden"
               >
                 {photoPreview ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={photoPreview} alt="preview" className="w-full h-full object-cover" />
                 ) : (
-                  <Camera className="w-5 h-5 text-slate-400" />
+                  <>
+                    <Camera className="w-5 h-5 text-blue-500" />
+                    <span className="text-[10px] font-semibold text-blue-600">Photo</span>
+                  </>
                 )}
               </button>
               {photoPreview && (
@@ -137,36 +139,30 @@ export default function AddChildInline({
               <input
                 autoFocus
                 required
+                aria-label="Child's full name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Child's full name *"
-                className="px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={inputBase}
               />
               <input
+                aria-label="Class"
                 value={className}
                 onChange={(e) => setClassName(e.target.value)}
                 placeholder="Class (e.g. KG 2 / Primary 3)"
-                className="px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={inputBase}
               />
             </div>
           </div>
 
-          {error && <p className="text-xs text-red-500">{error}</p>}
+          {error && <p role="alert" className="text-sm font-medium text-red-600">{error}</p>}
 
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="inline-flex items-center gap-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60"
-            >
-              {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
-              {loading ? "Adding..." : "Add Child"}
+          <div className="flex flex-wrap gap-2">
+            <button type="submit" disabled={loading} className={btnPrimary}>
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              {loading ? "Adding..." : `Add child for ${parentName.split(" ")[0]}`}
             </button>
-            <button
-              type="button"
-              onClick={reset}
-              className="text-xs text-slate-400 hover:text-slate-600 px-3 py-2"
-            >
+            <button type="button" onClick={reset} className={btnSecondary}>
               Cancel
             </button>
           </div>

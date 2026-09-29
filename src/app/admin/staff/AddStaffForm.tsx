@@ -11,7 +11,7 @@ const roles = [
 ];
 
 const inputClass =
-  "w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
+  "w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
 
 const empty = { name: "", email: "", loginPhone: "", password: "", role: "guard" };
 
@@ -68,13 +68,13 @@ export default function AddStaffForm({ schoolId }: { schoolId: string }) {
     <form onSubmit={handleSubmit} noValidate className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="as-name" className="block text-sm font-medium text-slate-700 mb-1.5">Full name *</label>
+          <label htmlFor="as-name" className="block text-sm font-semibold text-slate-800 mb-1.5">Full name *</label>
           <input id="as-name" value={form.name} onChange={(e) => set("name", e.target.value)}
             placeholder="e.g. Kwame Asante" className={withErrorRing(inputClass, !!fieldErrors.name)} />
           <FieldError message={fieldErrors.name} />
         </div>
         <div>
-          <label htmlFor="as-role" className="block text-sm font-medium text-slate-700 mb-1.5">Role *</label>
+          <label htmlFor="as-role" className="block text-sm font-semibold text-slate-800 mb-1.5">Role *</label>
           <select id="as-role" value={form.role} onChange={(e) => set("role", e.target.value)}
             className={withErrorRing(`${inputClass} bg-white`, !!fieldErrors.role)}>
             {roles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
@@ -83,8 +83,8 @@ export default function AddStaffForm({ schoolId }: { schoolId: string }) {
         </div>
       </div>
       <div>
-        <p className="text-sm font-medium text-slate-700">Sign-in details *</p>
-        <p className="text-xs text-slate-400 mb-2">They sign in with either one. Fill in at least one.</p>
+        <p className="text-sm font-semibold text-slate-800">Sign-in details *</p>
+        <p className="text-sm text-slate-500 mb-2">They sign in with either one. Fill in at least one.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <input type="email" aria-label="Email" autoCapitalize="none" value={form.email}
@@ -101,7 +101,7 @@ export default function AddStaffForm({ schoolId }: { schoolId: string }) {
         </div>
       </div>
       <div>
-        <label htmlFor="as-password" className="block text-sm font-medium text-slate-700 mb-1.5">Temporary password *</label>
+        <label htmlFor="as-password" className="block text-sm font-semibold text-slate-800 mb-1.5">Temporary password *</label>
         <input id="as-password" type="password" value={form.password} onChange={(e) => set("password", e.target.value)}
           placeholder="At least 8 characters" className={withErrorRing(inputClass, !!fieldErrors.password)} />
         <FieldError message={fieldErrors.password} />
