@@ -2,7 +2,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import AddPersonForm from "./AddPersonForm";
-import { Phone, Heart } from "lucide-react";
+import Link from "next/link";
+import { Phone, Heart, UserPlus, UserCheck, QrCode } from "lucide-react";
+import { Badge, EmptyState, InfoNote, PageHeader, Section, btnPrimary, btnSecondary } from "@/components/ui";
 
 export default async function AuthorizedPage() {
   const session = await getServerSession(authOptions);
@@ -14,49 +16,68 @@ export default async function AuthorizedPage() {
     .eq("parent_id", parentId)
     .order("name");
 
+  const list = people ?? [];
+
   return (
     <div className="p-6 max-w-2xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Pickup Persons</h1>
-        <p className="text-slate-500 mt-1">People you trust to pick up your children.</p>
-      </div>
+      <PageHeader
+        title="Pickup Persons"
+        subtitle="People you trust to collect your children. You choose one of them each time you make a pickup QR code."
+        actions={
+          <a href="#add-person" className={btnPrimary}>
+            <UserPlus className="w-4 h-4" /> Add person
+          </a>
+        }
+      />
 
-      {people && people.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden mb-6">
-          <div className="divide-y divide-slate-50">
-            {people.map((person: any) => (
-              <div key={person.id} className="flex items-center gap-4 px-6 py-4">
-                <div className="w-11 h-11 bg-purple-100 rounded-full flex items-center justify-center font-bold text-purple-700">
-                  {person.name[0].toUpperCase()}
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-slate-900">{person.name}</p>
-                  <div className="flex items-center gap-3 mt-0.5">
-                    {person.relation && (
-                      <span className="text-xs text-slate-400 flex items-center gap-1">
-                        <Heart className="w-3 h-3" /> {person.relation}
-                      </span>
-                    )}
-                    {person.phone && (
-                      <span className="text-xs text-slate-400 flex items-center gap-1">
-                        <Phone className="w-3 h-3" /> {person.phone}
-                      </span>
-                    )}
+      {list.length === 0 ? (
+        <div className="mb-6">
+          <EmptyState
+            icon={UserCheck}
+            title="No pickup persons yet"
+            text="Add at least one person, even yourself, before you can generate a pickup QR code."
+          />
+        </div>
+      ) : (
+        <>
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-4">
+            <div className="divide-y divide-slate-100">
+              {list.map((person: any) => (
+                <div key={person.id} className="flex items-center gap-4 px-5 sm:px-6 py-4">
+                  <div className="w-11 h-11 bg-purple-100 rounded-full flex items-center justify-center font-bold text-purple-700 shrink-0">
+                    {person.name[0].toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-slate-900">{person.name}</p>
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                      {person.relation && (
+                        <Badge tone="purple"><Heart className="w-3 h-3" /> {person.relation}</Badge>
+                      )}
+                      {person.phone && (
+                        <span className="text-sm text-slate-600 inline-flex items-center gap-1">
+                          <Phone className="w-3.5 h-3.5" /> {person.phone}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+          <div className="mb-6 flex justify-end">
+            <Link href="/parent/generate" className={btnSecondary}>
+              <QrCode className="w-4 h-4" /> Generate a pickup QR
+            </Link>
+          </div>
+        </>
       )}
 
-      <div className="bg-white rounded-2xl border border-slate-100 p-6">
-        <h2 className="font-semibold text-slate-900 mb-1">Add Authorized Person</h2>
-        <p className="text-sm text-slate-400 mb-5">
-          Add anyone you trust, uncle, grandparent, driver, family friend.
-        </p>
+      <Section id="add-person" icon={UserPlus} title="Add a pickup person" hint="An uncle, grandparent, driver or family friend.">
         <AddPersonForm parentId={parentId} />
-      </div>
+        <div className="mt-5">
+          <InfoNote>The guard at the gate sees this name on the QR code, so use the name on their ID.</InfoNote>
+        </div>
+      </Section>
     </div>
   );
 }

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { QrCode, Loader2, Share2, Download, RefreshCw, Check } from "lucide-react";
 import Image from "next/image";
 import { buildPickupPassImage } from "@/lib/pickup-pass-image";
+import { Section, btnPrimary } from "@/components/ui";
 
 type Child = { id: string; name: string; class_name: string | null };
 type Person = { id: string; name: string; relation: string | null };
@@ -29,6 +30,12 @@ export default function GenerateForm({
   const [sharing, setSharing] = useState(false);
   const [shareNote, setShareNote] = useState("");
   const [pass, setPass] = useState<File | null>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  // On phones the QR appears below the fold; bring it into view once ready
+  useEffect(() => {
+    if (qrData) resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [qrData]);
 
   const allSelected = children.length > 0 && childIds.size === children.length;
 
@@ -160,24 +167,23 @@ export default function GenerateForm({
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-5">
+      <div className="space-y-4">
+        <Section
+          step={1}
+          title={children.length > 1 ? "Which children are being picked up?" : "Which child is being picked up?"}
+          hint={children.length > 1 ? "Choose everyone this person is collecting. They all go on one QR code." : undefined}
+        >
         <fieldset disabled={!hasData} className="disabled:opacity-50">
-          <div className="flex items-center justify-between mb-1.5">
-            <p className="block text-sm font-medium text-slate-700">
-              {children.length > 1 ? "Which children?" : "Which child?"} <span className="text-red-500">*</span>
-            </p>
-            {children.length > 1 && (
+          {children.length > 1 && (
+            <div className="flex justify-end mb-2">
               <button
                 type="button"
                 onClick={() => setChildIds(new Set(allSelected ? [] : children.map((c) => c.id)))}
-                className="text-xs font-semibold text-blue-600 hover:underline"
+                className="text-sm font-semibold text-blue-700 hover:underline"
               >
-                {allSelected ? "Clear" : "Select all"}
+                {allSelected ? "Clear all" : "Select all"}
               </button>
-            )}
-          </div>
-          {children.length > 1 && (
-            <p className="text-xs text-slate-400 mb-2">Choose everyone this person is collecting. They all go on one QR code.</p>
+            </div>
           )}
           <div className="space-y-2">
             {children.map((c) => {
@@ -185,56 +191,74 @@ export default function GenerateForm({
               return (
                 <label
                   key={c.id}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
-                    checked ? "border-blue-500 bg-blue-50/60" : "border-slate-200 hover:bg-slate-50"
+                  className={`flex items-center gap-3 px-4 py-3.5 rounded-xl border-2 cursor-pointer transition-colors ${
+                    checked ? "border-blue-600 bg-blue-50" : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                   }`}
                 >
                   <input type="checkbox" checked={checked} onChange={() => toggleChild(c.id)} className="sr-only" />
                   <span
                     aria-hidden
-                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ${
+                    className={`w-6 h-6 rounded-md border-2 flex items-center justify-center shrink-0 ${
                       checked ? "bg-blue-600 border-blue-600" : "border-slate-300 bg-white"
                     }`}
                   >
-                    {checked && <Check className="w-3.5 h-3.5 text-white" />}
+                    {checked && <Check className="w-4 h-4 text-white" />}
                   </span>
                   <span className="flex-1 min-w-0">
-                    <span className="block text-slate-900 font-medium truncate">{c.name}</span>
-                    {c.class_name && <span className="block text-xs text-slate-500">{c.class_name}</span>}
+                    <span className="block text-slate-900 font-semibold truncate">{c.name}</span>
+                    {c.class_name && <span className="block text-sm text-slate-500">{c.class_name}</span>}
                   </span>
                 </label>
               );
             })}
           </div>
         </fieldset>
+        </Section>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">
-            Who is picking up? <span className="text-red-500">*</span>
-          </label>
-          <select
-            value={personId}
-            onChange={(e) => setPersonId(e.target.value)}
-            disabled={!hasData}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white disabled:opacity-50"
-          >
-            <option value="">Select a person...</option>
-            {authorizedPeople.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}{p.relation ? ` (${p.relation})` : ""}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Section step={2} title="Who is picking up?" hint="Only people on your Pickup Persons list can be chosen.">
+          <fieldset disabled={!hasData} className="disabled:opacity-50">
+            <legend className="sr-only">Who is picking up?</legend>
+            <div className="space-y-2">
+              {authorizedPeople.map((p) => {
+                const chosen = personId === p.id;
+                return (
+                  <label
+                    key={p.id}
+                    className={`flex items-center gap-3 px-4 py-3.5 rounded-xl border-2 cursor-pointer transition-colors ${
+                      chosen ? "border-blue-600 bg-blue-50" : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                    }`}
+                  >
+                    <input type="radio" name="pickup-person" checked={chosen} onChange={() => setPersonId(p.id)} className="sr-only" />
+                    <span
+                      aria-hidden
+                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                        chosen ? "border-blue-600" : "border-slate-300 bg-white"
+                      }`}
+                    >
+                      {chosen && <span className="w-3 h-3 rounded-full bg-blue-600" />}
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-slate-900 font-semibold truncate">{p.name}</span>
+                      {p.relation && <span className="block text-sm text-slate-500">{p.relation}</span>}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+            <a href="/parent/authorized" className="inline-block mt-3 text-sm font-semibold text-blue-700 hover:underline">
+              + Add someone new
+            </a>
+          </fieldset>
+        </Section>
 
         {error && (
-          <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl border border-red-100">{error}</div>
+          <div role="alert" className="bg-red-50 text-red-700 text-sm font-medium px-4 py-3 rounded-xl border border-red-100">{error}</div>
         )}
 
         <button
           onClick={generate}
           disabled={childIds.size === 0 || !personId || loading}
-          className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3.5 rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`${btnPrimary} w-full py-4 text-base`}
         >
           {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <QrCode className="w-5 h-5" />}
           {loading
@@ -243,11 +267,16 @@ export default function GenerateForm({
               ? `Generate QR Code for ${childIds.size} children`
               : "Generate QR Code"}
         </button>
+        {hasData && (childIds.size === 0 || !personId) && (
+          <p className="text-center text-sm text-slate-500">
+            {childIds.size === 0 ? "Choose at least one child in step 1." : "Choose who is picking up in step 2."}
+          </p>
+        )}
       </div>
 
       {/* QR Result */}
       {qrData && (
-        <div className="mt-6 bg-white rounded-2xl border border-slate-100 p-6 text-center">
+        <div ref={resultRef} className="mt-6 bg-white rounded-2xl border-2 border-green-200 shadow-sm p-6 text-center scroll-mt-20">
           <div className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 text-xs font-medium px-3 py-1 rounded-full mb-5">
             <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
             Valid until {new Date(qrData.expiresAt).toLocaleTimeString("en-GH", { hour: "2-digit", minute: "2-digit" })} today

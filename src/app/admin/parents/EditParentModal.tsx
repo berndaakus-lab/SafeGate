@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Pencil, X } from "lucide-react";
 import FieldError, { readApiErrors, withErrorRing, type FieldErrors } from "@/components/FieldError";
+import { btnSmall } from "@/components/ui";
 
 const inputClass =
-  "w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
+  "w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
 
 type Parent = { id: string; name: string; email: string | null; login_phone: string | null; phone: string | null };
 
@@ -71,11 +72,8 @@ export default function EditParentModal({ parent }: { parent: Parent }) {
 
   return (
     <>
-      <button
-        onClick={openModal}
-        className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-blue-600 transition-colors"
-      >
-        <Pencil className="w-3 h-3" /> Edit
+      <button onClick={openModal} className={`${btnSmall} shrink-0`} aria-label={`Edit ${parent.name}`}>
+        <Pencil className="w-3.5 h-3.5" /> Edit
       </button>
 
       {open && (
@@ -90,20 +88,20 @@ export default function EditParentModal({ parent }: { parent: Parent }) {
 
             <form onSubmit={handleSubmit} noValidate className="space-y-4">
               <div>
-                <label htmlFor="ep-name" className="block text-sm font-medium text-slate-700 mb-1.5">Full name</label>
+                <label htmlFor="ep-name" className="block text-sm font-semibold text-slate-800 mb-1.5">Full name</label>
                 <input id="ep-name" value={form.name} onChange={(e) => set("name", e.target.value)}
                   className={withErrorRing(inputClass, !!fieldErrors.name)} />
                 <FieldError message={fieldErrors.name} />
               </div>
               <div>
-                <label htmlFor="ep-email" className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+                <label htmlFor="ep-email" className="block text-sm font-semibold text-slate-800 mb-1.5">Email</label>
                 <input id="ep-email" type="email" autoCapitalize="none" value={form.email}
                   onChange={(e) => set("email", e.target.value)} placeholder="Optional if a login phone is set"
                   className={withErrorRing(inputClass, !!fieldErrors.email)} />
                 <FieldError message={fieldErrors.email} />
               </div>
               <div>
-                <label htmlFor="ep-login-phone" className="block text-sm font-medium text-slate-700 mb-1.5">Login phone</label>
+                <label htmlFor="ep-login-phone" className="block text-sm font-semibold text-slate-800 mb-1.5">Login phone</label>
                 <input id="ep-login-phone" type="tel" inputMode="tel" value={form.loginPhone}
                   onChange={(e) => set("loginPhone", e.target.value)} placeholder="Optional if an email is set"
                   className={withErrorRing(inputClass, !!fieldErrors.loginPhone)} />
@@ -111,7 +109,7 @@ export default function EditParentModal({ parent }: { parent: Parent }) {
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="ep-phone" className="block text-sm font-medium text-slate-700">SMS alert phone</label>
+                  <label htmlFor="ep-phone" className="block text-sm font-semibold text-slate-800">SMS alert phone</label>
                   {form.loginPhone.trim() && form.phone !== form.loginPhone && (
                     <button type="button" onClick={() => set("phone", form.loginPhone)} className="text-xs font-medium text-blue-600 hover:underline">
                       Same as login phone

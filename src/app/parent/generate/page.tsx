@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import GenerateForm from "./GenerateForm";
+import { PageHeader } from "@/components/ui";
 
 export default async function GeneratePage() {
   const session = await getServerSession(authOptions);
@@ -14,12 +15,10 @@ export default async function GeneratePage() {
 
   return (
     <div className="p-6 max-w-lg">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Generate Pickup QR</h1>
-        <p className="text-slate-500 mt-1">
-          Create a one-time QR code for today&apos;s pickup. Send it to the person collecting your child or children.
-        </p>
-      </div>
+      <PageHeader
+        title="Generate Pickup QR"
+        subtitle="Make a one-time QR code for today's pickup, then send it to the person collecting."
+      />
       <GenerateForm children={children ?? []} authorizedPeople={authorizedPeople ?? []} />
     </div>
   );

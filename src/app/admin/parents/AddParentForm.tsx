@@ -6,7 +6,7 @@ import { Loader2, Plus } from "lucide-react";
 import FieldError, { readApiErrors, withErrorRing, type FieldErrors } from "@/components/FieldError";
 
 const inputClass =
-  "w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
+  "w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
 
 const empty = { name: "", email: "", loginPhone: "", phone: "", password: "" };
 
@@ -62,15 +62,15 @@ export default function AddParentForm({ schoolId }: { schoolId: string }) {
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-4">
       <div>
-        <label htmlFor="ap-name" className="block text-sm font-medium text-slate-700 mb-1.5">Parent name *</label>
+        <label htmlFor="ap-name" className="block text-sm font-semibold text-slate-800 mb-1.5">Parent name *</label>
         <input id="ap-name" value={form.name} onChange={(e) => set("name", e.target.value)}
           placeholder="e.g. Abena Mensah" className={withErrorRing(inputClass, !!fieldErrors.name)} />
         <FieldError message={fieldErrors.name} />
       </div>
 
       <div>
-        <p className="text-sm font-medium text-slate-700">Sign-in details *</p>
-        <p className="text-xs text-slate-400 mb-2">The parent signs in with either one. Fill in at least one.</p>
+        <p className="text-sm font-semibold text-slate-800">Sign-in details *</p>
+        <p className="text-sm text-slate-500 mb-2">The parent signs in with either one. Fill in at least one.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <input type="email" aria-label="Email" value={form.email} onChange={(e) => set("email", e.target.value)}
@@ -89,7 +89,7 @@ export default function AddParentForm({ schoolId }: { schoolId: string }) {
 
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <label htmlFor="ap-phone" className="block text-sm font-medium text-slate-700">SMS alert phone</label>
+          <label htmlFor="ap-phone" className="block text-sm font-semibold text-slate-800">SMS alert phone</label>
           {form.loginPhone.trim() && form.phone !== form.loginPhone && (
             <button type="button" onClick={() => set("phone", form.loginPhone)} className="text-xs font-medium text-blue-600 hover:underline">
               Same as login phone
@@ -102,7 +102,7 @@ export default function AddParentForm({ schoolId }: { schoolId: string }) {
       </div>
 
       <div>
-        <label htmlFor="ap-password" className="block text-sm font-medium text-slate-700 mb-1.5">Temporary password *</label>
+        <label htmlFor="ap-password" className="block text-sm font-semibold text-slate-800 mb-1.5">Temporary password *</label>
         <input id="ap-password" type="password" value={form.password} onChange={(e) => set("password", e.target.value)}
           placeholder="At least 8 characters. Share it with the parent."
           className={withErrorRing(inputClass, !!fieldErrors.password)} />

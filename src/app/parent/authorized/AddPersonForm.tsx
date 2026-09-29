@@ -44,7 +44,7 @@ export default function AddPersonForm({ parentId }: { parentId: string }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1.5">
+        <label className="block text-sm font-semibold text-slate-800 mb-1.5">
           Full name <span className="text-red-500">*</span>
         </label>
         <input
@@ -52,26 +52,28 @@ export default function AddPersonForm({ parentId }: { parentId: string }) {
           onChange={(e) => setName(e.target.value)}
           required
           placeholder="e.g. Kofi Mensah"
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">Phone number</label>
+          <label className="block text-sm font-semibold text-slate-800 mb-1.5">Phone number</label>
           <input
+            type="tel"
+            inputMode="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="e.g. 0244123456"
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">Relationship</label>
+          <label className="block text-sm font-semibold text-slate-800 mb-1.5">Relationship</label>
           <select
             value={relation}
             onChange={(e) => setRelation(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
           >
             <option value="">Select...</option>
             {relations.map((r) => (

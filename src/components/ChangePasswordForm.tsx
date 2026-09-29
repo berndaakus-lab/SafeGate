@@ -49,7 +49,7 @@ export default function ChangePasswordForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Current password */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1.5">Current password</label>
+        <label className="block text-sm font-semibold text-slate-800 mb-1.5">Current password</label>
         <div className="relative">
           <input
             type={showCurrent ? "text" : "password"}
@@ -57,7 +57,7 @@ export default function ChangePasswordForm() {
             onChange={(e) => setCurrent(e.target.value)}
             required
             placeholder="Enter current password"
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
           />
           <button type="button" onClick={() => setShowCurrent(!showCurrent)}
             className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -68,7 +68,7 @@ export default function ChangePasswordForm() {
 
       {/* New password */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1.5">New password</label>
+        <label className="block text-sm font-semibold text-slate-800 mb-1.5">New password</label>
         <div className="relative">
           <input
             type={showNext ? "text" : "password"}
@@ -76,7 +76,7 @@ export default function ChangePasswordForm() {
             onChange={(e) => setNext(e.target.value)}
             required
             placeholder="At least 8 characters"
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
           />
           <button type="button" onClick={() => setShowNext(!showNext)}
             className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -99,7 +99,7 @@ export default function ChangePasswordForm() {
 
       {/* Confirm new password */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1.5">Confirm new password</label>
+        <label className="block text-sm font-semibold text-slate-800 mb-1.5">Confirm new password</label>
         <input
           type="password"
           value={confirm}
@@ -107,7 +107,7 @@ export default function ChangePasswordForm() {
           required
           placeholder="Re-enter new password"
           className={`w-full px-4 py-3 rounded-xl border text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-            confirm && confirm !== next ? "border-red-300 bg-red-50" : "border-slate-200"
+            confirm && confirm !== next ? "border-red-300 bg-red-50" : "border-slate-300 bg-white"
           }`}
         />
         {confirm && confirm !== next && (
