@@ -4,79 +4,14 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, Download, CheckCircle2, XCircle, AlertCircle, Loader2, FileText, RotateCcw } from "lucide-react";
 import { parseCsvRecords } from "@/lib/csv";
+import { IMPORT_CONFIGS, type ImportKind, type RowValues } from "./importConfigs";
 
-type Row = {
-  line: number;
-  parent_name: string;
-  parent_email: string;
-  parent_login_phone: string;
-  parent_phone: string;
-  default_password: string;
-  child_name: string;
-  child_class: string;
-};
-
+type Row = { line: number; values: RowValues };
 type Status = "pending" | "ok" | "skipped" | "error";
 type Result = { status: Status; message: string };
 
-const TEMPLATE = `parent_name,parent_email,parent_login_phone,parent_phone,default_password,child_name,child_class
-Abena Mensah,abena@email.com,,0244123456,Parent@2025,Kofi Mensah,Class 3A
-Abena Mensah,abena@email.com,,0244123456,Parent@2025,Ama Mensah,Class 1B
-Kwame Asante,,0277654321,0277654321,Parent@2025,Yaw Asante,Class 5C`;
-
-// Friendlier or older header names that mean the same column.
-const HEADER_ALIASES: Record<string, string> = {
-  name: "parent_name",
-  email: "parent_email",
-  login_phone: "parent_login_phone",
-  phone: "parent_phone",
-  sms_phone: "parent_phone",
-  password: "default_password",
-  student_name: "child_name",
-  student: "child_name",
-  child: "child_name",
-  class: "child_class",
-  student_class: "child_class",
-  parent_email_or_phone: "parent_contact",
-};
-
-const API_FIELD_TO_COLUMN: Record<string, string> = {
-  parentName: "parent_name",
-  parentEmail: "parent_email",
-  parentLoginPhone: "parent_login_phone",
-  parentPhone: "parent_phone",
-  password: "default_password",
-  childName: "child_name",
-  childClass: "child_class",
-};
-
-const COLUMNS: { name: string; when: string; note: string }[] = [
-  { name: "parent_name", when: "New parents", note: "The parent's full name." },
-  { name: "parent_email", when: "Email or login phone", note: "What the parent signs in with. Fill in one or both." },
-  { name: "parent_login_phone", when: "Email or login phone", note: "Any format works: 0244123456, 233244123456, +233 24 412 3456." },
-  { name: "parent_phone", when: "Optional", note: "Where pickup SMS alerts go. Can be the same as the login phone." },
-  { name: "default_password", when: "New parents", note: "At least 8 characters. Share it with the parent." },
-  { name: "child_name", when: "Optional", note: "One child per row. Repeat the parent on another row for more children." },
-  { name: "child_class", when: "Optional", note: "e.g. Primary 3, KG 2." },
-];
-
-function toRows(text: string): Row[] {
-  return parseCsvRecords(text, HEADER_ALIASES).map((r, i) => {
-    const contact = r.parent_contact ?? "";
-    return {
-      line: i + 2,
-      parent_name: r.parent_name ?? "",
-      parent_email: r.parent_email || (contact.includes("@") ? contact : ""),
-      parent_login_phone: r.parent_login_phone || (contact && !contact.includes("@") ? contact : ""),
-      parent_phone: r.parent_phone ?? "",
-      default_password: r.default_password ?? "",
-      child_name: r.child_name ?? "",
-      child_class: r.child_class ?? "",
-    };
-  });
-}
-
-export default function ImportClient({ schoolId }: { schoolId: string }) {
+export default function ImportClient({ schoolId, kind }: { schoolId: string; kind: ImportKind }) {
+  const config = IMPORT_CONFIGS[kind];
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
@@ -87,20 +22,20 @@ export default function ImportClient({ schoolId }: { schoolId: string }) {
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState(false);
   const [onlyProblems, setOnlyProblems] = useState(false);
-  const [counts, setCounts] = useState({ parents: 0, children: 0, skipped: 0, errors: 0 });
+  const [counts, setCounts] = useState<Record<string, number>>({});
 
   function downloadTemplate() {
-    const url = URL.createObjectURL(new Blob([TEMPLATE], { type: "text/csv" }));
+    const url = URL.createObjectURL(new Blob([config.template], { type: "text/csv" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = "verifygate-import-template.csv";
+    a.download = config.templateFile;
     a.click();
     URL.revokeObjectURL(url);
   }
 
   function reset() {
     setRows([]); setResults([]); setFileName(""); setFileError("");
-    setDone(false); setOnlyProblems(false); setProgress(0);
+    setDone(false); setOnlyProblems(false); setProgress(0); setCounts({});
   }
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -110,7 +45,10 @@ export default function ImportClient({ schoolId }: { schoolId: string }) {
     reset();
     const reader = new FileReader();
     reader.onload = () => {
-      const parsed = toRows(String(reader.result ?? ""));
+      const parsed = parseCsvRecords(String(reader.result ?? ""), config.aliases).map((values, i) => ({
+        line: i + 2,
+        values: config.prepare ? config.prepare(values) : values,
+      }));
       if (!parsed.length) {
         setFileError("No rows found. Check that the file is a CSV with a header row, like the template.");
         return;
@@ -123,59 +61,38 @@ export default function ImportClient({ schoolId }: { schoolId: string }) {
     reader.readAsText(file);
   }
 
-  async function importRow(row: Row): Promise<Result & { parentCreated?: boolean; childAdded?: boolean }> {
-    if (!row.parent_email && !row.parent_login_phone) {
-      return { status: "error", message: "Needs a parent_email or parent_login_phone." };
-    }
+  async function importRow(row: Row): Promise<Result & { tally: string[] }> {
+    const problem = config.precheck?.(row.values);
+    if (problem) return { status: "error", message: problem, tally: [] };
     try {
-      const res = await fetch("/api/admin/bulk-import-parents", {
+      const res = await fetch(config.endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          schoolId,
-          parentName: row.parent_name,
-          parentEmail: row.parent_email,
-          parentLoginPhone: row.parent_login_phone,
-          parentPhone: row.parent_phone,
-          password: row.default_password,
-          childName: row.child_name,
-          childClass: row.child_class,
-        }),
+        body: JSON.stringify(config.toBody(row.values, schoolId)),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         const fields: Record<string, string> = data.fields ?? {};
         const message = Object.keys(fields).length
-          ? [...new Set(Object.entries(fields).map(([k, v]) => `${API_FIELD_TO_COLUMN[k] ?? k}: ${v}`))].join(" ")
+          ? [...new Set(Object.entries(fields).map(([k, v]) => `${config.fieldToColumn[k] ?? k}: ${v}`))].join(" ")
           : data.error || "Failed";
-        return { status: "error", message };
+        return { status: "error", message, tally: [] };
       }
-      const parts = [
-        data.parentCreated ? "Parent created" : "Existing parent",
-        data.childAdded ? "child added" : data.childExisted ? "child already added" : null,
-      ].filter(Boolean);
-      const nothingNew = !data.parentCreated && !data.childAdded;
-      return {
-        status: nothingNew ? "skipped" : "ok",
-        message: parts.join(", ") + (nothingNew ? " (nothing to change)" : ""),
-        parentCreated: data.parentCreated,
-        childAdded: data.childAdded,
-      };
+      return config.interpret(data);
     } catch {
-      return { status: "error", message: "Network error. Check your connection and import again." };
+      return { status: "error", message: "Network error. Check your connection and import again.", tally: [] };
     }
   }
 
   async function runImport() {
     setImporting(true);
     const updated = [...results];
-    const tally = { parents: 0, children: 0, skipped: 0, errors: 0 };
+    const tally: Record<string, number> = { skipped: 0, errors: 0 };
 
     for (let i = 0; i < rows.length; i++) {
       const r = await importRow(rows[i]);
       updated[i] = { status: r.status, message: r.message };
-      if (r.parentCreated) tally.parents++;
-      if (r.childAdded) tally.children++;
+      r.tally.forEach((k) => { tally[k] = (tally[k] ?? 0) + 1; });
       if (r.status === "skipped") tally.skipped++;
       if (r.status === "error") tally.errors++;
       setResults([...updated]);
@@ -189,19 +106,19 @@ export default function ImportClient({ schoolId }: { schoolId: string }) {
     router.refresh();
   }
 
+  const errors = counts.errors ?? 0;
   const visible = rows
     .map((row, i) => ({ row, result: results[i] }))
     .filter(({ result }) => !onlyProblems || result?.status === "error");
+  const summaryTiles = [
+    ...config.summary.map((s) => ({ label: s.label, value: counts[s.key] ?? 0, tone: "text-green-700" })),
+    { label: "Already existed", value: counts.skipped ?? 0, tone: "text-amber-600" },
+    { label: "Rows with problems", value: errors, tone: errors ? "text-red-600" : "text-slate-400" },
+  ];
 
   return (
-    <div className="p-6 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Import Parents &amp; Students</h1>
-        <p className="text-slate-500 mt-1">
-          Set up parents and their children from one spreadsheet. Each row is one child with their parent&apos;s details.
-          To add a single parent instead, use the Parents page.
-        </p>
-      </div>
+    <div>
+      <p className="text-slate-500 mb-6">{config.intro}</p>
 
       {/* Step 1 */}
       <section className="bg-white rounded-2xl border border-slate-100 p-6 mb-4">
@@ -228,7 +145,7 @@ export default function ImportClient({ schoolId }: { schoolId: string }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {COLUMNS.map((c) => (
+              {config.columns.map((c) => (
                 <tr key={c.name}>
                   <td className="px-4 py-2.5 font-mono text-xs text-slate-700 whitespace-nowrap">{c.name}</td>
                   <td className="px-4 py-2.5 text-xs text-slate-600 whitespace-nowrap">{c.when}</td>
@@ -240,8 +157,7 @@ export default function ImportClient({ schoolId }: { schoolId: string }) {
         </div>
 
         <ul className="mt-4 space-y-1.5 text-xs text-slate-500 list-disc pl-4">
-          <li>Parents who already have an account only need their email or login phone plus the child. Their saved details won&apos;t change.</li>
-          <li>Re-uploading the same file is safe. Parents and children already added are skipped, not duplicated.</li>
+          {config.notes.map((n) => <li key={n}>{n}</li>)}
         </ul>
       </section>
 
@@ -275,7 +191,7 @@ export default function ImportClient({ schoolId }: { schoolId: string }) {
                   : `Step 3: Review and import ${rows.length} row${rows.length !== 1 ? "s" : ""}`}
             </h2>
             <div className="flex items-center gap-3">
-              {done && counts.errors > 0 && (
+              {done && errors > 0 && (
                 <label className="flex items-center gap-2 text-xs text-slate-600">
                   <input type="checkbox" checked={onlyProblems} onChange={(e) => setOnlyProblems(e.target.checked)} />
                   Show only rows with problems
@@ -299,13 +215,8 @@ export default function ImportClient({ schoolId }: { schoolId: string }) {
           </div>
 
           {done && (
-            <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-              {[
-                { label: "Parents created", value: counts.parents, tone: "text-green-700" },
-                { label: "Children added", value: counts.children, tone: "text-green-700" },
-                { label: "Already existed", value: counts.skipped, tone: "text-amber-600" },
-                { label: "Rows with problems", value: counts.errors, tone: counts.errors ? "text-red-600" : "text-slate-400" },
-              ].map((s) => (
+            <div className={`px-6 py-4 bg-slate-50 border-b border-slate-100 grid grid-cols-2 gap-3 text-center ${summaryTiles.length === 4 ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
+              {summaryTiles.map((s) => (
                 <div key={s.label}>
                   <p className={`text-xl font-bold tabular-nums ${s.tone}`}>{s.value}</p>
                   <p className="text-xs text-slate-500">{s.label}</p>
@@ -313,41 +224,40 @@ export default function ImportClient({ schoolId }: { schoolId: string }) {
               ))}
             </div>
           )}
-          {done && counts.errors > 0 && (
+          {done && errors > 0 && (
             <p className="px-6 py-3 text-xs text-slate-500 border-b border-slate-50">
               Fix the rows below in your spreadsheet and upload the whole file again. Rows that already went in will be skipped.
             </p>
           )}
 
           <div className="divide-y divide-slate-50 max-h-[32rem] overflow-y-auto">
-            {visible.map(({ row, result }) => (
-              <div key={row.line} className="flex items-start gap-3 px-6 py-3">
-                <span className="text-xs text-slate-300 tabular-nums w-10 shrink-0 pt-0.5">#{row.line}</span>
-                <div className="pt-0.5 shrink-0">
-                  {(!result || result.status === "pending") &&
-                    (importing ? <Loader2 className="w-4 h-4 text-blue-400 animate-spin" /> : <div className="w-4 h-4 rounded-full border-2 border-slate-200" />)}
-                  {result?.status === "ok" && <CheckCircle2 className="w-4 h-4 text-green-500" />}
-                  {result?.status === "skipped" && <AlertCircle className="w-4 h-4 text-amber-500" />}
-                  {result?.status === "error" && <XCircle className="w-4 h-4 text-red-500" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-800 truncate">
-                    {row.parent_name || <span className="text-slate-400">(no name)</span>}
-                    <span className="text-slate-400"> · {row.parent_email || row.parent_login_phone || "no email or phone"}</span>
-                  </p>
-                  {row.child_name && (
-                    <p className="text-xs text-slate-500 truncate">
-                      Child: {row.child_name}{row.child_class ? ` · ${row.child_class}` : ""}
+            {visible.map(({ row, result }) => {
+              const { title, detail, sub } = config.rowTitle(row.values);
+              return (
+                <div key={row.line} className="flex items-start gap-3 px-6 py-3">
+                  <span className="text-xs text-slate-300 tabular-nums w-10 shrink-0 pt-0.5">#{row.line}</span>
+                  <div className="pt-0.5 shrink-0">
+                    {(!result || result.status === "pending") &&
+                      (importing ? <Loader2 className="w-4 h-4 text-blue-400 animate-spin" /> : <div className="w-4 h-4 rounded-full border-2 border-slate-200" />)}
+                    {result?.status === "ok" && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                    {result?.status === "skipped" && <AlertCircle className="w-4 h-4 text-amber-500" />}
+                    {result?.status === "error" && <XCircle className="w-4 h-4 text-red-500" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-slate-800 truncate">
+                      {title || <span className="text-slate-400">(no name)</span>}
+                      <span className="text-slate-400"> · {detail}</span>
                     </p>
-                  )}
-                  {result?.message && (
-                    <p className={`text-xs mt-0.5 ${result.status === "error" ? "text-red-600 font-medium" : result.status === "skipped" ? "text-amber-600" : "text-green-600"}`}>
-                      {result.message}
-                    </p>
-                  )}
+                    {sub && <p className="text-xs text-slate-500 truncate">{sub}</p>}
+                    {result?.message && (
+                      <p className={`text-xs mt-0.5 ${result.status === "error" ? "text-red-600 font-medium" : result.status === "skipped" ? "text-amber-600" : "text-green-600"}`}>
+                        {result.message}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}
