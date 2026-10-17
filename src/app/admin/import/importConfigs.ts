@@ -33,9 +33,9 @@ export const IMPORT_CONFIGS: Record<ImportKind, ImportConfig> = {
   parents: {
     templateFile: "verifygate-parents-template.csv",
     template: `parent_name,parent_email,parent_login_phone,parent_phone,default_password,child_name,child_class
-Abena Mensah,abena@email.com,,0244123456,Parent@2025,Kofi Mensah,Class 3A
-Abena Mensah,abena@email.com,,0244123456,Parent@2025,Ama Mensah,Class 1B
-Kwame Asante,,0277654321,0277654321,Parent@2025,Yaw Asante,Class 5C`,
+Abena Mensah,abena@email.com,,0244123456,Parent@2025,Kofi Mensah,Primary 3
+Abena Mensah,abena@email.com,,0244123456,Parent@2025,Ama Mensah,Primary 1
+Kwame Asante,,0277654321,0277654321,Parent@2025,Yaw Asante,Primary 5`,
     intro:
       "Set up parents and their children from one spreadsheet. Each row is one child with their parent's details. To add a single parent instead, use the Parents page.",
     columns: [
@@ -45,7 +45,7 @@ Kwame Asante,,0277654321,0277654321,Parent@2025,Yaw Asante,Class 5C`,
       { name: "parent_phone", when: "Optional", note: "Where pickup SMS alerts go. Can be the same as the login phone." },
       { name: "default_password", when: "New parents", note: "At least 8 characters. Share it with the parent." },
       { name: "child_name", when: "Optional", note: "One child per row. Repeat the parent on another row for more children." },
-      { name: "child_class", when: "Optional", note: "e.g. Primary 3, KG 2." },
+      { name: "child_class", when: "Optional", note: "Your school's own class name, e.g. Primary 3, 3A or Adehye Class. A new name is added to your classes automatically; capital letters and spacing don't matter." },
     ],
     notes: [
       "Parents who already have an account only need their email or login phone plus the child. Their saved details won't change.",

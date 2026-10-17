@@ -1,3 +1,4 @@
+import { seedSchoolClasses } from "@/lib/school-classes";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
@@ -58,6 +59,8 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (schoolError) return NextResponse.json({ error: schoolError.message }, { status: 500 });
+
+    await seedSchoolClasses(newSchool.id);
 
     // Create first admin
     const hashedPassword = await bcrypt.hash(admin.password, 12);

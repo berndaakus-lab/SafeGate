@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { fieldErrorResponse, parseBody, type FieldErrors } from "@/lib/validate";
 import { escapeLike, findLoginConflict, newPassword, optionalEmail, optionalPhone } from "@/lib/identity";
+import { ensureClass, getSchoolClasses } from "@/lib/school-classes";
 import bcrypt from "bcryptjs";
 
 // One CSV row: a parent (new or existing) plus optionally one child.
@@ -42,6 +43,10 @@ export async function POST(req: NextRequest) {
       const text = "Each row needs the parent's email or login phone.";
       return fieldErrorResponse({ parentEmail: text, parentLoginPhone: text });
     }
+
+    // Checked before anything is created so a bad class never leaves a parent half-imported
+    const resolvedClass = await ensureClass(schoolId, childClass, await getSchoolClasses(schoolId));
+    if ("error" in resolvedClass) return fieldErrorResponse({ childClass: resolvedClass.error });
 
     let parent: { id: string } | null = null;
     if (email) {
@@ -106,7 +111,8 @@ export async function POST(req: NextRequest) {
       } else {
         const { error: childError } = await supabaseAdmin.from("students").insert({
           name: childName,
-          class_name: childClass || null,
+          class_name: resolvedClass.value,
+          class_id: resolvedClass.id,
           parent_id: parent!.id,
           school_id: schoolId,
         });

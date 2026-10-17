@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { parseBody } from "@/lib/validate";
+import { getSchoolClasses, resolveClass } from "@/lib/school-classes";
 
 const schema = z.object({
   moves: z
@@ -32,10 +33,15 @@ export async function POST(req: NextRequest) {
     const parsed = await parseBody(req, schema);
     if (parsed.error) return parsed.error;
 
-    const target = new Map<string, string>();
+    const levels = await getSchoolClasses(schoolId);
+    const target = new Map<string, { name: string; id: string | null }>();
     for (const { from, to } of parsed.data.moves) {
       if (target.has(from)) return NextResponse.json({ error: `"${from}" appears twice.` }, { status: 400 });
-      if (from !== to) target.set(from, to);
+      const resolved = resolveClass(to, levels);
+      if ("error" in resolved || !resolved.value) {
+        return NextResponse.json({ error: "error" in resolved ? resolved.error : "Choose the new class." }, { status: 400 });
+      }
+      if (from !== resolved.value) target.set(from, { name: resolved.value, id: resolved.id });
     }
     if (!target.size) return NextResponse.json({ moved: 0 });
 
@@ -47,20 +53,22 @@ export async function POST(req: NextRequest) {
       .in("class_name", [...target.keys()]);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    const byNewClass = new Map<string, string[]>();
+    const byNewClass = new Map<string, { id: string | null; ids: string[] }>();
     for (const s of students ?? []) {
       const to = target.get(s.class_name as string);
       if (!to) continue;
-      byNewClass.set(to, [...(byNewClass.get(to) ?? []), s.id]);
+      const group = byNewClass.get(to.name) ?? { id: to.id, ids: [] };
+      group.ids.push(s.id);
+      byNewClass.set(to.name, group);
     }
 
     let moved = 0;
-    for (const [to, ids] of byNewClass) {
+    for (const [to, { id: levelId, ids }] of byNewClass) {
       for (let i = 0; i < ids.length; i += 100) {
         const chunk = ids.slice(i, i + 100);
         const { error: updateError } = await supabaseAdmin
           .from("students")
-          .update({ class_name: to })
+          .update({ class_name: to, class_id: levelId })
           .eq("school_id", schoolId)
           .in("id", chunk);
         if (updateError) {

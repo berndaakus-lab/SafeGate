@@ -4,11 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Archive, Loader2, Pencil, X } from "lucide-react";
 import { inputBase, labelBase } from "@/components/ui";
+import ClassSelect from "@/components/ClassSelect";
 
 export default function EditChildButton({
   student,
+  levels,
 }: {
   student: { id: string; name: string; class_name: string | null };
+  levels: string[];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -85,8 +88,8 @@ export default function EditChildButton({
               </div>
               <div>
                 <label htmlFor={`ec-class-${student.id}`} className={labelBase}>Class / grade</label>
-                <input id={`ec-class-${student.id}`} value={className} onChange={(e) => setClassName(e.target.value)}
-                  placeholder="e.g. Class 4A" className={inputBase} />
+                <ClassSelect id={`ec-class-${student.id}`} levels={levels} value={className}
+                  onChange={(e) => setClassName(e.target.value)} className={inputBase} />
               </div>
               {error && <div role="alert" className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl border border-red-100">{error}</div>}
               <div className="flex gap-3">
