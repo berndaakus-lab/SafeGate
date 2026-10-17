@@ -6,6 +6,7 @@ import SessionProvider from "@/components/SessionProvider";
 import PushSubscriber from "@/components/PushSubscriber";
 import { supabaseAdmin } from "@/lib/supabase";
 import { scheduleBackgroundJobs } from "@/lib/jobs";
+import { requirePasswordChanged } from "@/lib/force-password";
 
 export default async function ParentLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
@@ -14,6 +15,7 @@ export default async function ParentLayout({ children }: { children: React.React
     redirect(`/login?reason=role&for=parent&as=${(session.user as any)?.role}`);
   }
 
+  await requirePasswordChanged(session);
   scheduleBackgroundJobs();
 
   const schoolId = (session.user as any)?.schoolId;

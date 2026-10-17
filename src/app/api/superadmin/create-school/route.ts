@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
         email: admin.email,
         login_phone: admin.loginPhone,
         password: hashedPassword,
+        must_change_password: true,
         role: "admin",
         school_id: newSchool.id,
       });

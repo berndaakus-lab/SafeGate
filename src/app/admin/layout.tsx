@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import SessionProvider from "@/components/SessionProvider";
 import AdminNav from "@/components/AdminNav";
 import { scheduleBackgroundJobs } from "@/lib/jobs";
+import { requirePasswordChanged } from "@/lib/force-password";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
@@ -16,6 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect(`/login?reason=role&for=admin&as=${role}`);
   }
 
+  await requirePasswordChanged(session);
   scheduleBackgroundJobs();
 
   const schoolId = (session.user as any)?.schoolId;

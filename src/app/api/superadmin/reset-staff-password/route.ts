@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     const hashed = await bcrypt.hash(newPassword, 12);
     const { error } = await supabaseAdmin
       .from("staff")
-      .update({ password: hashed })
+      .update({ password: hashed, must_change_password: true })
       .eq("id", staffId);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

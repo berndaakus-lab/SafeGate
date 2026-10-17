@@ -7,7 +7,7 @@ import { parseBody } from "@/lib/validate";
 import bcrypt from "bcryptjs";
 
 const schema = z.object({
-  currentPassword: z.string().min(1),
+  currentPassword: z.string().optional(),
   newPassword: z.string().min(8, "Password must be at least 8 characters.").max(200),
 });
 
@@ -27,19 +27,27 @@ export async function POST(req: NextRequest) {
     // Fetch current hashed password
     const { data: user } = await supabaseAdmin
       .from(table)
-      .select("password")
+      .select("password, must_change_password")
       .eq("id", userId)
       .single();
 
     if (!user) return NextResponse.json({ error: "User not found." }, { status: 404 });
 
-    const valid = await bcrypt.compare(currentPassword, user.password);
-    if (!valid) return NextResponse.json({ error: "Current password is incorrect." }, { status: 400 });
+    // First sign-in with an admin-set temporary password: the session already
+    // proves they know it, so only the new password is asked for.
+    const forced = user.must_change_password === true;
+    if (!forced || currentPassword) {
+      const valid = await bcrypt.compare(currentPassword ?? "", user.password);
+      if (!valid) return NextResponse.json({ error: "Current password is incorrect." }, { status: 400 });
+    }
+    if (forced && (await bcrypt.compare(newPassword, user.password))) {
+      return NextResponse.json({ error: "Choose a different password from the temporary one." }, { status: 400 });
+    }
 
     const hashed = await bcrypt.hash(newPassword, 12);
     const { error } = await supabaseAdmin
       .from(table)
-      .update({ password: hashed })
+      .update({ password: hashed, must_change_password: false })
       .eq("id", userId);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

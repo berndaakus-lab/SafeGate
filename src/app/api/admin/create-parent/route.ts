@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
       login_phone: loginPhone,
       phone,
       password: hashedPassword,
+      must_change_password: true,
       school_id: schoolId,
     });
 
