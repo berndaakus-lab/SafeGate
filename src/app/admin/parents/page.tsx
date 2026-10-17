@@ -4,6 +4,8 @@ import { supabaseAdmin } from "@/lib/supabase";
 import AddParentForm from "./AddParentForm";
 import AddChildInline from "./AddChildInline";
 import EditParentModal from "./EditParentModal";
+import EditChildButton from "./EditChildButton";
+import MoveClassesPanel from "./MoveClassesPanel";
 import StudentPhotoButton from "@/components/StudentPhotoButton";
 import Link from "next/link";
 import { GraduationCap, Upload, UserPlus, Users, MessageSquareOff } from "lucide-react";
@@ -22,6 +24,15 @@ export default async function ParentsPage() {
   const list = parents ?? [];
   const childCount = list.reduce((n: number, p: any) => n + (p.students?.length ?? 0), 0);
   const noSms = list.filter((p: any) => !p.phone).length;
+  const classCounts = new Map<string, number>();
+  for (const p of list as any[]) {
+    for (const s of p.students ?? []) {
+      if (s.class_name) classCounts.set(s.class_name, (classCounts.get(s.class_name) ?? 0) + 1);
+    }
+  }
+  const classes = [...classCounts]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
   const noPhoto = list.reduce((n: number, p: any) => n + (p.students ?? []).filter((s: any) => !s.photo_url).length, 0);
 
   return (
@@ -127,6 +138,7 @@ export default async function ParentsPage() {
                             </p>
                           )}
                         </div>
+                        <EditChildButton student={s} />
                       </div>
                     ))}
                   </div>
@@ -149,6 +161,18 @@ export default async function ParentsPage() {
       >
         <AddParentForm schoolId={schoolId} />
       </Section>
+
+      {classes.length > 0 && (
+        <Section
+          id="move-classes"
+          icon={GraduationCap}
+          title="Move classes up"
+          hint="Use this when a new school year starts. To change one child, use the pencil on their card."
+          className="mt-8"
+        >
+          <MoveClassesPanel classes={classes} />
+        </Section>
+      )}
     </div>
   );
 }
