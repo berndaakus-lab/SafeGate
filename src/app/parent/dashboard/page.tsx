@@ -11,7 +11,7 @@ export default async function ParentDashboard() {
   const parentId = (session?.user as any)?.id;
 
   const [{ data: children }, { data: authorizedPeople }] = await Promise.all([
-    supabaseAdmin.from("students").select("*").eq("parent_id", parentId),
+    supabaseAdmin.from("students").select("*").eq("parent_id", parentId).is("archived_at", null),
     supabaseAdmin.from("authorized_persons").select("*").eq("parent_id", parentId),
   ]);
 

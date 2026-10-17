@@ -25,7 +25,7 @@ export default async function AdminDashboard() {
     { data: school },
   ] = await Promise.all([
     supabaseAdmin.from("parents").select("*", { count: "exact", head: true }).eq("school_id", schoolId),
-    supabaseAdmin.from("students").select("*", { count: "exact", head: true }).eq("school_id", schoolId),
+    supabaseAdmin.from("students").select("*", { count: "exact", head: true }).eq("school_id", schoolId).is("archived_at", null),
     studentIds.length > 0
       ? supabaseAdmin.from("pickup_logs").select("*", { count: "exact", head: true }).in("student_id", studentIds)
       : Promise.resolve({ count: 0 }),

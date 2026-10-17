@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
       .from("students")
       .select("id, class_name")
       .eq("school_id", schoolId)
+      .is("archived_at", null)
       .in("class_name", [...target.keys()]);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

@@ -9,7 +9,7 @@ export default async function GeneratePage() {
   const parentId = (session?.user as any)?.id;
 
   const [{ data: children }, { data: authorizedPeople }] = await Promise.all([
-    supabaseAdmin.from("students").select("id, name, class_name").eq("parent_id", parentId).order("name"),
+    supabaseAdmin.from("students").select("id, name, class_name").eq("parent_id", parentId).is("archived_at", null).order("name"),
     supabaseAdmin.from("authorized_persons").select("id, name, relation").eq("parent_id", parentId).order("name"),
   ]);
 

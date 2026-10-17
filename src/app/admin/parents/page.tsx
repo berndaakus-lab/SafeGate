@@ -6,6 +6,8 @@ import AddChildInline from "./AddChildInline";
 import EditParentModal from "./EditParentModal";
 import EditChildButton from "./EditChildButton";
 import MoveClassesPanel from "./MoveClassesPanel";
+import ArchivedChildren from "./ArchivedChildren";
+import CorrectionRequests from "./CorrectionRequests";
 import StudentPhotoButton from "@/components/StudentPhotoButton";
 import Link from "next/link";
 import { GraduationCap, Upload, UserPlus, Users, MessageSquareOff } from "lucide-react";
@@ -17,11 +19,33 @@ export default async function ParentsPage() {
 
   const { data: parents } = await supabaseAdmin
     .from("parents")
-    .select("id, name, email, login_phone, phone, students(id, name, class_name, photo_url)")
+    .select("id, name, email, login_phone, phone, students(id, name, class_name, photo_url, archived_at)")
     .eq("school_id", schoolId)
     .order("name");
 
-  const list = parents ?? [];
+  const { data: corrections } = await supabaseAdmin
+    .from("student_corrections")
+    .select("id, message, students(name, class_name), parents(name)")
+    .eq("school_id", schoolId)
+    .is("resolved_at", null)
+    .order("created_at");
+  const requests = (corrections ?? []).map((c: any) => {
+    const student = Array.isArray(c.students) ? c.students[0] : c.students;
+    const parent = Array.isArray(c.parents) ? c.parents[0] : c.parents;
+    return {
+      id: c.id as string,
+      message: c.message as string,
+      studentName: (student?.name ?? "A child") as string,
+      className: (student?.class_name ?? null) as string | null,
+      parentName: (parent?.name ?? "a parent") as string,
+    };
+  });
+
+  const list = (parents ?? []).map((p: any) => ({
+    ...p,
+    students: (p.students ?? []).filter((s: any) => !s.archived_at),
+    archived: (p.students ?? []).filter((s: any) => s.archived_at),
+  }));
   const childCount = list.reduce((n: number, p: any) => n + (p.students?.length ?? 0), 0);
   const noSms = list.filter((p: any) => !p.phone).length;
   const classCounts = new Map<string, number>();
@@ -51,6 +75,12 @@ export default async function ParentsPage() {
           </>
         }
       />
+
+      {requests.length > 0 && (
+        <div className="mb-6">
+          <CorrectionRequests requests={requests} />
+        </div>
+      )}
 
       {list.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-4">
@@ -141,6 +171,12 @@ export default async function ParentsPage() {
                         <EditChildButton student={s} />
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {parent.archived.length > 0 && (
+                  <div className="px-5 sm:px-6 pb-4 sm:pl-20">
+                    <ArchivedChildren children={parent.archived} />
                   </div>
                 )}
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Pencil, X } from "lucide-react";
+import { Archive, Loader2, Pencil, X } from "lucide-react";
 import { inputBase, labelBase } from "@/components/ui";
 
 export default function EditChildButton({
@@ -37,6 +37,25 @@ export default function EditChildButton({
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       setError(data.error || "Could not save. Try again.");
+      return;
+    }
+    setOpen(false);
+    router.refresh();
+  }
+
+  async function archive() {
+    if (!window.confirm(`Archive ${student.name}? They will be hidden from the parent and can no longer be picked up. Pickup history is kept, and you can restore them later.`)) return;
+    setError("");
+    setLoading(true);
+    const res = await fetch("/api/admin/archive-student", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ studentId: student.id, archived: true }),
+    });
+    setLoading(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Could not archive. Try again.");
       return;
     }
     setOpen(false);
@@ -81,6 +100,12 @@ export default function EditChildButton({
                 </button>
               </div>
             </form>
+            <div className="mt-5 pt-4 border-t border-slate-100">
+              <button type="button" onClick={archive} disabled={loading}
+                className="inline-flex items-center gap-2 text-sm font-semibold text-red-600 hover:underline disabled:opacity-60">
+                <Archive className="w-4 h-4" /> Archive this child (left or graduated)
+              </button>
+            </div>
           </div>
         </div>
       )}
