@@ -8,7 +8,7 @@ import { TIERS, subscriptionState, tierOf } from "@/lib/subscription";
 export const dynamic = "force-dynamic";
 
 export default async function SchoolsPage() {
-  const { data: schools } = await supabaseAdmin
+  const { data: schools, error: schoolsError } = await supabaseAdmin
     .from("schools")
     .select("id, name, address, phone, logo_url, created_at, plan, trial_ends_at, paid_until, max_students")
     .order("created_at", { ascending: false });
@@ -19,6 +19,14 @@ export default async function SchoolsPage() {
         <h1 className="text-2xl font-bold text-slate-900">Schools</h1>
         <p className="text-slate-500 mt-1">Create and manage schools on VerifyGate.</p>
       </div>
+
+      {schoolsError && (
+        <div role="alert" className="mb-8 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
+          <p className="font-semibold">Couldn&apos;t load the schools list.</p>
+          <p className="mt-1 break-words">{schoolsError.message}</p>
+          <p className="mt-1 text-red-700">This usually means a database migration hasn&apos;t been run on this database yet.</p>
+        </div>
+      )}
 
       {/* Existing schools */}
       {schools && schools.length > 0 && (
