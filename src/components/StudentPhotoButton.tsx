@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Camera, Loader2, Trash2 } from "lucide-react";
-import { squarePhoto } from "@/lib/load-image";
+import PhotoCropper from "@/components/PhotoCropper";
 
 /**
  * A child's photo with add/change/remove. Used by the school admin (Parents
@@ -28,6 +28,7 @@ export default function StudentPhotoButton({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [current, setCurrent] = useState(photoUrl);
+  const [pending, setPending] = useState<File | null>(null);
 
   const box = size === "sm" ? "w-12 h-12" : "w-16 h-16";
   const px = size === "sm" ? 48 : 64;
@@ -63,15 +64,22 @@ export default function StudentPhotoButton({
       setError("Choose a photo (JPG or PNG).");
       return;
     }
-    try {
-      await send(await squarePhoto(file));
-    } catch {
-      setError("That photo could not be read. Try another one.");
-    }
+    setError("");
+    setPending(file);
   }
 
   return (
     <div className="flex items-center gap-3">
+      {pending && (
+        <PhotoCropper
+          file={pending}
+          onCancel={() => setPending(null)}
+          onDone={(data) => {
+            setPending(null);
+            send(data);
+          }}
+        />
+      )}
       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
       <button
         type="button"

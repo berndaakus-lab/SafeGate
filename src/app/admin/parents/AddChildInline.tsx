@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Loader2, Camera, Check } from "lucide-react";
-import { squarePhoto } from "@/lib/load-image";
+import PhotoCropper from "@/components/PhotoCropper";
 import { btnPrimary, btnSecondary, btnSmall, inputBase } from "@/components/ui";
 
 export default function AddChildInline({
@@ -22,16 +22,15 @@ export default function AddChildInline({
   const [className, setClassName] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoData, setPhotoData] = useState<string | null>(null);
+  const [pending, setPending] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  async function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
+  function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const compressed = await squarePhoto(file);
-    setPhotoData(compressed);
-    setPhotoPreview(compressed);
+    e.target.value = "";
+    if (file) setPending(file);
   }
 
   function reset() {
@@ -69,6 +68,17 @@ export default function AddChildInline({
 
   return (
     <div>
+      {pending && (
+        <PhotoCropper
+          file={pending}
+          onCancel={() => setPending(null)}
+          onDone={(data) => {
+            setPending(null);
+            setPhotoData(data);
+            setPhotoPreview(data);
+          }}
+        />
+      )}
       {success && (
         <p role="status" className="text-sm text-green-700 font-semibold mb-2 flex items-center gap-1.5">
           <Check className="w-4 h-4" /> Child added to {parentName}&apos;s account
