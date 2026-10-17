@@ -103,12 +103,12 @@ export default function AdminNav({ schoolLogoUrl }: { schoolLogoUrl: string | nu
             key={href}
             href={href}
             className={cn(
-              "flex-1 flex flex-col items-center gap-1 py-3 text-xs font-medium transition-colors",
+              "flex-1 basis-0 min-w-0 flex flex-col items-center gap-1 px-0.5 py-2.5 text-[11px] leading-tight font-medium transition-colors",
               pathname === href ? "text-blue-600" : "text-slate-400"
             )}
           >
-            <Icon className="w-5 h-5" />
-            {short ?? label}
+            <Icon className="w-5 h-5 shrink-0" />
+            <span className="max-w-full truncate">{short ?? label}</span>
           </Link>
         ))}
       </nav>

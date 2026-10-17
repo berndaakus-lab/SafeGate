@@ -72,12 +72,12 @@ export default function SuperAdminNav({ newLeads = 0 }: { newLeads?: number }) {
             key={href}
             href={href}
             className={cn(
-              "flex-1 flex flex-col items-center gap-1 py-3 text-xs font-medium transition-colors relative",
+              "flex-1 basis-0 min-w-0 flex flex-col items-center gap-1 px-0.5 py-2.5 text-[11px] leading-tight font-medium transition-colors relative",
               pathname === href ? "text-blue-400" : "text-slate-500"
             )}
           >
-            <Icon className="w-5 h-5" />
-            {short ?? label}
+            <Icon className="w-5 h-5 shrink-0" />
+            <span className="max-w-full truncate">{short ?? label}</span>
             {label === "Leads" && newLeads > 0 && (
               <span className="absolute top-2 right-1/4 bg-blue-500 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
                 {newLeads > 9 ? "9+" : newLeads}

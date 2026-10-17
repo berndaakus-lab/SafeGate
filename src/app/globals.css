@@ -32,6 +32,8 @@ body {
    viewportFit: "cover" viewport in layout.tsx). */
 @utility safe-area-pb {
   padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 /* Page bottom padding that clears the mobile bottom nav plus the safe area */
