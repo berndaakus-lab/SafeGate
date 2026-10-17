@@ -85,6 +85,14 @@ export default function SuperAdminNav({ newLeads = 0 }: { newLeads?: number }) {
             )}
           </Link>
         ))}
+        <button
+          type="button"
+          onClick={() => signOutUser("/login")}
+          className="flex-1 basis-0 min-w-0 flex flex-col items-center gap-1 px-0.5 py-2.5 text-[11px] leading-tight font-medium text-slate-500 hover:text-red-400 transition-colors"
+        >
+          <LogOut className="w-5 h-5 shrink-0" />
+          <span className="max-w-full truncate">Sign out</span>
+        </button>
       </nav>
     </>
   );
