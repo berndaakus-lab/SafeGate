@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { parseBody } from "@/lib/validate";
+import { getSchoolClasses, resolveClass } from "@/lib/school-classes";
 
 const schema = z.object({
   name: z.string().trim().min(1).max(200),
@@ -40,6 +41,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Parent not found for this school" }, { status: 400 });
     }
 
+    const resolved = resolveClass(className, await getSchoolClasses(schoolId));
+    if ("error" in resolved) return NextResponse.json({ error: resolved.error }, { status: 400 });
+
     let photoUrl: string | null = null;
 
     // Upload compressed photo if provided (base64 data URL)
@@ -66,7 +70,8 @@ export async function POST(req: NextRequest) {
       .from("students")
       .insert({
         name,
-        class_name: className || null,
+        class_name: resolved.value,
+        class_id: resolved.id,
         parent_id: parentId,
         school_id: schoolId,
         photo_url: photoUrl,

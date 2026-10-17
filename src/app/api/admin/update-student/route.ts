@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { parseBody } from "@/lib/validate";
+import { getSchoolClasses, resolveClass } from "@/lib/school-classes";
 
 const schema = z.object({
   studentId: z.string().uuid(),
@@ -24,9 +25,20 @@ export async function PATCH(req: NextRequest) {
     if (parsed.error) return parsed.error;
     const { studentId, name, className } = parsed.data;
 
+    const { data: existing } = await supabaseAdmin
+      .from("students")
+      .select("class_name")
+      .eq("id", studentId)
+      .eq("school_id", schoolId)
+      .maybeSingle();
+    if (!existing) return NextResponse.json({ error: "Student not found" }, { status: 404 });
+
+    const resolved = resolveClass(className, await getSchoolClasses(schoolId));
+    if ("error" in resolved) return NextResponse.json({ error: resolved.error }, { status: 400 });
+
     const { data, error } = await supabaseAdmin
       .from("students")
-      .update({ name, class_name: className || null })
+      .update({ name, class_name: resolved.value, class_id: resolved.id })
       .eq("id", studentId)
       .eq("school_id", schoolId)
       .select("id");

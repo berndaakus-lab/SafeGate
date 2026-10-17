@@ -4,16 +4,19 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Loader2, Camera, Check } from "lucide-react";
 import PhotoCropper from "@/components/PhotoCropper";
+import ClassSelect from "@/components/ClassSelect";
 import { btnPrimary, btnSecondary, btnSmall, inputBase } from "@/components/ui";
 
 export default function AddChildInline({
   parentId,
   schoolId,
   parentName,
+  levels,
 }: {
   parentId: string;
   schoolId: string;
   parentName: string;
+  levels: string[];
 }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -140,11 +143,12 @@ export default function AddChildInline({
                 placeholder="Child's full name *"
                 className={inputBase}
               />
-              <input
+              <ClassSelect
                 aria-label="Class"
+                levels={levels}
                 value={className}
                 onChange={(e) => setClassName(e.target.value)}
-                placeholder="Class (e.g. KG 2 / Primary 3)"
+                emptyLabel="Class (optional)"
                 className={inputBase}
               />
             </div>

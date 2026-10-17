@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { btnPrimary, inputBase } from "@/components/ui";
+import ClassSelect from "@/components/ClassSelect";
 
-export default function MoveClassesPanel({ classes }: { classes: { name: string; count: number }[] }) {
+export default function MoveClassesPanel({ classes, levels }: { classes: { name: string; count: number }[]; levels: string[] }) {
   const router = useRouter();
   const [targets, setTargets] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -46,7 +47,7 @@ export default function MoveClassesPanel({ classes }: { classes: { name: string;
   return (
     <div className="space-y-4">
       <p className="text-sm text-slate-600">
-        Type the new class next to each class that is moving. Leave the box empty to keep a class as it is.
+        Pick the new class next to each class that is moving. Leave it on &quot;Keep as it is&quot; for classes that stay.
         All moves apply together, so you can move Class 3 to 4 and Class 4 to 5 in one go.
       </p>
       <div className="space-y-2">
@@ -57,9 +58,9 @@ export default function MoveClassesPanel({ classes }: { classes: { name: string;
               <p className="text-xs text-slate-500">{c.count} child{c.count === 1 ? "" : "ren"}</p>
             </div>
             <ArrowRight className="hidden sm:block w-4 h-4 text-slate-400 shrink-0" />
-            <input aria-label={`New class for ${c.name}`} value={targets[c.name] ?? ""} maxLength={100}
+            <ClassSelect aria-label={`New class for ${c.name}`} levels={levels} value={targets[c.name] ?? ""}
               onChange={(e) => setTargets((t) => ({ ...t, [c.name]: e.target.value }))}
-              placeholder="New class (optional)" className={inputBase} />
+              emptyLabel="Keep as it is" className={inputBase} />
           </div>
         ))}
       </div>
