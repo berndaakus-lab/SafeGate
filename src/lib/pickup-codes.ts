@@ -34,6 +34,7 @@ export async function loadPickupCode(filter: { code: string } | { id: string }) 
         .from("students")
         .select("id, name, class_name, photo_url, school_id, schools(name, logo_url)")
         .in("id", ids)
+        .is("archived_at", null)
     : { data: [] as any[] };
 
   const logs = asArray(pc.pickup_logs as Log | Log[] | null);

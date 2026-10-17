@@ -4,6 +4,10 @@ import { supabaseAdmin } from "@/lib/supabase";
 import AddParentForm from "./AddParentForm";
 import AddChildInline from "./AddChildInline";
 import EditParentModal from "./EditParentModal";
+import EditChildButton from "./EditChildButton";
+import MoveClassesPanel from "./MoveClassesPanel";
+import ArchivedChildren from "./ArchivedChildren";
+import CorrectionRequests from "./CorrectionRequests";
 import StudentPhotoButton from "@/components/StudentPhotoButton";
 import Link from "next/link";
 import { GraduationCap, Upload, UserPlus, Users, MessageSquareOff } from "lucide-react";
@@ -15,13 +19,44 @@ export default async function ParentsPage() {
 
   const { data: parents } = await supabaseAdmin
     .from("parents")
-    .select("id, name, email, login_phone, phone, students(id, name, class_name, photo_url)")
+    .select("id, name, email, login_phone, phone, students(id, name, class_name, photo_url, archived_at)")
     .eq("school_id", schoolId)
     .order("name");
 
-  const list = parents ?? [];
+  const { data: corrections } = await supabaseAdmin
+    .from("student_corrections")
+    .select("id, message, students(name, class_name), parents(name)")
+    .eq("school_id", schoolId)
+    .is("resolved_at", null)
+    .order("created_at");
+  const requests = (corrections ?? []).map((c: any) => {
+    const student = Array.isArray(c.students) ? c.students[0] : c.students;
+    const parent = Array.isArray(c.parents) ? c.parents[0] : c.parents;
+    return {
+      id: c.id as string,
+      message: c.message as string,
+      studentName: (student?.name ?? "A child") as string,
+      className: (student?.class_name ?? null) as string | null,
+      parentName: (parent?.name ?? "a parent") as string,
+    };
+  });
+
+  const list = (parents ?? []).map((p: any) => ({
+    ...p,
+    students: (p.students ?? []).filter((s: any) => !s.archived_at),
+    archived: (p.students ?? []).filter((s: any) => s.archived_at),
+  }));
   const childCount = list.reduce((n: number, p: any) => n + (p.students?.length ?? 0), 0);
   const noSms = list.filter((p: any) => !p.phone).length;
+  const classCounts = new Map<string, number>();
+  for (const p of list as any[]) {
+    for (const s of p.students ?? []) {
+      if (s.class_name) classCounts.set(s.class_name, (classCounts.get(s.class_name) ?? 0) + 1);
+    }
+  }
+  const classes = [...classCounts]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
   const noPhoto = list.reduce((n: number, p: any) => n + (p.students ?? []).filter((s: any) => !s.photo_url).length, 0);
 
   return (
@@ -40,6 +75,12 @@ export default async function ParentsPage() {
           </>
         }
       />
+
+      {requests.length > 0 && (
+        <div className="mb-6">
+          <CorrectionRequests requests={requests} />
+        </div>
+      )}
 
       {list.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-4">
@@ -127,8 +168,15 @@ export default async function ParentsPage() {
                             </p>
                           )}
                         </div>
+                        <EditChildButton student={s} />
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {parent.archived.length > 0 && (
+                  <div className="px-5 sm:px-6 pb-4 sm:pl-20">
+                    <ArchivedChildren children={parent.archived} />
                   </div>
                 )}
 
@@ -149,6 +197,18 @@ export default async function ParentsPage() {
       >
         <AddParentForm schoolId={schoolId} />
       </Section>
+
+      {classes.length > 0 && (
+        <Section
+          id="move-classes"
+          icon={GraduationCap}
+          title="Move classes up"
+          hint="Use this when a new school year starts. To change one child, use the pencil on their card."
+          className="mt-8"
+        >
+          <MoveClassesPanel classes={classes} />
+        </Section>
+      )}
     </div>
   );
 }

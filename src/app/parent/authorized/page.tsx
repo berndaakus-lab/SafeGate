@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import AddPersonForm from "./AddPersonForm";
+import EditPersonButton from "./EditPersonButton";
 import Link from "next/link";
 import { Phone, Heart, UserPlus, UserCheck, QrCode } from "lucide-react";
 import { Badge, EmptyState, InfoNote, PageHeader, Section, btnPrimary, btnSecondary } from "@/components/ui";
@@ -17,6 +18,13 @@ export default async function AuthorizedPage() {
     .order("name");
 
   const list = people ?? [];
+
+  const { data: usedCodes } = await supabaseAdmin
+    .from("pickup_codes")
+    .select("authorized_person_id")
+    .eq("parent_id", parentId)
+    .not("used_at", "is", null);
+  const usedPersonIds = new Set((usedCodes ?? []).map((c: any) => c.authorized_person_id));
 
   return (
     <div className="p-6 max-w-2xl">
@@ -60,6 +68,7 @@ export default async function AuthorizedPage() {
                       )}
                     </div>
                   </div>
+                  <EditPersonButton person={person} nameLocked={usedPersonIds.has(person.id)} />
                 </div>
               ))}
             </div>

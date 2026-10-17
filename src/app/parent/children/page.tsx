@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { GraduationCap, UserCircle } from "lucide-react";
 import { EmptyState, InfoNote, PageHeader } from "@/components/ui";
 import StudentPhotoButton from "@/components/StudentPhotoButton";
+import ReportCorrectionButton from "./ReportCorrectionButton";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ export default async function ChildrenPage() {
     .from("students")
     .select("id, name, class_name, photo_url")
     .eq("parent_id", parentId)
+    .is("archived_at", null)
     .order("name");
 
   const missingPhotos = (children ?? []).filter((c: any) => !c.photo_url).length;
@@ -44,6 +46,7 @@ export default async function ChildrenPage() {
                     {child.class_name}
                   </p>
                 )}
+                <ReportCorrectionButton studentId={child.id} name={child.name} />
               </div>
               <StudentPhotoButton
                 studentId={child.id}
@@ -65,8 +68,8 @@ export default async function ChildrenPage() {
       )}
 
       <InfoNote>
-        Children are added by the school. If a child is missing or a name or class is wrong, please contact your school office.
-        Use a recent, front-facing photo in good light.
+        Children are added by the school. If a name or class is wrong, use &quot;Wrong name or class?&quot; on the child&apos;s card.
+        If a child is missing, please contact your school office. Use a recent, front-facing photo in good light.
       </InfoNote>
     </div>
   );

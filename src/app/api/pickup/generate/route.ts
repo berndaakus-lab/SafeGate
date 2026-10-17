@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     // Ownership checks are independent, so run them together
     const schoolId = (session.user as any).schoolId;
     const [{ data: students }, { data: person }, { data: school }] = await Promise.all([
-      supabaseAdmin.from("students").select("id, name").in("id", studentIds).eq("parent_id", parentId),
+      supabaseAdmin.from("students").select("id, name").in("id", studentIds).eq("parent_id", parentId).is("archived_at", null),
       supabaseAdmin.from("authorized_persons").select("id").eq("id", authorizedPersonId).eq("parent_id", parentId).maybeSingle(),
       supabaseAdmin.from("schools").select("is_active").eq("id", schoolId).maybeSingle(),
     ]);

@@ -5,32 +5,32 @@ import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { parseBody } from "@/lib/validate";
 
-const schema = z.object({
-  name: z.string().trim().min(1).max(200),
-  className: z.string().trim().max(100).optional().nullable(),
-});
+const schema = z.object({ studentId: z.string().uuid(), archived: z.boolean() });
 
-export async function POST(req: NextRequest) {
+// School admin: archive a child who has left (hides them from parents and
+// pickup passes, keeps their pickup history) or restore one.
+export async function PATCH(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    const parentId = (session?.user as any)?.id;
     const schoolId = (session?.user as any)?.schoolId;
-    if (!session || (session.user as any)?.role !== "parent" || !parentId || !schoolId) {
+    if ((session?.user as any)?.role !== "admin" || !schoolId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const parsed = await parseBody(req, schema);
     if (parsed.error) return parsed.error;
-    const { name, className } = parsed.data;
+    const { studentId, archived } = parsed.data;
 
     const { data, error } = await supabaseAdmin
       .from("students")
-      .insert({ name, class_name: className || null, parent_id: parentId, school_id: schoolId })
-      .select()
-      .single();
+      .update({ archived_at: archived ? new Date().toISOString() : null })
+      .eq("id", studentId)
+      .eq("school_id", schoolId)
+      .select("id");
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json(data, { status: 201 });
+    if (!data?.length) return NextResponse.json({ error: "Student not found" }, { status: 404 });
+    return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
