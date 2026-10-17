@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOutUser } from "@/lib/sign-out";
 import { LayoutDashboard, School, LogOut, Settings, Inbox } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HomeLogoLink from "@/components/HomeLogoLink";
 
-const links = [
-  { href: "/superadmin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+const links: { href: string; label: string; short?: string; icon: LucideIcon }[] = [
+  { href: "/superadmin/dashboard", label: "Dashboard", short: "Home", icon: LayoutDashboard },
   { href: "/superadmin/schools", label: "Schools", icon: School },
   { href: "/superadmin/demo-requests", label: "Leads", icon: Inbox },
   { href: "/superadmin/settings", label: "Settings", icon: Settings },
@@ -65,18 +66,18 @@ export default function SuperAdminNav({ newLeads = 0 }: { newLeads?: number }) {
       </header>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 flex z-50">
-        {links.map(({ href, label, icon: Icon }) => (
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 flex z-50 safe-area-pb">
+        {links.map(({ href, label, short, icon: Icon }) => (
           <Link
             key={href}
             href={href}
             className={cn(
-              "flex-1 flex flex-col items-center gap-1 py-3 text-xs font-medium transition-colors relative",
+              "flex-1 basis-0 min-w-0 flex flex-col items-center gap-1 px-0.5 py-2.5 text-[11px] leading-tight font-medium transition-colors relative",
               pathname === href ? "text-blue-400" : "text-slate-500"
             )}
           >
-            <Icon className="w-5 h-5" />
-            {label}
+            <Icon className="w-5 h-5 shrink-0" />
+            <span className="max-w-full truncate">{short ?? label}</span>
             {label === "Leads" && newLeads > 0 && (
               <span className="absolute top-2 right-1/4 bg-blue-500 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
                 {newLeads > 9 ? "9+" : newLeads}

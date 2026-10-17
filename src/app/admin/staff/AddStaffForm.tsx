@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Plus } from "lucide-react";
+import PasswordInput from "@/components/PasswordInput";
 import FieldError, { readApiErrors, withErrorRing, type FieldErrors } from "@/components/FieldError";
 
 const roles = [
@@ -83,8 +84,8 @@ export default function AddStaffForm({ schoolId }: { schoolId: string }) {
         </div>
       </div>
       <div>
-        <p className="text-sm font-semibold text-slate-800">Sign-in details *</p>
-        <p className="text-sm text-slate-500 mb-2">They sign in with either one. Fill in at least one.</p>
+        <p className="text-sm font-semibold text-slate-800">Sign-in details</p>
+        <p className="text-sm text-slate-500 mb-2">Email is optional. They can sign in with a phone number or an email, so fill in at least one.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <input type="email" aria-label="Email" autoCapitalize="none" value={form.email}
@@ -102,7 +103,7 @@ export default function AddStaffForm({ schoolId }: { schoolId: string }) {
       </div>
       <div>
         <label htmlFor="as-password" className="block text-sm font-semibold text-slate-800 mb-1.5">Temporary password *</label>
-        <input id="as-password" type="password" value={form.password} onChange={(e) => set("password", e.target.value)}
+        <PasswordInput id="as-password" value={form.password} onChange={(e) => set("password", e.target.value)}
           placeholder="At least 8 characters" className={withErrorRing(inputClass, !!fieldErrors.password)} />
         <FieldError message={fieldErrors.password} />
       </div>

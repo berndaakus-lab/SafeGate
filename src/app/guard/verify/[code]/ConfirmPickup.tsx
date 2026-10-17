@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Check, CheckCircle2, Loader2 } from "lucide-react";
+import { Check, CheckCircle2, ImageOff, Loader2, Maximize2, X } from "lucide-react";
 import { formatTime } from "@/lib/utils";
 import type { PickupChild } from "@/lib/pickup-codes";
 
@@ -14,6 +14,14 @@ export default function ConfirmPickup({ pickupCodeId, childList }: { pickupCodeI
   const [loading, setLoading] = useState(false);
   const [confirmedCount, setConfirmedCount] = useState<number | null>(null);
   const [error, setError] = useState("");
+  const [zoomed, setZoomed] = useState<PickupChild | null>(null);
+
+  useEffect(() => {
+    if (!zoomed) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setZoomed(null);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [zoomed]);
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -63,55 +71,107 @@ export default function ConfirmPickup({ pickupCodeId, childList }: { pickupCodeI
 
   return (
     <div>
-      <div className="bg-slate-800 rounded-2xl p-5 mb-6">
+      {zoomed?.photo_url && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${zoomed.name}'s photo`}
+          onClick={() => setZoomed(null)}
+          className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4 gap-4"
+        >
+          <Image
+            src={zoomed.photo_url}
+            alt={zoomed.name}
+            width={640}
+            height={640}
+            className="w-full max-w-[min(90vw,28rem)] aspect-square object-cover rounded-3xl"
+          />
+          <div className="text-center">
+            <p className="text-2xl font-bold text-white">{zoomed.name}</p>
+            {zoomed.class_name && <p className="text-slate-300">{zoomed.class_name}</p>}
+          </div>
+          <button
+            type="button"
+            onClick={() => setZoomed(null)}
+            className="inline-flex items-center gap-2 bg-white text-slate-900 font-bold px-8 py-3.5 rounded-2xl"
+          >
+            <X className="w-5 h-5" /> Close
+          </button>
+        </div>
+      )}
+
+      <div className="bg-slate-800 rounded-2xl p-4 sm:p-5 mb-6">
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs text-slate-500 uppercase tracking-widest">
             {multi ? `Children (${childList.length})` : "Child"}
           </p>
           {multi && pending.length > 0 && <p className="text-xs text-slate-500">Untick any child not leaving now</p>}
         </div>
-        <ul className="space-y-2">
+        <ul className="space-y-3">
           {childList.map((c) => {
             const done = !!c.pickedUpAt;
             const checked = selected.has(c.id);
-            return (
-              <li key={c.id}>
-                <button
-                  type="button"
-                  disabled={done || !multi}
-                  onClick={() => toggle(c.id)}
-                  aria-pressed={checked}
-                  className={`w-full flex items-center gap-4 rounded-xl p-2 -m-0 text-left transition-colors ${
-                    done ? "opacity-50" : multi ? "hover:bg-slate-700/50" : ""
-                  }`}
-                >
-                  <div className="w-14 h-14 rounded-full overflow-hidden shrink-0 bg-blue-600/20 flex items-center justify-center text-xl font-bold text-blue-400">
-                    {c.photo_url ? (
-                      <Image src={c.photo_url} alt={c.name} width={56} height={56} className="w-full h-full object-cover" />
-                    ) : (
-                      c.name[0]?.toUpperCase()
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-lg font-bold text-white truncate">{c.name}</p>
-                    {done ? (
-                      <p className="text-amber-400 text-xs">
-                        Already picked up at {formatTime(c.pickedUpAt!)}{c.releasedBy ? ` by ${c.releasedBy}` : ""}
-                      </p>
-                    ) : (
-                      c.class_name && <p className="text-slate-400 text-sm">{c.class_name}</p>
-                    )}
-                  </div>
-                  {multi && !done && (
-                    <span
-                      className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center shrink-0 ${
-                        checked ? "bg-green-600 border-green-600" : "border-slate-500"
-                      }`}
-                    >
-                      {checked && <Check className="w-4 h-4 text-white" />}
-                    </span>
+            const details = (
+              <>
+                <div className="flex-1 min-w-0">
+                  <p className="text-lg font-bold text-white leading-snug break-words">{c.name}</p>
+                  {c.class_name && <p className="text-slate-300 text-sm">{c.class_name}</p>}
+                  {done ? (
+                    <p className="text-amber-400 text-xs mt-1">
+                      Already picked up at {formatTime(c.pickedUpAt!)}{c.releasedBy ? ` by ${c.releasedBy}` : ""}
+                    </p>
+                  ) : !c.photo_url ? (
+                    <p className="inline-flex items-center gap-1 mt-1.5 text-xs font-semibold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full">
+                      <ImageOff className="w-3 h-3" /> No photo on file
+                    </p>
+                  ) : (
+                    <p className="text-xs text-slate-400 mt-1">Tap photo to enlarge</p>
                   )}
-                </button>
+                </div>
+                {multi && !done && (
+                  <span
+                    aria-hidden
+                    className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center shrink-0 ${
+                      checked ? "bg-green-600 border-green-600" : "border-slate-500"
+                    }`}
+                  >
+                    {checked && <Check className="w-5 h-5 text-white" />}
+                  </span>
+                )}
+              </>
+            );
+            return (
+              <li key={c.id} className={`flex items-center gap-4 rounded-xl p-2 ${done ? "opacity-50" : ""}`}>
+                {c.photo_url ? (
+                  <button
+                    type="button"
+                    onClick={() => setZoomed(c)}
+                    aria-label={`Enlarge ${c.name}'s photo`}
+                    className="relative w-28 h-28 rounded-2xl overflow-hidden shrink-0 ring-2 ring-slate-600 hover:ring-blue-400 focus:outline-none focus:ring-blue-400 transition"
+                  >
+                    <Image src={c.photo_url} alt={c.name} width={224} height={224} className="w-full h-full object-cover" />
+                    <span className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center">
+                      <Maximize2 className="w-3.5 h-3.5 text-white" />
+                    </span>
+                  </button>
+                ) : (
+                  <div className="w-28 h-28 rounded-2xl shrink-0 bg-slate-700 border-2 border-dashed border-slate-500 flex flex-col items-center justify-center text-slate-300">
+                    <span className="text-3xl font-bold">{c.name[0]?.toUpperCase()}</span>
+                  </div>
+                )}
+                {multi && !done ? (
+                  <button
+                    type="button"
+                    onClick={() => toggle(c.id)}
+                    aria-pressed={checked}
+                    aria-label={`${checked ? "Untick" : "Tick"} ${c.name}`}
+                    className="flex-1 min-w-0 flex items-center gap-3 text-left rounded-xl p-2 -m-2 hover:bg-slate-700/50 transition-colors"
+                  >
+                    {details}
+                  </button>
+                ) : (
+                  <div className="flex-1 min-w-0 flex items-center gap-3">{details}</div>
+                )}
               </li>
             );
           })}

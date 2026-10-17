@@ -2,24 +2,9 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Loader2, GraduationCap, Camera, X, Check } from "lucide-react";
-import { loadImageFile } from "@/lib/load-image";
+import { Plus, Loader2, Camera, Check } from "lucide-react";
+import { squarePhoto } from "@/lib/load-image";
 import { btnPrimary, btnSecondary, btnSmall, inputBase } from "@/components/ui";
-
-async function compressImage(file: File): Promise<string> {
-  const img = await loadImageFile(file);
-  const SIZE = 200;
-  const canvas = document.createElement("canvas");
-  canvas.width = SIZE;
-  canvas.height = SIZE;
-  const ctx = canvas.getContext("2d")!;
-  // Crop to square from center
-  const min = Math.min(img.width, img.height);
-  const sx = (img.width - min) / 2;
-  const sy = (img.height - min) / 2;
-  ctx.drawImage(img, sx, sy, min, min, 0, 0, SIZE, SIZE);
-  return canvas.toDataURL("image/jpeg", 0.72);
-}
 
 export default function AddChildInline({
   parentId,
@@ -44,7 +29,7 @@ export default function AddChildInline({
   async function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const compressed = await compressImage(file);
+    const compressed = await squarePhoto(file);
     setPhotoData(compressed);
     setPhotoPreview(compressed);
   }

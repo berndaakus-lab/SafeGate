@@ -90,20 +90,22 @@ export default function LogsClient({ logs }: { logs: Log[] }) {
         </div>
 
         {/* Date from */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
           <input
             type="date"
+            aria-label="From date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
-            className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-1 min-w-0 sm:flex-none px-3 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-          <span className="text-slate-400 text-sm">to</span>
+          <span className="text-slate-500 text-sm shrink-0">to</span>
           <input
             type="date"
+            aria-label="To date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
-            className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-1 min-w-0 sm:flex-none px-3 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 

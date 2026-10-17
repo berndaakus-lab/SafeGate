@@ -5,12 +5,13 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { signOutUser } from "@/lib/sign-out";
 import { LayoutDashboard, Users, UserCheck, ClipboardList, LogOut, Settings, Upload, ScanLine } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HomeLogoLink from "@/components/HomeLogoLink";
 import SchoolLogo from "@/components/SchoolLogo";
 
-const links = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+const links: { href: string; label: string; short?: string; icon: LucideIcon }[] = [
+  { href: "/admin/dashboard", label: "Dashboard", short: "Home", icon: LayoutDashboard },
   { href: "/admin/staff", label: "Staff", icon: UserCheck },
   { href: "/admin/parents", label: "Parents", icon: Users },
   { href: "/admin/import", label: "Import", icon: Upload },
@@ -97,17 +98,17 @@ export default function AdminNav({ schoolLogoUrl }: { schoolLogoUrl: string | nu
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex z-50 safe-area-pb">
-        {links.map(({ href, label, icon: Icon }) => (
+        {links.map(({ href, label, short, icon: Icon }) => (
           <Link
             key={href}
             href={href}
             className={cn(
-              "flex-1 flex flex-col items-center gap-1 py-3 text-xs font-medium transition-colors",
+              "flex-1 basis-0 min-w-0 flex flex-col items-center gap-1 px-0.5 py-2.5 text-[11px] leading-tight font-medium transition-colors",
               pathname === href ? "text-blue-600" : "text-slate-400"
             )}
           >
-            <Icon className="w-5 h-5" />
-            {label.split(" ")[0]}
+            <Icon className="w-5 h-5 shrink-0" />
+            <span className="max-w-full truncate">{short ?? label}</span>
           </Link>
         ))}
       </nav>

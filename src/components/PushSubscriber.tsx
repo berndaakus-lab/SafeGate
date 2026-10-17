@@ -90,7 +90,7 @@ export default function PushSubscriber() {
   if (!showPrompt) return null;
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 z-50 md:left-auto md:right-6 md:bottom-6 md:max-w-sm">
+    <div className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-4 right-4 z-50 md:left-auto md:right-6 md:bottom-6 md:max-w-sm">
       <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-4">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">

@@ -25,7 +25,7 @@ export default async function SuperAdminLayout({ children }: { children: React.R
     <SessionProvider session={session}>
       <div className="min-h-screen bg-slate-50">
         <SuperAdminNav newLeads={newLeads ?? 0} />
-        <main className="md:ml-64 pb-24 md:pb-0">{children}</main>
+        <main className="md:ml-64 pb-nav md:pb-0">{children}</main>
       </div>
     </SessionProvider>
   );

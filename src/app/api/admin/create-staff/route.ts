@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
       email,
       login_phone: loginPhone,
       password: hashedPassword,
+      must_change_password: true,
       role: staffRole || "guard",
       school_id: schoolId,
     });

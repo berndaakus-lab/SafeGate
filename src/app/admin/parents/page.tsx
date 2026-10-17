@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import AddParentForm from "./AddParentForm";
 import AddChildInline from "./AddChildInline";
 import EditParentModal from "./EditParentModal";
+import StudentPhotoButton from "@/components/StudentPhotoButton";
 import Link from "next/link";
 import { GraduationCap, Upload, UserPlus, Users, MessageSquareOff } from "lucide-react";
 import { Badge, EmptyState, InfoNote, PageHeader, Section, btnPrimary, btnSecondary } from "@/components/ui";
@@ -14,13 +15,14 @@ export default async function ParentsPage() {
 
   const { data: parents } = await supabaseAdmin
     .from("parents")
-    .select("id, name, email, login_phone, phone, students(id, name, class_name)")
+    .select("id, name, email, login_phone, phone, students(id, name, class_name, photo_url)")
     .eq("school_id", schoolId)
     .order("name");
 
   const list = parents ?? [];
   const childCount = list.reduce((n: number, p: any) => n + (p.students?.length ?? 0), 0);
   const noSms = list.filter((p: any) => !p.phone).length;
+  const noPhoto = list.reduce((n: number, p: any) => n + (p.students ?? []).filter((s: any) => !s.photo_url).length, 0);
 
   return (
     <div className="p-6 max-w-3xl">
@@ -44,6 +46,15 @@ export default async function ParentsPage() {
           <Badge tone="blue">{list.length} parent{list.length === 1 ? "" : "s"}</Badge>
           <Badge tone="green">{childCount} child{childCount === 1 ? "" : "ren"}</Badge>
           {noSms > 0 && <Badge tone="red">{noSms} without an SMS number</Badge>}
+          {noPhoto > 0 && <Badge tone="amber">{noPhoto} child{noPhoto === 1 ? "" : "ren"} without a photo</Badge>}
+        </div>
+      )}
+
+      {noPhoto > 0 && (
+        <div className="mb-4">
+          <InfoNote>
+            Parents can add their own children&apos;s photos in the app (My Children), so you don&apos;t have to. You&apos;ll see every photo here and can change any of them.
+          </InfoNote>
         </div>
       )}
 
@@ -98,12 +109,25 @@ export default async function ParentsPage() {
                 </div>
 
                 {kids.length > 0 && (
-                  <div className="px-5 sm:px-6 pb-4 flex flex-wrap gap-2 sm:pl-20">
+                  <div className="px-5 sm:px-6 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:pl-20">
                     {kids.map((s: any) => (
-                      <span key={s.id} className="inline-flex items-center gap-1.5 text-sm bg-slate-100 text-slate-700 px-3 py-1.5 rounded-full">
-                        <GraduationCap className="w-4 h-4 text-slate-500" />
-                        {s.name}{s.class_name ? ` · ${s.class_name}` : ""}
-                      </span>
+                      <div key={s.id} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5">
+                        <StudentPhotoButton
+                          studentId={s.id}
+                          name={s.name}
+                          photoUrl={s.photo_url ?? null}
+                          endpoint="/api/admin/student-photo"
+                          size="sm"
+                        />
+                        <div className="min-w-0 ml-auto text-right">
+                          <p className="text-sm font-semibold text-slate-900 truncate">{s.name}</p>
+                          {s.class_name && (
+                            <p className="text-xs text-slate-500 inline-flex items-center gap-1">
+                              <GraduationCap className="w-3.5 h-3.5" /> {s.class_name}
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}

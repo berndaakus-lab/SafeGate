@@ -19,7 +19,7 @@ export default async function GeneratePage() {
         title="Generate Pickup QR"
         subtitle="Make a one-time QR code for today's pickup, then send it to the person collecting."
       />
-      <GenerateForm children={children ?? []} authorizedPeople={authorizedPeople ?? []} />
+      <GenerateForm students={children ?? []} authorizedPeople={authorizedPeople ?? []} />
     </div>
   );
 }

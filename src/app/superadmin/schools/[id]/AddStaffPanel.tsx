@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Plus, X } from "lucide-react";
+import PasswordInput from "@/components/PasswordInput";
 import FieldError, { readApiErrors, withErrorRing, type FieldErrors } from "@/components/FieldError";
 
 const roles = [
@@ -111,7 +112,7 @@ export default function AddStaffPanel({ schoolId }: { schoolId: string }) {
       </div>
 
       <div>
-        <p className="text-xs font-medium text-slate-500">Sign-in details (at least one)</p>
+        <p className="text-xs font-medium text-slate-500">Sign-in details (email optional, at least one)</p>
         <div className="grid grid-cols-1 gap-2 mt-1">
           <div>
             <input type="email" aria-label="Email" autoCapitalize="none" value={form.email}
@@ -130,7 +131,7 @@ export default function AddStaffPanel({ schoolId }: { schoolId: string }) {
 
       <div>
         <label htmlFor="sa-password" className="block text-xs font-medium text-slate-500 mb-1">Temporary password</label>
-        <input id="sa-password" type="password" value={form.password} onChange={(e) => set("password", e.target.value)}
+        <PasswordInput id="sa-password" value={form.password} onChange={(e) => set("password", e.target.value)}
           placeholder="At least 8 characters" className={withErrorRing(inputClass, !!fieldErrors.password)} />
         <FieldError message={fieldErrors.password} />
       </div>

@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
     email,
     login_phone: loginPhone,
     password: await bcrypt.hash(password, 12),
+    must_change_password: true,
     role,
     school_id: schoolId,
   });

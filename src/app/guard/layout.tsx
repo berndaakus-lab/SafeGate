@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import SessionProvider from "@/components/SessionProvider";
 import { supabaseAdmin } from "@/lib/supabase";
 import { scheduleBackgroundJobs } from "@/lib/jobs";
+import { requirePasswordChanged } from "@/lib/force-password";
 
 export default async function GuardLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
@@ -16,6 +17,7 @@ export default async function GuardLayout({ children }: { children: React.ReactN
     redirect(`/login?reason=role&for=scanner&as=${role}`);
   }
 
+  await requirePasswordChanged(session);
   scheduleBackgroundJobs();
 
   const schoolId = (session.user as any)?.schoolId;
