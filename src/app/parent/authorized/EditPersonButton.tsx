@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Pencil, X } from "lucide-react";
 import { inputBase, labelBase } from "@/components/ui";
+import PhotoField from "@/components/PhotoField";
 
 const relations = ["Parent", "Uncle", "Aunt", "Grandparent", "Driver", "Sibling", "Family Friend", "Other"];
 
@@ -11,7 +12,7 @@ export default function EditPersonButton({
   person,
   nameLocked,
 }: {
-  person: { id: string; name: string; phone: string | null; relation: string | null };
+  person: { id: string; name: string; phone: string | null; relation: string | null; vehicle_number: string | null; photo_url: string | null };
   nameLocked: boolean;
 }) {
   const router = useRouter();
@@ -19,6 +20,9 @@ export default function EditPersonButton({
   const [name, setName] = useState(person.name);
   const [phone, setPhone] = useState(person.phone ?? "");
   const [relation, setRelation] = useState(person.relation ?? "");
+  const [vehicleNumber, setVehicleNumber] = useState(person.vehicle_number ?? "");
+  // undefined = keep the saved photo, null = remove it, text = a newly cropped photo
+  const [photoData, setPhotoData] = useState<string | null | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -28,6 +32,8 @@ export default function EditPersonButton({
     setName(person.name);
     setPhone(person.phone ?? "");
     setRelation(person.relation ?? "");
+    setVehicleNumber(person.vehicle_number ?? "");
+    setPhotoData(undefined);
     setError("");
     setOpen(true);
   }
@@ -39,7 +45,7 @@ export default function EditPersonButton({
     const res = await fetch("/api/parent/authorized", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: person.id, name, phone, relation }),
+      body: JSON.stringify({ id: person.id, name, phone, relation, vehicleNumber, ...(photoData !== undefined ? { photoData } : {}) }),
     });
     setLoading(false);
     if (!res.ok) {
@@ -68,6 +74,7 @@ export default function EditPersonButton({
               </button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
+              <PhotoField label="Add their photo" preview={photoData === undefined ? person.photo_url : photoData} onChange={setPhotoData} />
               <div>
                 <label htmlFor={`ep-name-${person.id}`} className={labelBase}>Full name</label>
                 <input id={`ep-name-${person.id}`} value={name} onChange={(e) => setName(e.target.value)}
@@ -91,6 +98,13 @@ export default function EditPersonButton({
                   {options.map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
+              {relation === "Driver" && (
+                <div>
+                  <label htmlFor={`ep-car-${person.id}`} className={labelBase}>Car number</label>
+                  <input id={`ep-car-${person.id}`} value={vehicleNumber} onChange={(e) => setVehicleNumber(e.target.value)}
+                    autoCapitalize="characters" maxLength={20} placeholder="e.g. GR 1234-24" className={inputBase} />
+                </div>
+              )}
               {error && <div role="alert" className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl border border-red-100">{error}</div>}
               <div className="flex gap-3">
                 <button type="button" onClick={() => setOpen(false)}
