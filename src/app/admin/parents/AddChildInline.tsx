@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, Loader2, Camera, Check } from "lucide-react";
 import PhotoCropper from "@/components/PhotoCropper";
 import ClassSelect from "@/components/ClassSelect";
+import PickStudent from "./PickStudent";
 import { btnPrimary, btnSecondary, btnSmall, inputBase } from "@/components/ui";
 
 export default function AddChildInline({
@@ -21,6 +22,8 @@ export default function AddChildInline({
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
+  // "pick" = choose from the school's student list; "new" = type a child who isn't on it
+  const [mode, setMode] = useState<"pick" | "new">("pick");
   const [name, setName] = useState("");
   const [className, setClassName] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -38,6 +41,7 @@ export default function AddChildInline({
 
   function reset() {
     setOpen(false);
+    setMode("pick");
     setName("");
     setClassName("");
     setPhotoPreview(null);
@@ -45,28 +49,40 @@ export default function AddChildInline({
     setError("");
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function submit(allowDuplicate = false) {
     setError("");
     setLoading(true);
 
     const res = await fetch("/api/admin/add-student", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, className, parentId, schoolId, photoData }),
+      body: JSON.stringify({ name, className, parentId, schoolId, photoData, allowDuplicate }),
     });
 
     setLoading(false);
+    const d = await res.json().catch(() => ({}));
+    if (res.status === 409 && d.code === "duplicate") {
+      if (window.confirm(d.error)) await submit(true);
+      return;
+    }
     if (!res.ok) {
-      const d = await res.json().catch(() => ({}));
       setError(d.error || "Failed to add child.");
       return;
     }
 
+    done();
+  }
+
+  function done() {
     setSuccess(true);
     reset();
     setTimeout(() => setSuccess(false), 3000);
     router.refresh();
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    submit();
   }
 
   return (
@@ -93,6 +109,17 @@ export default function AddChildInline({
           <Plus className="w-4 h-4" />
           Add child
         </button>
+      ) : mode === "pick" ? (
+        <div className="space-y-3">
+          <p className="text-sm font-semibold text-slate-800">Pick {parentName.split(" ")[0]}&apos;s child from your student list</p>
+          <PickStudent parentId={parentId} parentName={parentName} onLinked={done} onNone={() => setMode("new")} />
+          <div className="flex flex-wrap gap-3 items-center">
+            <button type="button" onClick={() => setMode("new")} className="text-sm font-semibold text-blue-700 hover:underline">
+              Not on the list? Add a new child
+            </button>
+            <button type="button" onClick={reset} className={btnSecondary}>Cancel</button>
+          </div>
+        </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="flex items-start gap-3 flex-wrap">
@@ -163,6 +190,9 @@ export default function AddChildInline({
             </button>
             <button type="button" onClick={reset} className={btnSecondary}>
               Cancel
+            </button>
+            <button type="button" onClick={() => setMode("pick")} className="text-sm font-semibold text-blue-700 hover:underline px-2">
+              Pick from the student list instead
             </button>
           </div>
         </form>

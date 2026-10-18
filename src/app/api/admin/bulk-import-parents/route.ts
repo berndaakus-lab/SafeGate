@@ -6,6 +6,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { fieldErrorResponse, parseBody, type FieldErrors } from "@/lib/validate";
 import { escapeLike, findLoginConflict, newPassword, optionalEmail, optionalPhone } from "@/lib/identity";
 import { ensureClass, getSchoolClasses } from "@/lib/school-classes";
+import { cleanName, findSameStudents } from "@/lib/students";
 import bcrypt from "bcryptjs";
 
 // One CSV row: a parent (new or existing) plus optionally one child.
@@ -47,6 +48,18 @@ export async function POST(req: NextRequest) {
     // Checked before anything is created so a bad class never leaves a parent half-imported
     const resolvedClass = await ensureClass(schoolId, childClass, await getSchoolClasses(schoolId));
     if ("error" in resolvedClass) return fieldErrorResponse({ childClass: resolvedClass.error });
+
+    // A child already on the school's student list (not yet linked to a parent)
+    // is linked instead of duplicated. If the name is ambiguous, stop before
+    // anything is created so the row can be fixed or linked by hand.
+    const rollMatches = childName
+      ? (await findSameStudents(schoolId, childName, resolvedClass.id ?? undefined)).filter((s) => !s.parent_id)
+      : [];
+    if (rollMatches.length > 1) {
+      return fieldErrorResponse({
+        childName: `More than one "${cleanName(childName!)}" is on your student list. Add the class to this row, or link the right one from the Parents page.`,
+      });
+    }
 
     let parent: { id: string } | null = null;
     if (email) {
@@ -99,6 +112,7 @@ export async function POST(req: NextRequest) {
     // add the same child twice.
     let childAdded = false;
     let childExisted = false;
+    let childLinked = false;
     if (childName) {
       const { data: existingChild } = await supabaseAdmin
         .from("students")
@@ -108,6 +122,21 @@ export async function POST(req: NextRequest) {
         .limit(1);
       if (existingChild?.length) {
         childExisted = true;
+      } else if (rollMatches.length === 1) {
+        const { data: linked, error: linkError } = await supabaseAdmin
+          .from("students")
+          .update({ parent_id: parent!.id })
+          .eq("id", rollMatches[0].id)
+          .eq("school_id", schoolId)
+          .is("parent_id", null)
+          .select("id");
+        if (linkError) return NextResponse.json({ error: linkError.message }, { status: 500 });
+        if (linked?.length) {
+          childAdded = true;
+          childLinked = true;
+        } else {
+          childExisted = true;
+        }
       } else {
         const { error: childError } = await supabaseAdmin.from("students").insert({
           name: childName,
@@ -121,7 +150,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ ok: true, parentCreated, childAdded, childExisted });
+    return NextResponse.json({ ok: true, parentCreated, childAdded, childExisted, childLinked });
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

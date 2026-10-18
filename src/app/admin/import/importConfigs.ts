@@ -1,4 +1,4 @@
-export type ImportKind = "parents" | "staff";
+export type ImportKind = "parents" | "staff" | "students";
 export type RowValues = Record<string, string>;
 
 export type RowOutcome = {
@@ -50,6 +50,7 @@ Kwame Asante,,0277654321,0277654321,Parent@2025,Yaw Asante,Primary 5`,
     notes: [
       "Parents who already have an account only need their email or login phone plus the child. Their saved details won't change.",
       "Re-uploading the same file is safe. Parents and children already added are skipped, not duplicated.",
+      "If a child is already on your student list and not yet linked, the row links that child instead of adding a second one. It matches on name and class; leave the class empty to match on name alone.",
     ],
     aliases: {
       name: "parent_name",
@@ -98,7 +99,7 @@ Kwame Asante,,0277654321,0277654321,Parent@2025,Yaw Asante,Primary 5`,
       const nothingNew = !data.parentCreated && !data.childAdded;
       const parts = [
         data.parentCreated ? "Parent created" : "Existing parent",
-        data.childAdded ? "child added" : data.childExisted ? "child already added" : null,
+        data.childLinked ? "child linked from your student list" : data.childAdded ? "child added" : data.childExisted ? "child already added" : null,
       ].filter(Boolean);
       return {
         status: nothingNew ? "skipped" : "ok",
@@ -114,6 +115,46 @@ Kwame Asante,,0277654321,0277654321,Parent@2025,Yaw Asante,Primary 5`,
       title: r.parent_name,
       detail: r.parent_email || r.parent_login_phone || "no email or phone",
       sub: r.child_name ? `Child: ${r.child_name}${r.child_class ? ` · ${r.child_class}` : ""}` : undefined,
+    }),
+  },
+
+  students: {
+    templateFile: "verifygate-students-template.csv",
+    template: `student_name,student_class
+Kofi Mensah,Primary 3
+Ama Mensah,Primary 1
+Yaw Asante,Primary 5`,
+    intro:
+      "Add your school's student list from one spreadsheet, one student per row. Link each child to a parent afterwards from the Parents page, or let the parents spreadsheet do it.",
+    columns: [
+      { name: "student_name", when: "Always", note: "The child's full name." },
+      { name: "student_class", when: "Optional", note: "Your school's own class name, e.g. Primary 3, 3A or Adehye Class. A new name is added to your classes automatically; capital letters and spacing don't matter." },
+    ],
+    notes: [
+      "Re-uploading the same file is safe. A student with the same name and class is skipped, not added twice.",
+      "Two different children can share a name if they are in different classes.",
+    ],
+    aliases: {
+      name: "student_name",
+      child_name: "student_name",
+      child: "student_name",
+      student: "student_name",
+      full_name: "student_name",
+      class: "student_class",
+      child_class: "student_class",
+      grade: "student_class",
+    },
+    endpoint: "/api/admin/bulk-import-students",
+    toBody: (r, schoolId) => ({ schoolId, studentName: r.student_name, studentClass: r.student_class }),
+    fieldToColumn: { studentName: "student_name", studentClass: "student_class" },
+    interpret: (data) =>
+      data.created
+        ? { status: "ok", message: "Student added", tally: ["students"] }
+        : { status: "skipped", message: "Already on your student list (nothing to change)", tally: [] },
+    summary: [{ key: "students", label: "Students added" }],
+    rowTitle: (r) => ({
+      title: r.student_name,
+      detail: r.student_class || "no class",
     }),
   },
 

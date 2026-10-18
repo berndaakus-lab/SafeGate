@@ -1,12 +1,13 @@
 import { getServerSession } from "next-auth";
 import Link from "next/link";
-import { CheckCircle2, UserCheck, Users } from "lucide-react";
+import { CheckCircle2, GraduationCap, UserCheck, Users } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import ImportClient from "./ImportClient";
 import type { ImportKind } from "./importConfigs";
 
 const TABS: { kind: ImportKind; label: string; desc: string; href: string; icon: typeof Users }[] = [
   { kind: "parents", label: "Parents & students", desc: "Parents with their children", href: "/admin/import", icon: Users },
+  { kind: "students", label: "Students", desc: "Your school's student list", href: "/admin/import?type=students", icon: GraduationCap },
   { kind: "staff", label: "Staff", desc: "Guards and on-duty teachers", href: "/admin/import?type=staff", icon: UserCheck },
 ];
 
@@ -14,14 +15,14 @@ export default async function ImportPage({ searchParams }: { searchParams: Promi
   const session = await getServerSession(authOptions);
   const schoolId = (session?.user as any)?.schoolId;
   const { type } = await searchParams;
-  const kind: ImportKind = type === "staff" ? "staff" : "parents";
+  const kind: ImportKind = type === "staff" ? "staff" : type === "students" ? "students" : "parents";
 
   return (
     <div className="p-6 max-w-4xl">
       <h1 className="text-2xl font-bold text-slate-900">Import</h1>
       <p className="text-slate-500 mt-1 mb-5">Choose what you want to add from a spreadsheet.</p>
 
-      <div role="tablist" aria-label="What to import" className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+      <div role="tablist" aria-label="What to import" className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
         {TABS.map((t) => {
           const active = kind === t.kind;
           const Icon = t.icon;

@@ -4,17 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { signOutUser } from "@/lib/sign-out";
-import { LayoutDashboard, Users, UserCheck, ClipboardList, LogOut, Settings, Upload, ScanLine } from "lucide-react";
+import { LayoutDashboard, Users, UserCheck, ClipboardList, LogOut, Settings, Upload, ScanLine, GraduationCap } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HomeLogoLink from "@/components/HomeLogoLink";
 import SchoolLogo from "@/components/SchoolLogo";
 
-const links: { href: string; label: string; short?: string; icon: LucideIcon }[] = [
+// mobileHidden keeps the phone's bottom bar to six tabs; those pages are still reached from buttons on related pages
+const links: { href: string; label: string; short?: string; icon: LucideIcon; mobileHidden?: boolean }[] = [
   { href: "/admin/dashboard", label: "Dashboard", short: "Home", icon: LayoutDashboard },
   { href: "/admin/staff", label: "Staff", icon: UserCheck },
   { href: "/admin/parents", label: "Parents", icon: Users },
-  { href: "/admin/import", label: "Import", icon: Upload },
+  { href: "/admin/students", label: "Students", icon: GraduationCap },
+  { href: "/admin/import", label: "Import", icon: Upload, mobileHidden: true },
   { href: "/admin/logs", label: "Logs", icon: ClipboardList },
   { href: "/admin/account", label: "Account", icon: Settings },
 ];
@@ -98,7 +100,7 @@ export default function AdminNav({ schoolLogoUrl }: { schoolLogoUrl: string | nu
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex z-50 safe-area-pb">
-        {links.map(({ href, label, short, icon: Icon }) => (
+        {links.filter((l) => !l.mobileHidden).map(({ href, label, short, icon: Icon }) => (
           <Link
             key={href}
             href={href}

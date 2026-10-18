@@ -9,6 +9,7 @@ import MoveClassesPanel from "./MoveClassesPanel";
 import ArchivedChildren from "./ArchivedChildren";
 import CorrectionRequests from "./CorrectionRequests";
 import ClassesPanel from "./ClassesPanel";
+import ParentsList from "./ParentsList";
 import { getSchoolClasses } from "@/lib/school-classes";
 import StudentPhotoButton from "@/components/StudentPhotoButton";
 import Link from "next/link";
@@ -136,12 +137,15 @@ export default async function ParentsPage() {
           />
         </div>
       ) : (
-        <div className="space-y-4 mb-8">
-          {list.map((parent: any) => {
+        <ParentsList
+          items={list.map((parent: any) => {
             const kids = parent.students ?? [];
-            return (
-              <div key={parent.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="flex items-start gap-4 px-5 sm:px-6 py-4">
+            return {
+              id: parent.id as string,
+              search: [parent.name, parent.email, parent.login_phone, parent.phone, ...kids.map((k: any) => k.name), ...parent.archived.map((k: any) => k.name)]
+                .filter(Boolean).join(" ").toLowerCase(),
+              header: (
+                <>
                   <div className="w-11 h-11 bg-purple-100 rounded-full flex items-center justify-center font-bold text-purple-700 shrink-0">
                     {parent.name[0].toUpperCase()}
                   </div>
@@ -159,10 +163,14 @@ export default async function ParentsPage() {
                       ) : (
                         <Badge tone="red"><MessageSquareOff className="w-3 h-3" /> No SMS number</Badge>
                       )}
+                      {kids.some((k: any) => !k.photo_url) && <Badge tone="amber">Photo missing</Badge>}
                     </div>
                   </div>
-                  <EditParentModal parent={parent} />
-                </div>
+                </>
+              ),
+              action: <EditParentModal parent={parent} />,
+              body: (
+              <>
 
                 {kids.length > 0 && (
                   <div className="px-5 sm:px-6 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:pl-20">
@@ -198,10 +206,11 @@ export default async function ParentsPage() {
                 <div className="border-t border-slate-100 px-5 sm:px-6 py-3 bg-slate-50/60">
                   <AddChildInline parentId={parent.id} schoolId={schoolId} parentName={parent.name} levels={levels} />
                 </div>
-              </div>
-            );
+              </>
+              ),
+            };
           })}
-        </div>
+        />
       )}
 
       <Section
