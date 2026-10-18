@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Camera, Loader2, Trash2 } from "lucide-react";
 import PhotoCropper from "@/components/PhotoCropper";
+import PhotoSourceSheet from "@/components/PhotoSourceSheet";
 
 /**
  * A child's photo with add/change/remove. Used by the school admin (Parents
@@ -24,11 +25,11 @@ export default function StudentPhotoButton({
   size?: "sm" | "md";
 }) {
   const router = useRouter();
-  const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [current, setCurrent] = useState(photoUrl);
   const [pending, setPending] = useState<File | null>(null);
+  const [choosing, setChoosing] = useState(false);
 
   const box = size === "sm" ? "w-12 h-12" : "w-16 h-16";
   const px = size === "sm" ? 48 : 64;
@@ -56,10 +57,7 @@ export default function StudentPhotoButton({
     }
   }
 
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
+  function handleFile(file: File) {
     if (!file.type.startsWith("image/")) {
       setError("Choose a photo (JPG or PNG).");
       return;
@@ -80,10 +78,18 @@ export default function StudentPhotoButton({
           }}
         />
       )}
-      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+      {choosing && (
+        <PhotoSourceSheet
+          onCancel={() => setChoosing(false)}
+          onFile={(file) => {
+            setChoosing(false);
+            handleFile(file);
+          }}
+        />
+      )}
       <button
         type="button"
-        onClick={() => fileRef.current?.click()}
+        onClick={() => setChoosing(true)}
         disabled={busy}
         aria-label={current ? `Change ${name}'s photo` : `Add a photo of ${name}`}
         className={`relative ${box} rounded-full overflow-hidden shrink-0 bg-blue-100 flex items-center justify-center group disabled:opacity-70`}
@@ -105,7 +111,7 @@ export default function StudentPhotoButton({
       <div className="flex flex-col items-start gap-1">
         <button
           type="button"
-          onClick={() => fileRef.current?.click()}
+          onClick={() => setChoosing(true)}
           disabled={busy}
           className="text-sm font-semibold text-blue-700 hover:underline disabled:opacity-60"
         >

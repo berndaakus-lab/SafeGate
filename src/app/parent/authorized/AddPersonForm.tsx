@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Plus } from "lucide-react";
+import PhotoField from "@/components/PhotoField";
+import { inputBase, labelBase } from "@/components/ui";
 
 const relations = ["Parent", "Uncle", "Aunt", "Grandparent", "Driver", "Sibling", "Family Friend", "Other"];
 
@@ -11,25 +13,35 @@ export default function AddPersonForm({ parentId }: { parentId: string }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [relation, setRelation] = useState("");
+  const [vehicleNumber, setVehicleNumber] = useState("");
+  const [photoData, setPhotoData] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [vehicleError, setVehicleError] = useState("");
   const [success, setSuccess] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setVehicleError("");
+    if (relation === "Driver" && !vehicleNumber.trim()) {
+      setVehicleError("Enter the car number for a driver.");
+      return;
+    }
     setLoading(true);
 
     const res = await fetch("/api/parent/authorized", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, phone, relation, parentId }),
+      body: JSON.stringify({ name, phone, relation, parentId, vehicleNumber, photoData }),
     });
 
     setLoading(false);
 
     if (!res.ok) {
-      setError("Failed to add person. Please try again.");
+      const d = await res.json().catch(() => ({}));
+      if (d.fields?.vehicleNumber) setVehicleError(d.fields.vehicleNumber);
+      else setError(d.error || "Failed to add person. Please try again.");
       return;
     }
 
@@ -37,44 +49,33 @@ export default function AddPersonForm({ parentId }: { parentId: string }) {
     setName("");
     setPhone("");
     setRelation("");
+    setVehicleNumber("");
+    setPhotoData(null);
     setTimeout(() => setSuccess(false), 3000);
     router.refresh();
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <PhotoField label="Add their photo" preview={photoData} onChange={setPhotoData}
+        initial="A clear photo helps the guard recognise them at the gate." />
+
       <div>
-        <label className="block text-sm font-semibold text-slate-800 mb-1.5">
+        <label htmlFor="ap-name" className={labelBase}>
           Full name <span className="text-red-500">*</span>
         </label>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          placeholder="e.g. Kofi Mensah"
-          className="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
+        <input id="ap-name" value={name} onChange={(e) => setName(e.target.value)} required placeholder="e.g. Kofi Mensah" className={inputBase} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-slate-800 mb-1.5">Phone number</label>
-          <input
-            type="tel"
-            inputMode="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="e.g. 0244123456"
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+          <label htmlFor="ap-phone" className={labelBase}>Phone number</label>
+          <input id="ap-phone" type="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
+            placeholder="e.g. 0244123456" className={inputBase} />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-slate-800 mb-1.5">Relationship</label>
-          <select
-            value={relation}
-            onChange={(e) => setRelation(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-          >
+          <label htmlFor="ap-relation" className={labelBase}>Relationship</label>
+          <select id="ap-relation" value={relation} onChange={(e) => { setRelation(e.target.value); setVehicleError(""); }} className={inputBase}>
             <option value="">Select...</option>
             {relations.map((r) => (
               <option key={r} value={r}>{r}</option>
@@ -83,11 +84,24 @@ export default function AddPersonForm({ parentId }: { parentId: string }) {
         </div>
       </div>
 
+      {relation === "Driver" && (
+        <div>
+          <label htmlFor="ap-car" className={labelBase}>
+            Car number <span className="text-red-500">*</span>
+          </label>
+          <input id="ap-car" value={vehicleNumber} onChange={(e) => { setVehicleNumber(e.target.value); setVehicleError(""); }}
+            autoCapitalize="characters" maxLength={20} placeholder="e.g. GR 1234-24"
+            className={`${inputBase} ${vehicleError ? "border-red-400 ring-1 ring-red-300" : ""}`} />
+          {vehicleError && <p role="alert" className="text-xs font-medium text-red-600 mt-1.5">{vehicleError}</p>}
+          <p className="text-xs text-slate-500 mt-1.5">The guard sees this so they can match the car at the gate.</p>
+        </div>
+      )}
+
       {error && (
-        <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl border border-red-100">{error}</div>
+        <div role="alert" className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl border border-red-100">{error}</div>
       )}
       {success && (
-        <div className="bg-green-50 text-green-700 text-sm px-4 py-3 rounded-xl border border-green-100">
+        <div role="status" className="bg-green-50 text-green-700 text-sm px-4 py-3 rounded-xl border border-green-100">
           Person added successfully!
         </div>
       )}

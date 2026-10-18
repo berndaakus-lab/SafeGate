@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { loadPickupCode } from "@/lib/pickup-codes";
 import { authOptions } from "@/lib/auth";
 import ConfirmPickup from "./ConfirmPickup";
-import { Clock, XCircle, ShieldAlert } from "lucide-react";
+import { Clock, XCircle, ShieldAlert, Car } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatTime } from "@/lib/utils";
@@ -104,8 +104,12 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
               <div className="bg-slate-800 rounded-2xl p-5 mb-4">
                 <p className="text-xs text-slate-500 uppercase tracking-widest mb-3">Authorized to Collect</p>
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-purple-600/20 rounded-full flex items-center justify-center text-2xl font-bold text-purple-400 shrink-0">
-                    {person?.name?.[0]?.toUpperCase()}
+                  <div className="w-20 h-20 bg-purple-600/20 rounded-full overflow-hidden flex items-center justify-center text-2xl font-bold text-purple-400 shrink-0">
+                    {person?.photo_url ? (
+                      <Image src={person.photo_url} alt={person.name} width={80} height={80} className="w-full h-full object-cover" />
+                    ) : (
+                      person?.name?.[0]?.toUpperCase()
+                    )}
                   </div>
                   <div className="min-w-0">
                     <p className="text-xl font-bold text-white">{person?.name}</p>
@@ -113,6 +117,11 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
                       {person?.relation && <p className="text-slate-400 text-sm">{person.relation}</p>}
                       {person?.phone && <p className="text-slate-400 text-sm">{person.phone}</p>}
                     </div>
+                    {person?.vehicle_number && (
+                      <p className="inline-flex items-center gap-1.5 mt-1.5 text-sm font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg px-2.5 py-1">
+                        <Car className="w-4 h-4" /> {person.vehicle_number}
+                      </p>
+                    )}
                     <p className="text-slate-500 text-xs mt-1">Parent: {pickupCode.parent?.name}</p>
                   </div>
                 </div>

@@ -20,7 +20,7 @@ function asArray<T>(v: T | T[] | null | undefined): T[] {
 export async function loadPickupCode(filter: { code: string } | { id: string }) {
   let q = supabaseAdmin.from("pickup_codes").select(`
     id, code, expires_at, used_at, parent_id, student_id, student_ids, authorized_person_id,
-    authorized_persons(name, phone, relation),
+    authorized_persons(name, phone, relation, photo_url, vehicle_number),
     parents(name, phone),
     pickup_logs(student_id, picked_up_at, confirmed_by_name)
   `);
@@ -62,7 +62,9 @@ export async function loadPickupCode(filter: { code: string } | { id: string }) 
       expiresAt: pc.expires_at as string,
       parentId: pc.parent_id as string,
       authorizedPersonId: pc.authorized_person_id as string,
-      authorizedPerson: asArray(pc.authorized_persons as any)[0] as { name: string; phone: string | null; relation: string | null } | undefined,
+      authorizedPerson: asArray(pc.authorized_persons as any)[0] as
+        | { name: string; phone: string | null; relation: string | null; photo_url: string | null; vehicle_number: string | null }
+        | undefined,
       parent: asArray(pc.parents as any)[0] as { name: string; phone: string | null } | undefined,
     },
     children,

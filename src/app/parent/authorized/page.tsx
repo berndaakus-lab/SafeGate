@@ -4,7 +4,8 @@ import { supabaseAdmin } from "@/lib/supabase";
 import AddPersonForm from "./AddPersonForm";
 import EditPersonButton from "./EditPersonButton";
 import Link from "next/link";
-import { Phone, Heart, UserPlus, UserCheck, QrCode } from "lucide-react";
+import Image from "next/image";
+import { Phone, Heart, UserPlus, UserCheck, QrCode, Car } from "lucide-react";
 import { Badge, EmptyState, InfoNote, PageHeader, Section, btnPrimary, btnSecondary } from "@/components/ui";
 
 export default async function AuthorizedPage() {
@@ -52,14 +53,23 @@ export default async function AuthorizedPage() {
             <div className="divide-y divide-slate-100">
               {list.map((person: any) => (
                 <div key={person.id} className="flex items-center gap-4 px-5 sm:px-6 py-4">
-                  <div className="w-11 h-11 bg-purple-100 rounded-full flex items-center justify-center font-bold text-purple-700 shrink-0">
-                    {person.name[0].toUpperCase()}
+                  <div className="relative w-12 h-12 bg-purple-100 rounded-full overflow-hidden flex items-center justify-center font-bold text-purple-700 shrink-0">
+                    {person.photo_url ? (
+                      <Image src={person.photo_url} alt={person.name} width={48} height={48} className="w-full h-full object-cover" />
+                    ) : (
+                      person.name[0].toUpperCase()
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-slate-900">{person.name}</p>
                     <div className="flex flex-wrap items-center gap-2 mt-1">
                       {person.relation && (
                         <Badge tone="purple"><Heart className="w-3 h-3" /> {person.relation}</Badge>
+                      )}
+                      {person.vehicle_number && (
+                        <span className="text-sm text-slate-600 inline-flex items-center gap-1">
+                          <Car className="w-3.5 h-3.5" /> {person.vehicle_number}
+                        </span>
                       )}
                       {person.phone && (
                         <span className="text-sm text-slate-600 inline-flex items-center gap-1">

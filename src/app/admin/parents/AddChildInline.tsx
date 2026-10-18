@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Loader2, Camera, Check } from "lucide-react";
 import PhotoCropper from "@/components/PhotoCropper";
 import ClassSelect from "@/components/ClassSelect";
 import PickStudent from "./PickStudent";
+import PhotoSourceSheet from "@/components/PhotoSourceSheet";
 import { btnPrimary, btnSecondary, btnSmall, inputBase } from "@/components/ui";
 
 export default function AddChildInline({
@@ -20,7 +21,6 @@ export default function AddChildInline({
   levels: string[];
 }) {
   const router = useRouter();
-  const fileRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   // "pick" = choose from the school's student list; "new" = type a child who isn't on it
   const [mode, setMode] = useState<"pick" | "new">("pick");
@@ -29,15 +29,10 @@ export default function AddChildInline({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoData, setPhotoData] = useState<string | null>(null);
   const [pending, setPending] = useState<File | null>(null);
+  const [choosing, setChoosing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
-
-  function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (file) setPending(file);
-  }
 
   function reset() {
     setOpen(false);
@@ -87,6 +82,9 @@ export default function AddChildInline({
 
   return (
     <div>
+      {choosing && (
+        <PhotoSourceSheet onCancel={() => setChoosing(false)} onFile={(file) => { setChoosing(false); setPending(file); }} />
+      )}
       {pending && (
         <PhotoCropper
           file={pending}
@@ -125,16 +123,9 @@ export default function AddChildInline({
           <div className="flex items-start gap-3 flex-wrap">
             {/* Photo picker */}
             <div className="shrink-0">
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handlePhoto}
-              />
               <button
                 type="button"
-                onClick={() => fileRef.current?.click()}
+                onClick={() => setChoosing(true)}
                 aria-label="Add child photo"
                 className="relative w-16 h-16 rounded-xl border-2 border-dashed border-blue-300 hover:border-blue-500 transition-colors flex flex-col items-center justify-center gap-0.5 bg-white overflow-hidden"
               >
