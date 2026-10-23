@@ -6,6 +6,8 @@ export type RowOutcome = {
   message: string;
   /** Summary counters this row adds to, e.g. ["parents", "children"] */
   tally: string[];
+  /** A password the system made for this row. Shown to the admin once, never stored in readable form. */
+  credential?: { password: string; name: string | null };
 };
 
 export type ImportConfig = {
@@ -27,6 +29,9 @@ export type ImportConfig = {
   interpret: (data: any) => RowOutcome;
   summary: { key: string; label: string }[];
   rowTitle: (r: RowValues) => { title: string; detail: string; sub?: string };
+  /** Columns of the downloadable list of generated passwords */
+  credentialHead?: string[];
+  credentialRow?: (r: RowValues, c: { password: string; name: string | null }) => string[];
 };
 
 export const IMPORT_CONFIGS: Record<ImportKind, ImportConfig> = {
@@ -43,7 +48,7 @@ Kwame Asante,,0277654321,0277654321,Parent@2025,Yaw Asante,Primary 5`,
       { name: "parent_email", when: "Email or login phone", note: "What the parent signs in with. Fill in one or both." },
       { name: "parent_login_phone", when: "Email or login phone", note: "Any format works: 0244123456, 233244123456, +233 24 412 3456." },
       { name: "parent_phone", when: "Optional", note: "Where pickup SMS alerts go. Can be the same as the login phone." },
-      { name: "default_password", when: "New parents", note: "At least 8 characters. Share it with the parent." },
+      { name: "default_password", when: "Optional", note: "Leave it empty and a different random password is made for each new parent. You download the list after the import and give each parent only their own. Or type one (8 characters or more)." },
       { name: "child_name", when: "Optional", note: "One child per row. Repeat the parent on another row for more children." },
       { name: "child_class", when: "Optional", note: "Your school's own class name, e.g. Primary 3, 3A or Adehye Class. A new name is added to your classes automatically; capital letters and spacing don't matter." },
     ],
@@ -105,6 +110,7 @@ Kwame Asante,,0277654321,0277654321,Parent@2025,Yaw Asante,Primary 5`,
         status: nothingNew ? "skipped" : "ok",
         message: parts.join(", ") + (nothingNew ? " (nothing to change)" : ""),
         tally: [...(data.parentCreated ? ["parents"] : []), ...(data.childAdded ? ["children"] : [])],
+        credential: data.generatedPassword ? { password: data.generatedPassword, name: data.parentName ?? null } : undefined,
       };
     },
     summary: [
@@ -116,6 +122,8 @@ Kwame Asante,,0277654321,0277654321,Parent@2025,Yaw Asante,Primary 5`,
       detail: r.parent_email || r.parent_login_phone || "no email or phone",
       sub: r.child_name ? `Child: ${r.child_name}${r.child_class ? ` · ${r.child_class}` : ""}` : undefined,
     }),
+    credentialHead: ["Parent", "Signs in with", "Child", "Class", "Temporary password"],
+    credentialRow: (r, c) => [c.name ?? r.parent_name ?? "", r.parent_login_phone || r.parent_email || "", r.child_name ?? "", r.child_class ?? "", c.password],
   },
 
   students: {
@@ -171,7 +179,7 @@ Kofi Boateng,kofi@school.com,0277654321,teacher,Teacher@2026`,
       { name: "email", when: "Email or login phone", note: "What they sign in with. Fill in one or both." },
       { name: "login_phone", when: "Email or login phone", note: "Any format works: 0244123456, 233244123456, +233 24 412 3456." },
       { name: "role", when: "Optional", note: "guard or teacher. Blank means guard. Teachers can scan pickups when on duty." },
-      { name: "default_password", when: "New staff", note: "At least 8 characters. Share it with them." },
+      { name: "default_password", when: "Optional", note: "Leave it empty and a different random password is made for each new person. You download the list after the import and give each person only their own. Or type one (8 characters or more)." },
     ],
     notes: [
       "Re-uploading the same file is safe. People already added (same email or login phone) are skipped, and their details aren't changed.",
@@ -203,7 +211,7 @@ Kofi Boateng,kofi@school.com,0277654321,teacher,Teacher@2026`,
     },
     interpret: (data) =>
       data.created
-        ? { status: "ok", message: "Staff account created", tally: ["staff"] }
+        ? { status: "ok", message: "Staff account created", tally: ["staff"], credential: data.generatedPassword ? { password: data.generatedPassword, name: null } : undefined }
         : { status: "skipped", message: "Already on your staff (nothing to change)", tally: [] },
     summary: [{ key: "staff", label: "Staff added" }],
     rowTitle: (r) => ({
@@ -211,5 +219,7 @@ Kofi Boateng,kofi@school.com,0277654321,teacher,Teacher@2026`,
       detail: r.email || r.login_phone || "no email or phone",
       sub: `Role: ${(r.role || "guard").toLowerCase()}`,
     }),
+    credentialHead: ["Name", "Role", "Signs in with", "Temporary password"],
+    credentialRow: (r, c) => [r.name ?? "", (r.role || "guard").toLowerCase(), r.login_phone || r.email || "", c.password],
   },
 };

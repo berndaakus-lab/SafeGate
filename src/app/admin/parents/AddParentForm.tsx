@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Plus } from "lucide-react";
 import PasswordInput from "@/components/PasswordInput";
+import { randomPassword } from "@/lib/passwords";
 import FieldError, { readApiErrors, withErrorRing, type FieldErrors } from "@/components/FieldError";
 
 const inputClass =
@@ -104,7 +105,12 @@ export default function AddParentForm({ schoolId }: { schoolId: string }) {
       </div>
 
       <div>
-        <label htmlFor="ap-password" className="block text-sm font-semibold text-slate-800 mb-1.5">Temporary password *</label>
+        <div className="flex items-center justify-between mb-1.5">
+          <label htmlFor="ap-password" className="block text-sm font-semibold text-slate-800">Temporary password *</label>
+          <button type="button" onClick={() => set("password", randomPassword())} className="text-xs font-medium text-blue-600 hover:underline">
+            Generate one (tap the eye to read it first)
+          </button>
+        </div>
         <PasswordInput id="ap-password" value={form.password} onChange={(e) => set("password", e.target.value)}
           placeholder="At least 8 characters. Share it with the parent."
           className={withErrorRing(inputClass, !!fieldErrors.password)} />

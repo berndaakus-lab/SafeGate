@@ -7,10 +7,11 @@ import { fieldErrorResponse, parseBody, type FieldErrors } from "@/lib/validate"
 import { escapeLike, findLoginConflict, newPassword, optionalEmail, optionalPhone } from "@/lib/identity";
 import { ensureClass, getSchoolClasses } from "@/lib/school-classes";
 import { cleanName, findSameStudents, placeholderParentName } from "@/lib/students";
+import { randomPassword } from "@/lib/passwords";
 import bcrypt from "bcryptjs";
 
 // One CSV row: a parent (new or existing) plus optionally one child.
-// New parents need a name and password; rows for a parent who already exists
+// New parents need a password (a random one is made if the row has none); rows for a parent who already exists
 // in this school only need their email or login phone, and never overwrite
 // that parent's saved details.
 const schema = z.object({
@@ -77,11 +78,15 @@ export async function POST(req: NextRequest) {
     const newParentName = parentName || placeholderParentName(childName);
 
     let parentCreated = false;
+    let generatedPassword: string | null = null;
     if (!parent) {
       const errors: FieldErrors = {};
       if (!newParentName) errors.parentName = "Enter the parent's name, or a child name so one can be made from the surname.";
-      const pw = newPassword.safeParse(password ?? "");
-      if (!pw.success) errors.password = password ? pw.error.issues[0].message : "Enter a password (needed for a new parent).";
+      // No password in the spreadsheet: make a different random one for this parent
+      const chosen = password || randomPassword();
+      const pw = newPassword.safeParse(chosen);
+      if (!pw.success) errors.password = pw.error.issues[0].message;
+      generatedPassword = password ? null : chosen;
       if (Object.keys(errors).length) return fieldErrorResponse(errors);
 
       const conflict = await findLoginConflict({ email, loginPhone });
@@ -153,7 +158,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ ok: true, parentCreated, childAdded, childExisted, childLinked });
+    // generatedPassword is shown to the admin once, right after the import; only its hash is kept
+    return NextResponse.json({ ok: true, parentCreated, childAdded, childExisted, childLinked, generatedPassword, parentName: parentCreated ? newParentName : null });
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
