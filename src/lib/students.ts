@@ -27,3 +27,12 @@ export async function findSameStudents(schoolId: string, name: string, classId?:
     return { id: s.id, name: s.name, parent_id: s.parent_id, parentName: parent?.name ?? null };
   });
 }
+
+/**
+ * A stand-in name for a parent the school only gave a child's name for:
+ * "Kofi Mensah" becomes "Mensah (parent)". The parent corrects it at first sign-in.
+ */
+export function placeholderParentName(childName: string | null | undefined): string | null {
+  const surname = cleanName(childName ?? "").split(" ").pop();
+  return surname ? `${surname} (parent)` : null;
+}

@@ -102,7 +102,13 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
+      // useSession().update() after a parent changes their name: re-read it from
+      // the database rather than trusting anything the browser sends
+      if (trigger === "update" && token.sub && token.role === "parent") {
+        const { data } = await supabaseAdmin.from("parents").select("name").eq("id", token.sub).maybeSingle();
+        if (data?.name) token.name = data.name;
+      }
       if (user) {
         token.role = (user as any).role;
         token.schoolId = (user as any).schoolId;

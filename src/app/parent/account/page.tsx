@@ -1,7 +1,8 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import ChangePasswordForm from "@/components/ChangePasswordForm";
-import { KeyRound, School } from "lucide-react";
+import EditNameForm from "./EditNameForm";
+import { KeyRound, School, UserRound } from "lucide-react";
 import { Badge, PageHeader, Section } from "@/components/ui";
 
 export default async function ParentAccountPage() {
@@ -29,6 +30,10 @@ export default async function ParentAccountPage() {
           </div>
         </div>
       </section>
+
+      <Section icon={UserRound} title="Your name" hint="Make sure this is your full name." className="mb-6">
+        <EditNameForm name={session?.user?.name ?? ""} />
+      </Section>
 
       <Section icon={KeyRound} title="Change password" hint="Use at least 8 characters, and one you haven't used before.">
         <ChangePasswordForm />
