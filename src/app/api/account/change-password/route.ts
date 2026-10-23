@@ -22,6 +22,11 @@ export async function POST(req: NextRequest) {
     if (parsed.error) return parsed.error;
     const { currentPassword, newPassword, name } = parsed.data;
 
+    // "Parent of <child>" is only the stand-in the school entered; a parent must replace it
+    if (name && /^parent of /i.test(name)) {
+      return NextResponse.json({ error: "Please type your own full name instead of \"Parent of ...\"." }, { status: 400 });
+    }
+
     const userId = (session.user as any).id;
     const role = (session.user as any).role;
     const table = role === "parent" ? "parents" : "staff";

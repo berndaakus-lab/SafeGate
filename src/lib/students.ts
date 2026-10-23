@@ -30,9 +30,16 @@ export async function findSameStudents(schoolId: string, name: string, classId?:
 
 /**
  * A stand-in name for a parent the school only gave a child's name for:
- * "Kofi Mensah" becomes "Mensah (parent)". The parent corrects it at first sign-in.
+ * "HAMZA DRAMANI" becomes "Parent of Hamza Dramani". The whole name is used
+ * because which word is the surname varies, and guessing would be wrong. The
+ * parent replaces it with their own name at first sign-in.
  */
 export function placeholderParentName(childName: string | null | undefined): string | null {
-  const surname = cleanName(childName ?? "").split(" ").pop();
-  return surname ? `${surname} (parent)` : null;
+  const name = cleanName(childName ?? "");
+  if (!name) return null;
+  // Names typed in all capitals or all lower case read better as Title Case
+  const tidy = name === name.toUpperCase() || name === name.toLowerCase()
+    ? name.toLowerCase().replace(/(^|[ '-])([a-z])/g, (_, sep: string, ch: string) => sep + ch.toUpperCase())
+    : name;
+  return `Parent of ${tidy}`;
 }

@@ -66,7 +66,7 @@ export default function AddParentForm({ schoolId }: { schoolId: string }) {
         <label htmlFor="ap-name" className="block text-sm font-semibold text-slate-800 mb-1.5">Parent name *</label>
         <input id="ap-name" value={form.name} onChange={(e) => set("name", e.target.value)}
           placeholder="e.g. Abena Mensah" className={withErrorRing(inputClass, !!fieldErrors.name)} />
-        <p className="text-xs text-slate-500 mt-1.5">Only have the surname? Type it with (parent), e.g. Mensah (parent). The parent corrects it when they first sign in.</p>
+        <p className="text-xs text-slate-500 mt-1.5">Don't have the parent's name? Type Parent of and the child's name, e.g. Parent of Kofi Mensah. The parent corrects it when they first sign in.</p>
         <FieldError message={fieldErrors.name} />
       </div>
 

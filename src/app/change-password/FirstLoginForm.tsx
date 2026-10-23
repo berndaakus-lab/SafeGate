@@ -8,9 +8,13 @@ import PasswordInput from "@/components/PasswordInput";
 const inputClass =
   "w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
 
+// The school may only have had the child's name, so it saved the parent as "Parent of <child>"
+const STAND_IN = /^parent of /i;
+
 export default function FirstLoginForm({ home, askName, initialName }: { home: string; askName: boolean; initialName: string }) {
   const { update } = useSession();
   const [name, setName] = useState(initialName);
+  const standIn = STAND_IN.test(initialName);
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,6 +24,7 @@ export default function FirstLoginForm({ home, askName, initialName }: { home: s
     e.preventDefault();
     setError("");
     if (askName && !name.trim()) return setError("Enter your full name.");
+    if (askName && STAND_IN.test(name.trim())) return setError("Please type your own full name instead of \"Parent of ...\".");
     if (next.length < 8) return setError("Your new password must be at least 8 characters.");
     if (next !== confirm) return setError("The two passwords do not match.");
 
@@ -45,8 +50,13 @@ export default function FirstLoginForm({ home, askName, initialName }: { home: s
       {askName && (
         <div>
           <label htmlFor="fl-name" className="block text-sm font-semibold text-slate-800 mb-1.5">Your full name</label>
-          <input id="fl-name" value={name} maxLength={200} onChange={(e) => setName(e.target.value)} autoComplete="name" className={inputClass} />
-          <p className="text-xs text-slate-500 mt-1.5">The school may have entered only a surname. Please type your full name.</p>
+          <input id="fl-name" value={name} maxLength={200} onChange={(e) => setName(e.target.value)} autoComplete="name"
+            autoFocus={standIn} onFocus={(e) => standIn && e.currentTarget.select()} placeholder="Type your full name" className={inputClass} />
+          <p className={`text-xs mt-1.5 ${standIn ? "text-amber-700 font-medium" : "text-slate-500"}`}>
+            {standIn
+              ? "The school didn't have your name, so it saved you as the name above. Please replace it with your own full name."
+              : "Check that this is your full name, and correct it if not."}
+          </p>
         </div>
       )}
       <div>

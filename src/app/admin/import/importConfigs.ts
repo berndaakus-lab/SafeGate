@@ -39,7 +39,7 @@ Kwame Asante,,0277654321,0277654321,Parent@2025,Yaw Asante,Primary 5`,
     intro:
       "Set up parents and their children from one spreadsheet. Each row is one child with their parent's details. To add a single parent instead, use the Parents page.",
     columns: [
-      { name: "parent_name", when: "Optional", note: "The parent's full name. Leave it empty if you don't have it: the child's surname is used, shown as \"Mensah (parent)\", and the parent corrects it when they first sign in." },
+      { name: "parent_name", when: "Optional", note: "The parent's full name. Leave it empty if you don't have it: it is saved as \"Parent of\" plus the child's name, e.g. \"Parent of Kofi Mensah\", and the parent corrects it when they first sign in." },
       { name: "parent_email", when: "Email or login phone", note: "What the parent signs in with. Fill in one or both." },
       { name: "parent_login_phone", when: "Email or login phone", note: "Any format works: 0244123456, 233244123456, +233 24 412 3456." },
       { name: "parent_phone", when: "Optional", note: "Where pickup SMS alerts go. Can be the same as the login phone." },
