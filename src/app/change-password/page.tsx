@@ -32,6 +32,7 @@ export default async function ChangePasswordPage() {
         <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-5">
           <ShieldCheck className="w-6 h-6 text-blue-700" />
         </div>
+        {user.schoolName && <p className="text-lg font-extrabold text-blue-700 mb-1 break-words">{user.schoolName}</p>}
         <h1 className="text-2xl font-bold text-slate-900">Set your own password</h1>
         <p className="text-slate-500 mt-2 mb-6">
           Welcome{user.name ? `, ${user.name.split(" ")[0]}` : ""}. Your account was created with a temporary password.

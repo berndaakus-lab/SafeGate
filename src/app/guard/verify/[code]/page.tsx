@@ -17,7 +17,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
 
   if (!session || !["guard", "teacher", "admin"].includes(role) || !guardSchoolId) {
     return (
-      <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center px-6 text-center">
+      <div className="flex-1 bg-slate-900 text-white flex flex-col items-center justify-center px-6 text-center">
         <ShieldAlert className="w-14 h-14 text-red-400 mb-4" />
         <h2 className="text-xl font-bold text-red-300 mb-2">School staff sign-in required</h2>
         <p className="text-slate-400 text-sm mb-6 max-w-xs">
@@ -54,7 +54,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
   const person = pickupCode.authorizedPerson;
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col">
+    <div className="flex-1 bg-slate-900 text-white flex flex-col">
       <header className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
         <Link href="/guard/scan" className="flex items-center gap-2">
           <Image src="/icon-192.png" alt="VerifyGate" width={32} height={32} className="rounded-lg" />
@@ -138,7 +138,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
 
 function WrongSchool({ guardSchool, codeSchool }: { guardSchool: string; codeSchool: string }) {
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col">
+    <div className="flex-1 bg-slate-900 text-white flex flex-col">
       <header className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
         <Link href="/guard/scan" className="flex items-center gap-2">
           <Image src="/icon-192.png" alt="VerifyGate" width={32} height={32} className="rounded-lg" />
@@ -173,7 +173,7 @@ function WrongSchool({ guardSchool, codeSchool }: { guardSchool: string; codeSch
 
 function WrongCode({ message }: { message: string }) {
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col">
+    <div className="flex-1 bg-slate-900 text-white flex flex-col">
       <header className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
         <Link href="/guard/scan" className="flex items-center gap-2">
           <Image src="/icon-192.png" alt="VerifyGate" width={32} height={32} className="rounded-lg" />

@@ -22,4 +22,9 @@ create index if not exists student_corrections_open_idx
 alter table public.student_corrections enable row level security;
 revoke all on public.student_corrections from anon, authenticated;
 
+-- Supabase stops auto-granting Data API access to new public tables on
+-- 2026-10-30, so grant the server role explicitly. Only service_role: the app
+-- never uses anon/authenticated, and migration 001 keeps them locked out.
+grant select, insert, update, delete on public.student_corrections to service_role;
+
 commit;

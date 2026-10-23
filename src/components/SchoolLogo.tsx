@@ -5,6 +5,8 @@ const sizes = {
   md: { box: "w-10 h-10 rounded-xl text-base", px: 40 },
   lg: { box: "w-12 h-12 rounded-2xl text-lg", px: 48 },
   xl: { box: "w-20 h-20 rounded-2xl text-2xl", px: 80 },
+  // The banner on every signed-in screen: large so the school is unmistakable
+  banner: { box: "w-16 h-16 sm:w-20 sm:h-20 rounded-2xl text-3xl sm:text-4xl", px: 160 },
 };
 
 export default function SchoolLogo({
