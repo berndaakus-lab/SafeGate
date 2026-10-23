@@ -92,4 +92,10 @@ where s.class_id is null
        or exists (select 1 from unnest(c.aliases) a
                   where lower(regexp_replace(a, '[^a-zA-Z0-9]+', '', 'g')) = lower(regexp_replace(s.class_name, '[^a-zA-Z0-9]+', '', 'g'))));
 
+-- Supabase stops auto-granting Data API access to new public tables on
+-- 2026-10-30, so grant the server role explicitly. Only service_role: the app
+-- never uses anon/authenticated, and migration 001 keeps them locked out.
+grant select, insert, update, delete on public.class_levels to service_role;
+grant select, insert, update, delete on public.school_classes to service_role;
+
 commit;

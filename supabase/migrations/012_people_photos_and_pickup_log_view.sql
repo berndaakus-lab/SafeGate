@@ -42,4 +42,9 @@ revoke all on public.pickup_log_details from anon, authenticated;
 
 create index if not exists pickup_logs_picked_up_at_idx on public.pickup_logs (picked_up_at desc);
 
+-- Supabase stops auto-granting Data API access to new public tables on
+-- 2026-10-30, so grant the server role explicitly. Only service_role: the app
+-- never uses anon/authenticated, and migration 001 keeps them locked out.
+grant select on public.pickup_log_details to service_role;
+
 commit;

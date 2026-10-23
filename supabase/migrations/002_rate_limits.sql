@@ -46,3 +46,5 @@ $$;
 
 REVOKE ALL ON FUNCTION "public"."check_rate_limit"(text, integer, integer) FROM PUBLIC, "anon", "authenticated";
 GRANT EXECUTE ON FUNCTION "public"."check_rate_limit"(text, integer, integer) TO "service_role";
+-- Supabase stops auto-granting Data API access to new public tables on 2026-10-30
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "public"."rate_limits" TO "service_role";

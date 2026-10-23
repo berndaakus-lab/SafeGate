@@ -65,4 +65,11 @@ where paid_until is null and plan is not null and plan <> 'trial';
 
 update public.schools set plan = 'growth' where plan = 'school';
 
+-- Supabase stops auto-granting Data API access to new public tables on
+-- 2026-10-30, so grant the server role explicitly. Only service_role: the app
+-- never uses anon/authenticated, and migration 001 keeps them locked out.
+grant select, insert, update, delete on public.payments to service_role;
+grant select, insert, update, delete on public.subscription_reminders to service_role;
+grant select, insert, update, delete on public.job_runs to service_role;
+
 commit;
