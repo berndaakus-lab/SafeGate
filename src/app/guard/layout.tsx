@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import SessionProvider from "@/components/SessionProvider";
+import SchoolBanner from "@/components/SchoolBanner";
 import { supabaseAdmin } from "@/lib/supabase";
 import { scheduleBackgroundJobs } from "@/lib/jobs";
 import { requirePasswordChanged } from "@/lib/force-password";
@@ -21,10 +22,19 @@ export default async function GuardLayout({ children }: { children: React.ReactN
   scheduleBackgroundJobs();
 
   const schoolId = (session.user as any)?.schoolId;
+  let logoUrl: string | null = null;
   if (schoolId) {
-    const { data: school } = await supabaseAdmin.from("schools").select("is_active").eq("id", schoolId).maybeSingle();
+    const { data: school } = await supabaseAdmin.from("schools").select("is_active, logo_url").eq("id", schoolId).maybeSingle();
     if (school?.is_active === false) redirect("/offline");
+    logoUrl = school?.logo_url ?? null;
   }
 
-  return <SessionProvider session={session}>{children}</SessionProvider>;
+  return (
+    <SessionProvider session={session}>
+      <div className="min-h-screen flex flex-col bg-slate-900">
+        <SchoolBanner name={(session.user as any)?.schoolName} logoUrl={logoUrl} dark />
+        <div className="flex-1 flex flex-col">{children}</div>
+      </div>
+    </SessionProvider>
+  );
 }

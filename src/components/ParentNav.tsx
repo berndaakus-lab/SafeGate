@@ -32,8 +32,8 @@ export default function ParentNav({ schoolLogoUrl }: { schoolLogoUrl: string | n
         <HomeLogoLink className="flex items-center gap-2 mb-5" />
         {schoolName && (
           <div className="flex items-center gap-2.5 mb-8 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-100">
-            <SchoolLogo name={schoolName} logoUrl={schoolLogoUrl} size="sm" />
-            <p className="text-sm font-medium text-slate-700 truncate">{schoolName}</p>
+            <SchoolLogo name={schoolName} logoUrl={schoolLogoUrl} size="lg" />
+            <p className="text-base font-bold text-slate-900 leading-snug break-words">{schoolName}</p>
           </div>
         )}
 
@@ -79,7 +79,7 @@ export default function ParentNav({ schoolLogoUrl }: { schoolLogoUrl: string | n
       <header className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-slate-100 sticky top-0 z-50">
         <HomeLogoLink size={28} textClassName="font-bold text-slate-900" />
         <div className="flex items-center gap-3">
-          {schoolName && <SchoolLogo name={schoolName} logoUrl={schoolLogoUrl} size="sm" />}
+          {schoolName && <SchoolLogo name={schoolName} logoUrl={schoolLogoUrl} size="lg" />}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="flex items-center gap-1 text-sm text-slate-600 font-medium"

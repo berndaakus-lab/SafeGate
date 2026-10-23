@@ -11,7 +11,7 @@ export default async function GuardScanPage() {
   const dashboard = role === "admin" ? "/admin/dashboard" : role === "superadmin" ? "/superadmin/dashboard" : null;
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col">
+    <div className="flex-1 bg-slate-900 text-white flex flex-col">
       <header className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
         <HomeLogoLink textClassName="font-bold text-white" />
         <div className="flex items-center gap-3">

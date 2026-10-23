@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase";
 import SessionProvider from "@/components/SessionProvider";
 import AdminNav from "@/components/AdminNav";
+import SchoolBanner from "@/components/SchoolBanner";
 import { scheduleBackgroundJobs } from "@/lib/jobs";
 import { requirePasswordChanged } from "@/lib/force-password";
 
@@ -40,7 +41,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <SessionProvider session={session}>
       <div className="min-h-screen bg-slate-50">
         <AdminNav schoolLogoUrl={logoUrl} />
-        <main className="md:ml-64 pb-nav md:pb-0">{children}</main>
+        <main className="md:ml-64 pb-nav md:pb-0">
+          <SchoolBanner name={(session.user as any)?.schoolName} logoUrl={logoUrl} />
+          {children}
+        </main>
       </div>
     </SessionProvider>
   );

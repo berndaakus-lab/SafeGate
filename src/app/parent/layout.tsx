@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import ParentNav from "@/components/ParentNav";
+import SchoolBanner from "@/components/SchoolBanner";
 import SessionProvider from "@/components/SessionProvider";
 import PushSubscriber from "@/components/PushSubscriber";
 import { supabaseAdmin } from "@/lib/supabase";
@@ -30,6 +31,7 @@ export default async function ParentLayout({ children }: { children: React.React
         <PushSubscriber />
         <ParentNav schoolLogoUrl={school?.logo_url ?? null} />
         <main className="md:ml-64 pb-nav md:pb-0">
+          <SchoolBanner name={(session.user as any)?.schoolName} logoUrl={school?.logo_url ?? null} />
           {children}
         </main>
       </div>
