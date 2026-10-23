@@ -4,6 +4,7 @@ import { ShieldCheck } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import FirstLoginForm from "./FirstLoginForm";
+import SessionProvider from "@/components/SessionProvider";
 
 export const metadata = { title: "Set your password", robots: { index: false } };
 
@@ -38,7 +39,9 @@ export default async function ChangePasswordPage() {
           Welcome{user.name ? `, ${user.name.split(" ")[0]}` : ""}. Your account was created with a temporary password.
           Choose a new one that only you know before you continue.
         </p>
-        <FirstLoginForm home={home} />
+        <SessionProvider session={session}>
+          <FirstLoginForm home={home} askName={user.role === "parent"} initialName={user.name ?? ""} />
+        </SessionProvider>
       </div>
     </main>
   );

@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { fieldErrorResponse, parseBody } from "@/lib/validate";
 import { escapeLike, findLoginConflict, newPassword, optionalEmail, optionalPhone, requiredName } from "@/lib/identity";
+import { randomPassword } from "@/lib/passwords";
 import bcrypt from "bcryptjs";
 
 // One CSV row = one guard or teacher. Admins can't be imported: granting full
@@ -59,10 +60,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, created: false, existed: true });
     }
 
-    const pw = newPassword.safeParse(password ?? "");
-    if (!pw.success) {
-      return fieldErrorResponse({ password: password ? pw.error.issues[0].message : "Enter a password for this person." });
-    }
+    // No password in the spreadsheet: make a different random one for this person
+    const chosen = password || randomPassword();
+    const pw = newPassword.safeParse(chosen);
+    if (!pw.success) return fieldErrorResponse({ password: pw.error.issues[0].message });
 
     const conflict = await findLoginConflict({ email, loginPhone });
     if (conflict) return fieldErrorResponse(conflict, 409);
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest) {
     });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    return NextResponse.json({ ok: true, created: true, existed: false });
+    return NextResponse.json({ ok: true, created: true, existed: false, generatedPassword: password ? null : chosen });
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

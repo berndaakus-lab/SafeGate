@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Pencil, X } from "lucide-react";
 import FieldError, { readApiErrors, withErrorRing, type FieldErrors } from "@/components/FieldError";
 import { btnSmall } from "@/components/ui";
+import ResetParentPassword from "./ResetParentPassword";
 
 const inputClass =
   "w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
@@ -144,6 +145,7 @@ export default function EditParentModal({ parent }: { parent: Parent }) {
                 </button>
               </div>
             </form>
+            <ResetParentPassword parentId={parent.id} parentName={parent.name} />
           </div>
         </div>
       )}

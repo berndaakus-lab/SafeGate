@@ -2,8 +2,9 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, Download, CheckCircle2, XCircle, AlertCircle, Loader2, FileText, RotateCcw, Info, Check } from "lucide-react";
+import { Upload, Download, CheckCircle2, XCircle, AlertCircle, Loader2, FileText, RotateCcw, Info, Check, KeyRound } from "lucide-react";
 import { parseCsvRecords } from "@/lib/csv";
+import { downloadCsv } from "@/lib/csv-download";
 import { IMPORT_CONFIGS, type ImportKind, type RowValues } from "./importConfigs";
 
 type Row = { line: number; values: RowValues };
@@ -47,6 +48,9 @@ export default function ImportClient({ schoolId, kind }: { schoolId: string; kin
   const [onlyProblems, setOnlyProblems] = useState(false);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [dragging, setDragging] = useState(false);
+  // Passwords the system made. Held only in this page's memory: the server keeps just a scrambled copy.
+  const [generated, setGenerated] = useState<string[][]>([]);
+  const [savedList, setSavedList] = useState(false);
 
   function downloadTemplate() {
     const url = URL.createObjectURL(new Blob([config.template], { type: "text/csv" }));
@@ -60,6 +64,7 @@ export default function ImportClient({ schoolId, kind }: { schoolId: string; kin
   function reset() {
     setRows([]); setResults([]); setFileName(""); setFileError("");
     setDone(false); setOnlyProblems(false); setProgress(0); setCounts({});
+    setGenerated([]); setSavedList(false);
   }
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -101,7 +106,7 @@ export default function ImportClient({ schoolId, kind }: { schoolId: string; kin
     reader.readAsText(file);
   }
 
-  async function importRow(row: Row): Promise<Result & { tally: string[] }> {
+  async function importRow(row: Row): Promise<Result & { tally: string[]; credentialRow?: string[] }> {
     const problem = config.precheck?.(row.values);
     if (problem) return { status: "error", message: problem, tally: [] };
     try {
@@ -118,7 +123,9 @@ export default function ImportClient({ schoolId, kind }: { schoolId: string; kin
           : data.error || "Failed";
         return { status: "error", message, tally: [] };
       }
-      return config.interpret(data);
+      const outcome = config.interpret(data);
+      const credentialRow = outcome.credential && config.credentialRow ? config.credentialRow(row.values, outcome.credential) : undefined;
+      return { ...outcome, credentialRow };
     } catch {
       return { status: "error", message: "Network error. Check your connection and import again.", tally: [] };
     }
@@ -128,11 +135,13 @@ export default function ImportClient({ schoolId, kind }: { schoolId: string; kin
     setImporting(true);
     const updated = [...results];
     const tally: Record<string, number> = { skipped: 0, errors: 0 };
+    const made: string[][] = [];
 
     for (let i = 0; i < rows.length; i++) {
       const r = await importRow(rows[i]);
       updated[i] = { status: r.status, message: r.message };
       r.tally.forEach((k) => { tally[k] = (tally[k] ?? 0) + 1; });
+      if (r.credentialRow) made.push(r.credentialRow);
       if (r.status === "skipped") tally.skipped++;
       if (r.status === "error") tally.errors++;
       setResults([...updated]);
@@ -140,6 +149,7 @@ export default function ImportClient({ schoolId, kind }: { schoolId: string; kin
     }
 
     setCounts(tally);
+    setGenerated(made);
     setImporting(false);
     setDone(true);
     if (tally.errors) setOnlyProblems(true);
@@ -279,7 +289,10 @@ export default function ImportClient({ schoolId, kind }: { schoolId: string; kin
                 </label>
               )}
               {done ? (
-                <button onClick={reset} className="inline-flex items-center gap-2 border border-slate-200 text-slate-700 text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-slate-50">
+                <button onClick={() => {
+                  if (generated.length && !savedList && !window.confirm("The passwords made for this import will be lost. Download the list first. Leave without it?")) return;
+                  reset();
+                }} className="inline-flex items-center gap-2 border border-slate-200 text-slate-700 text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-slate-50">
                   <RotateCcw className="w-4 h-4" /> Import another file
                 </button>
               ) : (
@@ -303,6 +316,23 @@ export default function ImportClient({ schoolId, kind }: { schoolId: string; kin
                   <p className="text-xs text-slate-500">{s.label}</p>
                 </div>
               ))}
+            </div>
+          )}
+          {done && generated.length > 0 && (
+            <div className="px-6 py-5 bg-amber-50 border-b border-amber-200">
+              <p className="flex items-center gap-2 font-semibold text-amber-900">
+                <KeyRound className="w-4 h-4" /> {generated.length} password{generated.length === 1 ? " was" : "s were"} made for you
+              </p>
+              <p className="text-sm text-amber-900/90 mt-1">
+                Download the list now. It can&apos;t be shown again, because only a scrambled copy is kept. Give each person <strong>only their own</strong> password, privately.
+                Do not post the list or one password in a WhatsApp group. Everyone must choose their own password when they first sign in.
+              </p>
+              <button type="button"
+                onClick={() => { downloadCsv(`temporary-passwords-${new Date().toISOString().slice(0, 10)}.csv`, [config.credentialHead ?? [], ...generated]); setSavedList(true); }}
+                className="mt-3 inline-flex items-center gap-2 bg-amber-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-amber-700">
+                <Download className="w-4 h-4" /> Download the password list (CSV)
+              </button>
+              {savedList && <p className="text-xs text-amber-900/80 mt-2">Downloaded. Keep the file somewhere private and delete it once the passwords are shared.</p>}
             </div>
           )}
           {done && errors > 0 && (
