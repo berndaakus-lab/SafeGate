@@ -114,3 +114,13 @@ body {
     filter: none;
   }
 }
+
+/* Entrance for the self-playing /walkthrough page */
+@keyframes walk-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-[walk-in"] { animation: none !important; opacity: 1 !important; transform: none !important; }
+}
