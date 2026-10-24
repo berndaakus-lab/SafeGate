@@ -13,12 +13,21 @@ export function normalizePhone(value?: string | null): string | null {
   if (!raw) return null;
   const digits = raw.replace(/\D/g, "");
   if (!digits) return null;
-  if (raw.startsWith("+")) return "+" + digits;
-  if (digits.startsWith("00")) return "+" + digits.slice(2);
-  if (digits.startsWith("233")) return "+" + digits;
-  if (digits.startsWith("0") && digits.length === 10) return "+233" + digits.slice(1);
-  if (digits.length === 9) return "+233" + digits;
-  return "+" + digits;
+  let international: string;
+  if (raw.startsWith("+")) international = digits;
+  else if (digits.startsWith("00")) international = digits.slice(2);
+  else if (digits.startsWith("233")) international = digits;
+  else if (digits.startsWith("0") && digits.length === 10) international = "233" + digits.slice(1);
+  else if (digits.length === 9) international = "233" + digits;
+  else international = digits;
+  // "+233 (0) 55..." keeps the trunk 0 after the country code, which isn't part of the number
+  if (international.startsWith("2330")) international = "233" + international.slice(4);
+  return "+" + international;
+}
+
+// A Ghana number is +233 followed by exactly 9 digits. Other countries' numbers are only length-checked.
+export function isValidPhone(normalized: string): boolean {
+  return normalized.startsWith("+233") ? /^\+233\d{9}$/.test(normalized) : /^\+[1-9]\d{8,14}$/.test(normalized);
 }
 
 export function isEmailIdentifier(value: string): boolean {
@@ -55,7 +64,7 @@ export const optionalPhone = z
   .optional()
   .nullable()
   .transform(normalizePhone)
-  .refine((v) => v === null || /^\+\d{9,15}$/.test(v), "Enter a valid phone number, e.g. 0244123456.");
+  .refine((v) => v === null || isValidPhone(v), "Enter a valid phone number with 10 digits, e.g. 0244123456.");
 
 export const requiredName = z.string().trim().min(1, "Enter a name.").max(200, "That name is too long.");
 
