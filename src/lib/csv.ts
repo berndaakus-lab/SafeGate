@@ -33,7 +33,12 @@ export function parseCsv(text: string): string[][] {
 /** Parses CSV into objects keyed by normalized header ("Parent Name" -> "parent_name"),
  * mapping any alias headers to their canonical name. */
 export function parseCsvRecords(text: string, aliases: Record<string, string> = {}): Record<string, string>[] {
-  const [header, ...body] = parseCsv(text);
+  return recordsFromRows(parseCsv(text), aliases);
+}
+
+/** The same, for rows that are already split into cells (e.g. read from an Excel sheet). The first row is the header. */
+export function recordsFromRows(rows: string[][], aliases: Record<string, string> = {}): Record<string, string>[] {
+  const [header, ...body] = rows.filter((r) => r.some((cell) => cell.trim() !== ""));
   if (!header) return [];
   const keys = header.map((h) => {
     const k = h.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");

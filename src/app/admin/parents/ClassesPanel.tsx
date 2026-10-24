@@ -67,7 +67,24 @@ export default function ClassesPanel({ classes }: { classes: Row[] }) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    const text = await file.text();
+    setError("");
+    let text: string;
+    if (/\.xlsx$/i.test(file.name)) {
+      try {
+        // The class names are in the first column of the first sheet
+        const { readSheet } = await import("read-excel-file/browser");
+        const sheet = await readSheet(file);
+        text = sheet.map((r) => (r[0] == null ? "" : String(r[0]).trim())).join("\n");
+      } catch {
+        setError("That Excel file could not be read. Save it as CSV UTF-8 and try again.");
+        return;
+      }
+    } else if (/\.(csv|txt)$/i.test(file.name) || file.type.startsWith("text/")) {
+      text = await file.text();
+    } else {
+      setError("Upload an Excel file (.xlsx), a CSV file or a text file.");
+      return;
+    }
     // Drop a header row like "class" or "class_name"
     const lines = text.split(/\r?\n/).filter((l) => l.trim());
     if (lines[0] && /^"?(class(_?name)?|name)"?$/i.test(lines[0].trim())) lines.shift();
@@ -143,9 +160,9 @@ export default function ClassesPanel({ classes }: { classes: Row[] }) {
               <button type="button" onClick={addBulk} disabled={busy || !parseNames(bulk).length} className={btnPrimary}>
                 {busy && <Loader2 className="w-4 h-4 animate-spin" />} Add {parseNames(bulk).length || ""} classes
               </button>
-              <input ref={fileRef} type="file" accept=".csv,.txt,text/csv,text/plain" className="hidden" onChange={loadFile} />
+              <input ref={fileRef} type="file" accept=".xlsx,.csv,.txt,text/csv,text/plain" className="hidden" onChange={loadFile} />
               <button type="button" onClick={() => fileRef.current?.click()} className={btnSecondary}>
-                <FileUp className="w-4 h-4" /> Load from a CSV or text file
+                <FileUp className="w-4 h-4" /> Load from an Excel, CSV or text file
               </button>
             </div>
             <p className="text-xs text-slate-500">Classes you already have are skipped, whatever the spelling or capital letters.</p>
