@@ -6,6 +6,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { fieldErrorResponse, parseBody } from "@/lib/validate";
 import { studentPhotoData } from "@/lib/student-photo";
 import { removePersonPhoto, uploadPersonPhoto } from "@/lib/person-photo";
+import { normalizePhone } from "@/lib/identity";
 
 const personFields = z.object({
   name: z.string().trim().min(1).max(200),
@@ -17,6 +18,8 @@ const personFields = z.object({
 });
 
 const updateSchema = personFields.extend({ id: z.string().uuid() });
+
+const tidyPhone = (v: string | null | undefined) => normalizePhone(v) ?? (v ? v : null);
 
 // "Driver" is the one relationship that needs a car number, so the guard can match the vehicle at the gate
 function vehicleFor(
@@ -68,7 +71,7 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
-    const update: Record<string, unknown> = { name, phone: phone || null, relation: relation || null, vehicle_number: vehicle.value };
+    const update: Record<string, unknown> = { name, phone: tidyPhone(phone), relation: relation || null, vehicle_number: vehicle.value };
     let newPhotoUrl: string | null = null;
     if (photoData === null) {
       update.photo_url = null;
@@ -115,7 +118,7 @@ export async function POST(req: NextRequest) {
 
     const { data, error } = await supabaseAdmin
       .from("authorized_persons")
-      .insert({ name, phone: phone || null, relation: relation || null, vehicle_number: vehicle.value, photo_url: photoUrl, parent_id: parentId })
+      .insert({ name, phone: tidyPhone(phone), relation: relation || null, vehicle_number: vehicle.value, photo_url: photoUrl, parent_id: parentId })
       .select()
       .single();
 
