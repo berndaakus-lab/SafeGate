@@ -4,7 +4,7 @@
 -- delete their own classes from the admin Parents page.
 --
 -- class_levels is only the starter template copied into each new school. Its
--- aliases ("Grade 3", "P3", "Basic 5"...) let a CSV in those spellings land on
+-- aliases ("Grade 3", "P3", "Basic 3"...) let a CSV in those spellings land on
 -- the school's matching class. students.class_name stays as the display text so
 -- every existing screen keeps working.
 --
@@ -29,15 +29,15 @@ insert into public.class_levels (name, aliases, sort_order) values
   ('Nursery 2',           '{}', 3),
   ('KG 1',                '{"Kindergarten 1"}', 4),
   ('KG 2',                '{"Kindergarten 2"}', 5),
-  ('Primary 1 / Grade 1', '{"Primary 1","Grade 1","P1","Basic 3"}', 6),
-  ('Primary 2 / Grade 2', '{"Primary 2","Grade 2","P2","Basic 4"}', 7),
-  ('Primary 3 / Grade 3', '{"Primary 3","Grade 3","P3","Basic 5"}', 8),
-  ('Primary 4 / Grade 4', '{"Primary 4","Grade 4","P4","Basic 6"}', 9),
-  ('Primary 5 / Grade 5', '{"Primary 5","Grade 5","P5","Basic 7"}', 10),
-  ('Primary 6 / Grade 6', '{"Primary 6","Grade 6","P6","Basic 8"}', 11),
-  ('JHS 1',               '{"Basic 9"}', 12),
-  ('JHS 2',               '{"Basic 10"}', 13),
-  ('JHS 3',               '{"Basic 11"}', 14)
+  ('Primary 1 / Grade 1', '{"Primary 1","Grade 1","P1","Basic 1"}', 6),
+  ('Primary 2 / Grade 2', '{"Primary 2","Grade 2","P2","Basic 2"}', 7),
+  ('Primary 3 / Grade 3', '{"Primary 3","Grade 3","P3","Basic 3"}', 8),
+  ('Primary 4 / Grade 4', '{"Primary 4","Grade 4","P4","Basic 4"}', 9),
+  ('Primary 5 / Grade 5', '{"Primary 5","Grade 5","P5","Basic 5"}', 10),
+  ('Primary 6 / Grade 6', '{"Primary 6","Grade 6","P6","Basic 6"}', 11),
+  ('JHS 1',               '{"Basic 7","Grade 7"}', 12),
+  ('JHS 2',               '{"Basic 8","Grade 8"}', 13),
+  ('JHS 3',               '{"Basic 9","Grade 9"}', 14)
 on conflict (name) do nothing;
 
 create table if not exists public.school_classes (
