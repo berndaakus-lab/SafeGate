@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { X, Download } from "lucide-react";
 
 export default function InstallBanner() {
+  const pathname = usePathname();
   const [prompt, setPrompt] = useState<any>(null);
   const [visible, setVisible] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
@@ -47,7 +49,7 @@ export default function InstallBanner() {
     if (outcome === "accepted") setVisible(false);
   }
 
-  if (!visible || dismissed) return null;
+  if (!visible || dismissed || pathname.startsWith("/walkthrough")) return null;
 
   return (
     <div className="fixed top-4 left-4 right-4 z-50 md:left-auto md:right-6 md:max-w-sm animate-in slide-in-from-top-4 duration-300">
