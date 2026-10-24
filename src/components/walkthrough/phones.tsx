@@ -168,3 +168,107 @@ export function PhoneSms() {
     </Frame>
   );
 }
+
+// ---- Screens for guards and teachers (dark, like the real scanner) ----
+
+function DarkScreen({ children }: { children: React.ReactNode }) {
+  return <div className="bg-slate-950 rounded-[2rem] overflow-hidden flex-1 flex flex-col text-white">{children}</div>;
+}
+
+export function PhoneScanner() {
+  return (
+    <Frame>
+      <DarkScreen>
+        <div className="px-4 pt-3 pb-2 flex items-center gap-2 border-b border-slate-800">
+          <div className="w-5 h-5 bg-blue-600 rounded flex items-center justify-center"><Shield className="w-3 h-3 text-white" /></div>
+          <span className="text-xs font-bold">VerifyGate</span>
+        </div>
+        <div className="p-4 flex-1 flex flex-col justify-between">
+          <div className="text-center">
+            <p className="font-bold text-base">Scan Pickup QR</p>
+            <p className="text-slate-400 text-[11px] mt-1 leading-snug">Point the camera at the parent&apos;s QR code.</p>
+          </div>
+          <div className="relative mx-auto w-36 h-36 rounded-2xl bg-slate-800 flex items-center justify-center">
+            <Camera className="w-10 h-10 text-slate-600" />
+            <span className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-blue-400 rounded-tl-xl" />
+            <span className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-blue-400 rounded-tr-xl" />
+            <span className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-blue-400 rounded-bl-xl" />
+            <span className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-blue-400 rounded-br-xl" />
+          </div>
+          <div className="bg-blue-600 rounded-xl py-2.5 text-center">
+            <p className="text-white text-xs font-bold flex items-center justify-center gap-1.5"><Camera className="w-3.5 h-3.5" /> Start Scanning</p>
+          </div>
+          <div>
+            <p className="text-slate-400 text-[11px] text-center mb-1.5">Or enter code manually</p>
+            <div className="flex gap-2">
+              <div className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 font-mono tracking-widest text-xs text-slate-300">K7MX3P</div>
+              <div className="bg-slate-600 rounded-lg px-3 py-2 text-xs font-bold">Go</div>
+            </div>
+          </div>
+        </div>
+      </DarkScreen>
+    </Frame>
+  );
+}
+
+export function PhoneVerify() {
+  return (
+    <Frame>
+      <DarkScreen>
+        <div className="p-4 flex-1 flex flex-col justify-between">
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full" />
+            <span className="text-green-400 text-xs font-medium">Code Valid</span>
+          </div>
+          <div className="bg-slate-800 rounded-2xl p-3">
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-2">Authorized to collect</p>
+            <div className="flex items-center gap-3">
+              <div className="w-14 h-14 rounded-full bg-purple-600/30 ring-2 ring-purple-400/50 flex items-center justify-center text-lg font-bold text-purple-300 shrink-0">KB</div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold">Kwame Boateng</p>
+                <p className="text-slate-400 text-[11px]">Driver</p>
+                <p className="inline-flex items-center gap-1 mt-1 text-[11px] font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-md px-1.5 py-0.5">
+                  <Car className="w-3 h-3" /> GR 1234-24
+                </p>
+              </div>
+            </div>
+            <p className="text-slate-500 text-[10px] mt-2">Parent: Abena Mensah</p>
+          </div>
+          <div className="bg-slate-800 rounded-2xl p-3">
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-2">Child</p>
+            <div className="flex items-center gap-3">
+              <div className="w-14 h-14 rounded-xl bg-purple-200 flex items-center justify-center font-black text-purple-700 text-xl shrink-0">K</div>
+              <div>
+                <p className="text-sm font-bold">Kofi Mensah</p>
+                <p className="text-slate-300 text-[11px]">Primary 3</p>
+                <p className="text-slate-400 text-[10px] mt-0.5">Tap photo to enlarge</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-green-600 rounded-xl py-2.5 text-center">
+            <p className="text-white text-xs font-bold">Confirm Pickup</p>
+          </div>
+        </div>
+      </DarkScreen>
+    </Frame>
+  );
+}
+
+export function PhoneConfirmed() {
+  return (
+    <Frame>
+      <DarkScreen>
+        <div className="p-4 flex-1 flex flex-col items-center justify-center text-center gap-3">
+          <div className="w-20 h-20 rounded-full bg-green-500/15 flex items-center justify-center">
+            <svg viewBox="0 0 24 24" className="w-12 h-12 text-green-400" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" /><path d="m8 12.5 3 3 5-6" />
+            </svg>
+          </div>
+          <p className="text-lg font-bold text-green-300">Pickup Confirmed!</p>
+          <p className="text-green-400/70 text-xs leading-snug px-2">1 child logged. Redirecting to scanner...</p>
+          <p className="text-slate-500 text-[11px] leading-snug px-4 mt-2">The parent gets a text message and the school keeps the record.</p>
+        </div>
+      </DarkScreen>
+    </Frame>
+  );
+}
