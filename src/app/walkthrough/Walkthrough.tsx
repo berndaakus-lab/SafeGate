@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { BookOpen, CheckCircle2, Expand, Pause, PhoneCall, Play, Shrink, ShieldCheck, SkipBack, SkipForward } from "lucide-react";
-import { PhoneCode, PhoneGuard, PhonePerson, PhoneSms } from "@/components/walkthrough/phones";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { BookOpen, CheckCircle2, Expand, KeyRound, Pause, PhoneCall, Play, Shrink, ShieldAlert, ShieldCheck, SkipBack, SkipForward } from "lucide-react";
+import { PhoneCode, PhoneConfirmed, PhoneGuard, PhonePerson, PhoneScanner, PhoneSms, PhoneVerify } from "@/components/walkthrough/phones";
 
 type Scene = { seconds: number; kicker?: string; title: string; points?: string[]; visual?: ReactNode; icon?: ReactNode };
 
-function buildScenes(school: string): Scene[] {
+function parentScenes(school: string): Scene[] {
   return [
     {
       seconds: 7,
@@ -84,8 +84,75 @@ function buildScenes(school: string): Scene[] {
   ];
 }
 
-export default function Walkthrough({ school }: { school: string }) {
-  const scenes = buildScenes(school);
+function staffScenes(school: string): Scene[] {
+  return [
+    {
+      seconds: 7,
+      kicker: school ? `${school} guards and teachers` : "For guards and teachers",
+      title: "Checking pickups at the gate.",
+      points: ["How to scan, check and confirm a pickup in VerifyGate."],
+      icon: <ShieldCheck className="w-24 h-24 text-blue-300" />,
+    },
+    {
+      seconds: 10,
+      kicker: "Getting in",
+      title: "Sign in with your own account.",
+      points: [
+        "Use your phone number or email and the password the school gave you.",
+        "The first time, you choose your own password.",
+        "Sign out when your duty ends.",
+      ],
+      icon: <KeyRound className="w-24 h-24 text-blue-300" />,
+    },
+    {
+      seconds: 9,
+      kicker: "Step 1",
+      title: "Open the scanner.",
+      points: ["Tap Start Scanning and point the camera at the parent's QR code.", "Camera not working? Type the short code instead."],
+      visual: <PhoneScanner />,
+    },
+    {
+      seconds: 14,
+      kicker: "Step 2",
+      title: "Check three things.",
+      points: [
+        "Does the child's photo match the child?",
+        "Is the person at the gate the one named, and in the photo?",
+        "For a driver, does the car number match?",
+      ],
+      visual: <PhoneVerify />,
+    },
+    {
+      seconds: 10,
+      kicker: "Step 3",
+      title: "Confirm only when it all matches.",
+      points: ["Tap Confirm Pickup.", "Taking several children? Untick any who are not leaving now.", "The parent gets a text message straight away."],
+      visual: <PhoneConfirmed />,
+    },
+    {
+      seconds: 15,
+      kicker: "When something is wrong",
+      title: "If it doesn't match, don't release the child.",
+      points: [
+        "Already used: that code has been used. Do not release again.",
+        "Code expired: ask the parent to make a new one.",
+        "Different school or invalid code: do not release. Send the parent to the school office.",
+        "No photo on file: be extra careful and check with the school office.",
+      ],
+      icon: <ShieldAlert className="w-24 h-24 text-amber-300" />,
+    },
+    {
+      seconds: 8,
+      kicker: school || undefined,
+      title: "Questions?",
+      points: ["Ask now, or speak to the school office any time."],
+      icon: <ShieldCheck className="w-24 h-24 text-blue-300" />,
+    },
+  ];
+}
+
+export default function Walkthrough({ school, audience = "parents" }: { school: string; audience?: "parents" | "staff" }) {
+  const scenes = useMemo(() => (audience === "staff" ? staffScenes(school) : parentScenes(school)), [audience, school]);
   const [index, setIndex] = useState(0);
   const [elapsed, setElapsed] = useState(0); // seconds into the current scene
   const [playing, setPlaying] = useState(true);
