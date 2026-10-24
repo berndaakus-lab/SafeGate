@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, Download, CheckCircle2, XCircle, AlertCircle, Loader2, FileText, RotateCcw, Info, Check, KeyRound } from "lucide-react";
-import { parseCsvRecords } from "@/lib/csv";
+import { parseCsvRecords, recordsFromRows } from "@/lib/csv";
 import { downloadCsv } from "@/lib/csv-download";
 import { IMPORT_CONFIGS, type ImportKind, type RowValues } from "./importConfigs";
 
@@ -79,29 +79,52 @@ export default function ImportClient({ schoolId, kind }: { schoolId: string; kin
     if (importing) return;
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
-    if (!/\.csv$/i.test(file.name) && file.type !== "text/csv") {
-      setFileError("That isn't a CSV file. In Excel use File, Save As, CSV UTF-8, then try again.");
-      return;
-    }
     loadFile(file);
   }
 
-  function loadFile(file: File) {
+  function show(records: Record<string, string>[], name: string) {
+    const parsed = records.map((values, i) => ({
+      line: i + 2,
+      values: config.prepare ? config.prepare(values) : values,
+    }));
+    if (!parsed.length) {
+      setFileError("No rows found. Check that the file has a header row, like the template.");
+      return;
+    }
+    setFileName(name);
+    setRows(parsed);
+    setResults(parsed.map(() => ({ status: "pending", message: "" })));
+  }
+
+  async function loadFile(file: File) {
     reset();
-    const reader = new FileReader();
-    reader.onload = () => {
-      const parsed = parseCsvRecords(String(reader.result ?? ""), config.aliases).map((values, i) => ({
-        line: i + 2,
-        values: config.prepare ? config.prepare(values) : values,
-      }));
-      if (!parsed.length) {
-        setFileError("No rows found. Check that the file is a CSV with a header row, like the template.");
-        return;
+    const isXlsx = /\.xlsx$/i.test(file.name);
+    const isCsv = /\.(csv|txt)$/i.test(file.name) || file.type === "text/csv";
+    if (!isXlsx && !isCsv) {
+      setFileError(
+        /\.xls$/i.test(file.name)
+          ? "That is an old Excel file (.xls). In Excel use File, Save As, then choose Excel Workbook (.xlsx) or CSV UTF-8."
+          : "Upload an Excel file (.xlsx) or a CSV file."
+      );
+      return;
+    }
+
+    if (isXlsx) {
+      try {
+        // Only the first sheet is read. Cells come back as text, numbers or dates; phone numbers Excel stored as numbers lose their leading 0, which the phone check puts back.
+        const { readSheet } = await import("read-excel-file/browser");
+        const sheet = await readSheet(file);
+        const cell = (v: unknown) =>
+          v == null ? "" : v instanceof Date ? v.toISOString().slice(0, 10) : String(v).trim();
+        show(recordsFromRows(sheet.map((r) => r.map(cell)), config.aliases), file.name);
+      } catch {
+        setFileError("That Excel file could not be read. Check that it isn't password protected, or save it as CSV UTF-8 and try again.");
       }
-      setFileName(file.name);
-      setRows(parsed);
-      setResults(parsed.map(() => ({ status: "pending", message: "" })));
-    };
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => show(parseCsvRecords(String(reader.result ?? ""), config.aliases), file.name);
     reader.onerror = () => setFileError("That file could not be read.");
     reader.readAsText(file);
   }
@@ -227,9 +250,9 @@ export default function ImportClient({ schoolId, kind }: { schoolId: string; kin
       {/* Step 2 */}
       <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 mb-4">
         <div className="mb-4">
-          <StepHeader n={2} title="Upload your CSV file" hint="In Excel: File, Save As, then choose CSV UTF-8." />
+          <StepHeader n={2} title="Upload your file" hint="An Excel file (.xlsx) or a CSV file. The first row must be the column names, like the template." />
         </div>
-        <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={handleFile} />
+        <input ref={fileRef} type="file" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" className="hidden" onChange={handleFile} />
         <button
           onClick={() => fileRef.current?.click()}
           onDragOver={(e) => { e.preventDefault(); if (!importing) setDragging(true); }}
@@ -255,7 +278,7 @@ export default function ImportClient({ schoolId, kind }: { schoolId: string; kin
             </>
           ) : (
             <>
-              <span className="text-base font-semibold text-slate-900">{dragging ? "Drop the file here" : "Drag your CSV file here"}</span>
+              <span className="text-base font-semibold text-slate-900">{dragging ? "Drop the file here" : "Drag your Excel or CSV file here"}</span>
               <span className="text-sm text-slate-500">or</span>
               <span className="inline-flex items-center gap-2 bg-white border border-blue-200 text-blue-700 text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm">
                 <Upload className="w-4 h-4" /> Choose file
