@@ -75,6 +75,22 @@ export const newPassword = z
 
 export type LoginFieldErrors = { email?: string; loginPhone?: string };
 
+function takenMessage(
+  table: "staff" | "parents",
+  row: { name: string | null; school_id: string | null },
+  what: "email" | "phone number",
+  schoolId?: string,
+  hint?: "add-child"
+): string {
+  if (!schoolId || row.school_id !== schoolId || !row.name) return `This ${what} is already used by another account.`;
+  if (table === "parents") {
+    return hint === "add-child"
+      ? `This ${what} already belongs to the parent "${row.name}". Don't add a second parent: open their card on the Parents page and use Add child.`
+      : `This ${what} already belongs to the parent "${row.name}".`;
+  }
+  return `This ${what} is already used by the staff member "${row.name}".`;
+}
+
 /**
  * Returns field errors if the email or login phone is missing, reserved, or
  * already used by any staff or parent account (across both tables, since
@@ -85,11 +101,17 @@ export async function findLoginConflict({
   loginPhone,
   excludeStaffId,
   excludeParentId,
+  schoolId,
+  hint,
 }: {
   email: string | null;
   loginPhone: string | null;
   excludeStaffId?: string;
   excludeParentId?: string;
+  /** The school of the admin doing this. Only a clash inside this school names the other account; another school's accounts are never revealed. */
+  schoolId?: string;
+  /** "add-child" suggests adding the child to the existing parent instead of creating a second one */
+  hint?: "add-child";
 }): Promise<LoginFieldErrors | null> {
   if (!email && !loginPhone) {
     const text = "Enter an email or a login phone number.";
@@ -105,16 +127,16 @@ export async function findLoginConflict({
   const errors: LoginFieldErrors = {};
   for (const { table, exclude } of tables) {
     if (email && !errors.email) {
-      let q = supabaseAdmin.from(table).select("id").ilike("email", escapeLike(email)).limit(1);
+      let q = supabaseAdmin.from(table).select("id, name, school_id").ilike("email", escapeLike(email)).limit(1);
       if (exclude) q = q.neq("id", exclude);
       const { data } = await q;
-      if (data?.length) errors.email = "This email is already used by another account.";
+      if (data?.length) errors.email = takenMessage(table, data[0], "email", schoolId, hint);
     }
     if (loginPhone && !errors.loginPhone) {
-      let q = supabaseAdmin.from(table).select("id").eq("login_phone", loginPhone).limit(1);
+      let q = supabaseAdmin.from(table).select("id, name, school_id").eq("login_phone", loginPhone).limit(1);
       if (exclude) q = q.neq("id", exclude);
       const { data } = await q;
-      if (data?.length) errors.loginPhone = "This phone number is already used by another account.";
+      if (data?.length) errors.loginPhone = takenMessage(table, data[0], "phone number", schoolId, hint);
     }
   }
   return errors.email || errors.loginPhone ? errors : null;

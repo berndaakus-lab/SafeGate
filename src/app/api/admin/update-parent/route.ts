@@ -26,7 +26,7 @@ export async function PATCH(req: NextRequest) {
     if (parsed.error) return parsed.error;
     const { parentId, name, email, loginPhone, phone } = parsed.data;
 
-    const conflict = await findLoginConflict({ email, loginPhone, excludeParentId: parentId });
+    const conflict = await findLoginConflict({ email, loginPhone, excludeParentId: parentId, schoolId });
     if (conflict) return fieldErrorResponse(conflict, 409);
 
     const { error } = await supabaseAdmin
