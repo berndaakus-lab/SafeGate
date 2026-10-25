@@ -10,39 +10,35 @@ export default async function AdminDashboard() {
   const session = await getServerSession(authOptions);
   const schoolId = (session?.user as any)?.schoolId;
 
-  // Fetch student IDs first, Supabase ignores .eq("joined_table.col", val) silently
-  const { data: studentRows } = await supabaseAdmin
-    .from("students")
-    .select("id")
-    .eq("school_id", schoolId);
-  const studentIds = studentRows?.map((s: any) => s.id) ?? [];
-
+  // Pickups come from the school-filtered view, so the query stays small however many students there are
   const [
     { count: parentCount },
     { count: studentCount },
     { count: pickupCount },
-    { data: recentLogs },
+    { data: recentRows },
     { data: school },
   ] = await Promise.all([
     supabaseAdmin.from("parents").select("*", { count: "exact", head: true }).eq("school_id", schoolId),
     supabaseAdmin.from("students").select("*", { count: "exact", head: true }).eq("school_id", schoolId).is("archived_at", null),
-    studentIds.length > 0
-      ? supabaseAdmin.from("pickup_logs").select("*", { count: "exact", head: true }).in("student_id", studentIds)
-      : Promise.resolve({ count: 0 }),
-    studentIds.length > 0
-      ? supabaseAdmin
-          .from("pickup_logs")
-          .select("*, students(name), authorized_persons(name)")
-          .in("student_id", studentIds)
-          .order("picked_up_at", { ascending: false })
-          .limit(8)
-      : Promise.resolve({ data: [] }),
+    supabaseAdmin.from("pickup_log_details").select("*", { count: "exact", head: true }).eq("school_id", schoolId),
+    supabaseAdmin
+      .from("pickup_log_details")
+      .select("id, picked_up_at, student_name, collected_by")
+      .eq("school_id", schoolId)
+      .order("picked_up_at", { ascending: false })
+      .limit(8),
     supabaseAdmin
       .from("schools")
       .select("plan, trial_ends_at, paid_until, max_students")
       .eq("id", schoolId)
       .single(),
   ]);
+  const recentLogs = (recentRows ?? []).map((l: any) => ({
+    id: l.id,
+    picked_up_at: l.picked_up_at,
+    students: { name: l.student_name },
+    authorized_persons: { name: l.collected_by },
+  }));
 
   // Subscription banner: trial or paid period ending soon, or ended
   const sub = school ? subscriptionState(school) : { kind: "none" as const };

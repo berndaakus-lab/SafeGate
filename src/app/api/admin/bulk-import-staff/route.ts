@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     const pw = newPassword.safeParse(chosen);
     if (!pw.success) return fieldErrorResponse({ password: pw.error.issues[0].message });
 
-    const conflict = await findLoginConflict({ email, loginPhone });
+    const conflict = await findLoginConflict({ email, loginPhone, schoolId });
     if (conflict) return fieldErrorResponse(conflict, 409);
 
     const { error } = await supabaseAdmin.from("staff").insert({

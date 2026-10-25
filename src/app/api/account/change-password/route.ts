@@ -4,6 +4,8 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { parseBody } from "@/lib/validate";
+import { passwordFingerprint } from "@/lib/pwf";
+import { keepSignedInAfterPasswordChange } from "@/lib/session-cookie";
 import bcrypt from "bcryptjs";
 
 const schema = z.object({
@@ -59,7 +61,10 @@ export async function POST(req: NextRequest) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    return NextResponse.json({ success: true });
+    // Every other sign-in for this account stops working; this device stays signed in
+    const res = NextResponse.json({ success: true });
+    await keepSignedInAfterPasswordChange(req, res, passwordFingerprint(hashed));
+    return res;
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

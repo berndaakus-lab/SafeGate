@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const conflict = await findLoginConflict({ email, loginPhone });
+    const conflict = await findLoginConflict({ email, loginPhone, schoolId });
     if (conflict) return fieldErrorResponse(conflict, 409);
 
     const hashedPassword = await bcrypt.hash(password, 12);

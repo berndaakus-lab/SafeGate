@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import AddStaffForm from "./AddStaffForm";
+import ResetStaffPassword from "./ResetStaffPassword";
 import Link from "next/link";
 import { ScanLine, ShieldCheck, Upload, UserPlus, UserCheck } from "lucide-react";
 import { Badge, EmptyState, InfoNote, PageHeader, Section, btnPrimary, btnSecondary } from "@/components/ui";
@@ -64,20 +65,23 @@ export default async function StaffPage() {
             {list.map((staff: any) => {
               const role = ROLE_BADGE[staff.role] ?? { tone: "slate" as const, label: staff.role };
               return (
-                <div key={staff.id} className="flex items-center gap-4 px-5 sm:px-6 py-4">
-                  <div className="w-11 h-11 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-700 shrink-0">
-                    {staff.name[0].toUpperCase()}
+                <div key={staff.id} className="px-5 sm:px-6 py-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-11 h-11 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-700 shrink-0">
+                      {staff.name[0].toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-slate-900">{staff.name}</p>
+                      <p className="text-sm text-slate-600 break-words">
+                        {[staff.email, staff.login_phone].filter(Boolean).join(" · ")}
+                      </p>
+                    </div>
+                    <Badge tone={role.tone}>
+                      {staff.role === "admin" ? <ShieldCheck className="w-3 h-3" /> : <ScanLine className="w-3 h-3" />}
+                      {role.label}
+                    </Badge>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-slate-900">{staff.name}</p>
-                    <p className="text-sm text-slate-600 break-words">
-                      {[staff.email, staff.login_phone].filter(Boolean).join(" · ")}
-                    </p>
-                  </div>
-                  <Badge tone={role.tone}>
-                    {staff.role === "admin" ? <ShieldCheck className="w-3 h-3" /> : <ScanLine className="w-3 h-3" />}
-                    {role.label}
-                  </Badge>
+                  {staff.role !== "admin" && <ResetStaffPassword staffId={staff.id} staffName={staff.name} />}
                 </div>
               );
             })}

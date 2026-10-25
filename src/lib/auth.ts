@@ -5,6 +5,30 @@ import bcrypt from "bcryptjs";
 import { createHash, timingSafeEqual } from "crypto";
 import { escapeLike, isEmailIdentifier, normalizeEmail, normalizePhone } from "@/lib/identity";
 import { IDLE_TIMEOUT_MINUTES } from "@/lib/session-policy";
+import { passwordFingerprint } from "@/lib/pwf";
+
+// How often a signed-in person's account is checked against the database
+const RECHECK_MS = 60_000;
+
+// A real bcrypt hash to compare against when no account matches, so a wrong
+// phone number takes as long to answer as a wrong password.
+let dummyHash: Promise<string> | null = null;
+const getDummyHash = () => (dummyHash ??= bcrypt.hash("no-such-account", 12));
+
+type AccountState = { pwf: string; role: string; schoolId: string | null; name: string } | "gone" | "unknown";
+
+async function loadAccountState(role: string, id: string): Promise<AccountState> {
+  const table = role === "parent" ? "parents" : "staff";
+  const { data, error } = await supabaseAdmin.from(table).select("name, password, school_id, role").eq("id", id).maybeSingle();
+  if (error) return "unknown";
+  if (!data) return "gone";
+  return {
+    pwf: passwordFingerprint(data.password),
+    role: table === "parents" ? "parent" : data.role,
+    schoolId: data.school_id,
+    name: data.name,
+  };
+}
 
 const SUPERADMIN_EMAIL = process.env.SUPERADMIN_EMAIL!;
 const SUPERADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD!;
@@ -79,6 +103,7 @@ export const authOptions: NextAuthOptions = {
             schoolId: staff.school_id,
             schoolName: staff.schools?.name,
             loginPhone: staff.login_phone ?? null,
+            pwf: passwordFingerprint(staff.password),
           };
         }
 
@@ -94,30 +119,54 @@ export const authOptions: NextAuthOptions = {
             schoolId: parent.school_id,
             schoolName: parent.schools?.name,
             loginPhone: parent.login_phone ?? null,
+            pwf: passwordFingerprint(parent.password),
           };
         }
 
+        await bcrypt.compare(password, await getDummyHash());
         return null;
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user, trigger }) {
-      // useSession().update() after a parent changes their name: re-read it from
-      // the database rather than trusting anything the browser sends
-      if (trigger === "update" && token.sub && token.role === "parent") {
-        const { data } = await supabaseAdmin.from("parents").select("name").eq("id", token.sub).maybeSingle();
-        if (data?.name) token.name = data.name;
-      }
       if (user) {
         token.role = (user as any).role;
         token.schoolId = (user as any).schoolId;
         token.schoolName = (user as any).schoolName;
         token.loginPhone = (user as any).loginPhone;
+        token.pwf = (user as any).pwf;
+        token.checkedAt = Date.now();
+        delete token.invalid;
+        return token;
       }
+
+      // The platform admin has no database account to check
+      if (!token.sub || token.role === "superadmin" || token.invalid) return token;
+
+      // useSession().update() after a parent changes their name re-reads
+      // everything from the database; otherwise check once a minute
+      const refresh = trigger === "update";
+      if (!refresh && Date.now() - ((token.checkedAt as number) ?? 0) < RECHECK_MS) return token;
+
+      const state = await loadAccountState(token.role as string, token.sub);
+      if (state === "unknown") return token; // a database hiccup must not sign everyone out
+      // Account deleted, or its password changed or was reset: this sign-in is no longer valid
+      if (state === "gone" || (token.pwf && state.pwf !== token.pwf)) {
+        token.invalid = true;
+        return token;
+      }
+
+      token.pwf = state.pwf; // cookies from before this check existed carry none; adopt the current one
+      token.role = state.role;
+      token.schoolId = state.schoolId;
+      if (refresh && state.role === "parent") token.name = state.name;
+      token.checkedAt = Date.now();
       return token;
     },
     async session({ session, token }) {
+      // An empty session reads as "not signed in" everywhere, including getServerSession
+      if (token.invalid) return {} as typeof session;
       if (session.user) {
         (session.user as any).id = token.sub;
         (session.user as any).role = token.role;

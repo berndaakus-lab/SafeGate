@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
       generatedPassword = password ? null : chosen;
       if (Object.keys(errors).length) return fieldErrorResponse(errors);
 
-      const conflict = await findLoginConflict({ email, loginPhone });
+      const conflict = await findLoginConflict({ email, loginPhone, schoolId });
       if (conflict) {
         return fieldErrorResponse(
           { ...(conflict.email && { parentEmail: conflict.email }), ...(conflict.loginPhone && { parentLoginPhone: conflict.loginPhone }) },
