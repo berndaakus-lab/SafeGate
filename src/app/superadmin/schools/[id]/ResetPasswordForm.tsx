@@ -60,7 +60,7 @@ export default function ResetPasswordForm({ staff }: { staff: { id: string; name
       {success && <div className="bg-green-50 text-green-700 text-sm px-4 py-3 rounded-xl border border-green-100">Password reset successfully!</div>}
 
       <button type="submit" disabled={loading}
-        className="flex items-center gap-2 bg-slate-800 text-white px-6 py-3 rounded-xl font-semibold hover:bg-slate-700 transition-colors disabled:opacity-60">
+        className="flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-700 transition-colors disabled:opacity-60">
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
         {loading ? "Resetting..." : "Reset Password"}
       </button>

@@ -138,17 +138,18 @@ function LoginForm() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-50 flex items-center justify-center px-4 py-12"
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-100 via-blue-100 to-indigo-200 flex items-center justify-center px-4 py-12"
       style={{ paddingTop: "max(3rem, env(safe-area-inset-top))", paddingBottom: "max(3rem, env(safe-area-inset-bottom))" }}
     >
-      {/* Branded background: soft radial glow + faint dot grid, static so it never distracts from the form */}
+      {/* Soft coloured light behind the glass card, static so it never distracts from the form */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 -left-32 w-[28rem] h-[28rem] rounded-full bg-blue-200/40 blur-3xl" />
-        <div className="absolute -bottom-40 -right-32 w-[28rem] h-[28rem] rounded-full bg-indigo-200/40 blur-3xl" />
+        <div className="absolute -top-32 -left-24 w-[26rem] h-[26rem] rounded-full bg-blue-400/50 blur-3xl" />
+        <div className="absolute top-1/3 -right-24 w-[22rem] h-[22rem] rounded-full bg-cyan-300/60 blur-3xl" />
+        <div className="absolute -bottom-40 left-1/4 w-[30rem] h-[30rem] rounded-full bg-indigo-400/40 blur-3xl" />
         <div
-          className="absolute inset-0 opacity-[0.4]"
+          className="absolute inset-0 opacity-[0.3]"
           style={{
-            backgroundImage: "radial-gradient(#cbd5e1 1px, transparent 1px)",
+            backgroundImage: "radial-gradient(#93c5fd 1px, transparent 1px)",
             backgroundSize: "24px 24px",
           }}
         />
@@ -161,16 +162,21 @@ function LoginForm() {
             <Image src="/icon-192.png" alt="VerifyGate" width={40} height={40} className="rounded-xl shadow-sm" />
             <span className="font-serif text-3xl text-slate-900">VerifyGate</span>
           </Link>
-          <p className="text-slate-500 text-sm">Sign in to your account</p>
+          <p className="text-slate-600 text-sm">Sign in to your account</p>
         </div>
 
         <RedirectNotice />
 
-        {/* Card */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200/80 p-6 sm:p-8">
-          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
+        {/* Glass card: two bright shapes sit behind it so the frosted blur is visible */}
+        <div className="relative">
+          <div aria-hidden className="pointer-events-none absolute -top-7 -left-8 w-28 h-28 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 opacity-80" />
+          <div aria-hidden className="pointer-events-none absolute -bottom-9 -right-7 w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500 to-violet-400 opacity-80" />
+        <div className="relative z-10 overflow-hidden rounded-3xl border border-white/60 bg-white/80 supports-[backdrop-filter]:bg-white/30 backdrop-blur-2xl backdrop-saturate-150 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),inset_0_-1px_0_rgba(255,255,255,0.3),0_24px_60px_-20px_rgba(37,99,235,0.35)] p-6 sm:p-8">
+          {/* Light catching the top edge of the glass */}
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/50 to-transparent" />
+          <form onSubmit={handleSubmit} className="relative space-y-4" autoComplete="on">
             <div>
-              <label htmlFor="identifier" className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label htmlFor="identifier" className="block text-sm font-semibold text-slate-800 mb-1.5">
                 Email or phone number
               </label>
               <input
@@ -185,12 +191,12 @@ function LoginForm() {
                 required
                 autoFocus
                 placeholder="you@example.com or 024 412 3456"
-                className="w-full px-4 py-3.5 sm:py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base"
+                className="w-full px-4 py-3.5 sm:py-3 rounded-xl border border-white/70 bg-white/55 backdrop-blur-sm shadow-[inset_0_1px_2px_rgba(15,23,42,0.06)] text-slate-900 placeholder-slate-500 focus:outline-none focus:bg-white/80 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label htmlFor="password" className="block text-sm font-semibold text-slate-800 mb-1.5">
                 Password
               </label>
               <div className="relative">
@@ -202,7 +208,7 @@ function LoginForm() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="Enter your password"
-                  className="w-full px-4 py-3.5 sm:py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12 text-base"
+                  className="w-full px-4 py-3.5 sm:py-3 rounded-xl border border-white/70 bg-white/55 backdrop-blur-sm shadow-[inset_0_1px_2px_rgba(15,23,42,0.06)] text-slate-900 placeholder-slate-500 focus:outline-none focus:bg-white/80 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12 text-base"
                 />
                 <button
                   type="button"
@@ -224,15 +230,16 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-3.5 sm:py-3 rounded-xl font-semibold hover:bg-blue-700 active:bg-blue-800 transition-colors disabled:opacity-60 flex items-center justify-center gap-2 shadow-sm shadow-blue-600/20"
+              className="w-full bg-gradient-to-b from-blue-500 to-blue-700 text-white py-3.5 sm:py-3 rounded-xl font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_10px_24px_-8px_rgba(37,99,235,0.7)] hover:from-blue-500 hover:to-blue-800 active:from-blue-600 active:to-blue-800 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               {redirecting ? "Opening your dashboard..." : loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
         </div>
+        </div>
 
-        <p className="text-center text-slate-400 text-sm mt-6">
+        <p className="text-center text-slate-600 text-sm mt-6">
           Security guard?{" "}
           <Link href="/guard/scan" className="text-blue-600 hover:underline font-medium">
             Open scanner

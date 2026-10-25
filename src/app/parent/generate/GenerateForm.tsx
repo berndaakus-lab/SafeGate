@@ -5,6 +5,7 @@ import { QrCode, Loader2, Share2, Download, RefreshCw, Check } from "lucide-reac
 import Image from "next/image";
 import { buildPickupPassImage } from "@/lib/pickup-pass-image";
 import { Section, btnPrimary } from "@/components/ui";
+import { copyText } from "@/lib/copy-text";
 
 type Child = { id: string; name: string; class_name: string | null };
 type Person = { id: string; name: string; relation: string | null };
@@ -29,6 +30,7 @@ export default function GenerateForm({
   const [error, setError] = useState("");
   const [sharing, setSharing] = useState(false);
   const [shareNote, setShareNote] = useState("");
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
   const [pass, setPass] = useState<File | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -98,7 +100,7 @@ export default function GenerateForm({
         await navigator.share({ title: "VerifyGate pickup pass", text });
       } else {
         downloadFile(file);
-        await navigator.clipboard?.writeText(text).catch(() => {});
+        await copyText(text);
         setShareNote("Pickup pass image saved, and the code copied. Attach the image to your message.");
       }
     } catch (err: any) {
@@ -298,12 +300,21 @@ export default function GenerateForm({
 
           <p className="text-xs text-slate-400 mb-2">Pickup code (tap to copy)</p>
           <button
-            onClick={() => navigator.clipboard.writeText(qrData.code)}
+            type="button"
+            onClick={async () => {
+              const ok = await copyText(qrData.code);
+              setCopyState(ok ? "copied" : "failed");
+              setTimeout(() => setCopyState("idle"), 2500);
+            }}
             title="Tap to copy"
-            className="font-mono text-3xl font-bold tracking-[0.3em] text-slate-800 mb-6 bg-slate-50 px-6 py-3 rounded-xl inline-block hover:bg-slate-100 transition-colors cursor-copy"
+            className="font-mono text-3xl font-bold tracking-[0.3em] text-slate-800 mb-2 bg-slate-50 px-6 py-3 rounded-xl inline-block hover:bg-slate-100 transition-colors cursor-copy"
           >
             {qrData.code}
           </button>
+          <p role="status" className={`text-sm font-semibold mb-4 h-5 ${copyState === "failed" ? "text-red-600" : "text-green-600"}`}>
+            {copyState === "copied" && "Copied!"}
+            {copyState === "failed" && "Couldn't copy. Press and hold the code to copy it."}
+          </p>
 
           <div className="flex gap-3">
             <button
