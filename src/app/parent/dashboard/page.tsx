@@ -75,7 +75,7 @@ export default async function ParentDashboard() {
         {ready && !standingCount && (
           <p className="text-blue-100 text-sm mt-4">
             Same people collect every day?{" "}
-            <Link href="/parent/authorized" className="underline font-semibold">Set up a standing pass</Link> and you won&apos;t need a new code each day.
+            <Link href="/parent/authorized" className="underline font-semibold">Set up a regular pickup pass</Link> and you won&apos;t need a new code each day.
           </p>
         )}
         {!ready && (

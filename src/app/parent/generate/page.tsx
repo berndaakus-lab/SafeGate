@@ -20,7 +20,7 @@ export default async function GeneratePage({ searchParams }: { searchParams: Pro
     <div className="p-6 max-w-lg">
       <PageHeader
         title="Generate Pickup QR"
-        subtitle="Make a one-time QR code for today's pickup, then send it to the person collecting. For someone who collects every day, a standing pass is quicker."
+        subtitle="Make a one-time QR code for today's pickup, then send it to the person collecting. For someone who collects every day, a regular pickup pass is quicker."
       />
       <Link
         href="/parent/authorized"
@@ -30,7 +30,7 @@ export default async function GeneratePage({ searchParams }: { searchParams: Pro
           <Ticket className="w-5 h-5" />
         </span>
         <span className="flex-1 min-w-0">
-          <span className="block font-bold text-slate-900 text-sm">Set up a standing pass</span>
+          <span className="block font-bold text-slate-900 text-sm">Set up a regular pickup pass</span>
           <span className="block text-xs text-slate-600">For someone who collects regularly: one pass for many days, no daily code.</span>
         </span>
         <ArrowRight className="w-4 h-4 text-blue-700 shrink-0" />

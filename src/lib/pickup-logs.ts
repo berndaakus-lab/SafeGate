@@ -37,7 +37,7 @@ export async function queryPickupLogs(schoolId: string, query: LogQuery): Promis
     parentName: l.parent_name ?? "N/A",
     releasedBy: l.released_by ?? null,
     releasedByRole: l.released_by_role ?? null,
-    method: l.pickup_kind === "standing" ? "Standing pass" : l.pickup_kind === "lookup" ? "Parent approved" : "Daily code",
+    method: l.pickup_kind === "standing" ? "Regular pickup pass" : l.pickup_kind === "lookup" ? "Parent approved" : "Daily code",
   }));
   return { rows, total: count ?? 0 };
 }
