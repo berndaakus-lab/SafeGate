@@ -103,6 +103,7 @@ export default function EditPersonButton({
                   <label htmlFor={`ep-car-${person.id}`} className={labelBase}>Car number</label>
                   <input id={`ep-car-${person.id}`} value={vehicleNumber} onChange={(e) => setVehicleNumber(e.target.value)}
                     autoCapitalize="characters" maxLength={20} placeholder="e.g. GR 1234-24" className={inputBase} />
+                  <p className="text-xs text-slate-500 mt-1.5">A driver&apos;s phone number is required. If they serve several families, one scan covers them all.</p>
                 </div>
               )}
               {error && <div role="alert" className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl border border-red-100">{error}</div>}

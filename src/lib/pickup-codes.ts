@@ -19,7 +19,7 @@ function asArray<T>(v: T | T[] | null | undefined): T[] {
 /** Loads a pickup code with every child on it and whether each has been picked up. */
 export async function loadPickupCode(filter: { code: string } | { id: string }) {
   let q = supabaseAdmin.from("pickup_codes").select(`
-    id, code, expires_at, used_at, parent_id, student_id, student_ids, authorized_person_id,
+    *,
     authorized_persons(name, phone, relation, photo_url, vehicle_number),
     parents(name, phone),
     pickup_logs(student_id, picked_up_at, confirmed_by_name)
@@ -59,6 +59,7 @@ export async function loadPickupCode(filter: { code: string } | { id: string }) 
     pickupCode: {
       id: pc.id as string,
       code: pc.code as string,
+      kind: (pc.kind ?? "daily") as "daily" | "standing" | "lookup",
       expiresAt: pc.expires_at as string,
       parentId: pc.parent_id as string,
       authorizedPersonId: pc.authorized_person_id as string,

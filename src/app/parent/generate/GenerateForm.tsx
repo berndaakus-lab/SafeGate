@@ -18,13 +18,18 @@ function joinNames(names: string[]) {
 export default function GenerateForm({
   students: children,
   authorizedPeople,
+  usualPersonId = null,
+  quick = false,
 }: {
   students: Child[];
   authorizedPeople: Person[];
+  usualPersonId?: string | null;
+  quick?: boolean;
 }) {
   const initialChildren = () => new Set(children.length === 1 ? [children[0].id] : []);
   const [childIds, setChildIds] = useState<Set<string>>(initialChildren);
-  const [personId, setPersonId] = useState("");
+  // The usual collector is chosen for you; change it if someone else is collecting
+  const [personId, setPersonId] = useState(usualPersonId ?? "");
   const [loading, setLoading] = useState(false);
   const [qrData, setQrData] = useState<QrData | null>(null);
   const [error, setError] = useState("");
@@ -33,6 +38,17 @@ export default function GenerateForm({
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
   const [pass, setPass] = useState<File | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  // One-tap from the dashboard: the usual collector takes all the children, no choices to make
+  const autoRan = useRef(false);
+  useEffect(() => {
+    if (!quick || !usualPersonId || children.length === 0 || autoRan.current) return;
+    autoRan.current = true;
+    const ids = children.map((c) => c.id);
+    setChildIds(new Set(ids));
+    generate({ ids, person: usualPersonId });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // On phones the QR appears below the fold; bring it into view once ready
   useEffect(() => {
@@ -50,18 +66,20 @@ export default function GenerateForm({
     });
   }
 
-  async function generate() {
-    if (childIds.size === 0 || !personId) return;
+  async function generate(override?: { ids: string[]; person: string }) {
+    const person_id = override?.person ?? personId;
+    if (!override && childIds.size === 0) return;
+    if (!person_id) return;
     setError("");
     setLoading(true);
     setQrData(null);
 
     // Keep the order the children are listed in, not the order they were tapped
-    const studentIds = children.filter((c) => childIds.has(c.id)).map((c) => c.id);
+    const studentIds = override?.ids ?? children.filter((c) => childIds.has(c.id)).map((c) => c.id);
     const res = await fetch("/api/pickup/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ studentIds, authorizedPersonId: personId }),
+      body: JSON.stringify({ studentIds, authorizedPersonId: person_id }),
     });
 
     setLoading(false);
@@ -72,7 +90,7 @@ export default function GenerateForm({
       return;
     }
 
-    const person = authorizedPeople.find((p) => p.id === personId);
+    const person = authorizedPeople.find((p) => p.id === person_id);
     const data: QrData = {
       ...(await res.json()),
       collectedBy: person ? `${person.name}${person.relation ? ` (${person.relation})` : ""}` : "an authorised person",
@@ -153,7 +171,7 @@ export default function GenerateForm({
       {missingChild && (
         <div className="bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 rounded-2xl text-sm mb-4">
           <p className="font-semibold mb-1">No children added yet</p>
-          <p className="mb-3">Your school admin needs to add your child to your account, or you can add them yourself.</p>
+          <p className="mb-3">Your school adds your children to your account. If a child is missing, please contact the school office.</p>
           <a href="/parent/children" className="inline-flex items-center gap-1 font-semibold underline underline-offset-2">
             Go to My Children →
           </a>
@@ -258,7 +276,7 @@ export default function GenerateForm({
         )}
 
         <button
-          onClick={generate}
+          onClick={() => generate()}
           disabled={childIds.size === 0 || !personId || loading}
           className={`${btnPrimary} w-full py-4 text-base`}
         >

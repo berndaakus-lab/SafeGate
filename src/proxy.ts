@@ -43,6 +43,8 @@ async function isRateLimited(key: string, windowMs: number, max: number): Promis
 const RATE_LIMITED_PATHS: { path: string; windowMs: number; max: number }[] = [
   { path: "/api/auth/callback/credentials", windowMs: 5 * 60_000, max: 8 },
   { path: "/api/demo-requests", windowMs: 60_000, max: 20 },
+  // The public link in a parent's message: plenty for a real answer, little for guessing
+  { path: "/api/approve", windowMs: 60_000, max: 20 },
 ];
 
 export async function proxy(req: NextRequest) {

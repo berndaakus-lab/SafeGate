@@ -233,9 +233,7 @@ export default function LogsClient({
                     </div>
                     <div>
                       <p className="text-sm text-slate-700">{log.collectedBy}</p>
-                      {(log.relation || log.vehicleNumber) && (
-                        <p className="text-xs text-slate-400">{[log.relation, log.vehicleNumber].filter(Boolean).join(" · ")}</p>
-                      )}
+                      <p className="text-xs text-slate-400">{[log.relation, log.vehicleNumber, log.method !== "Daily code" ? log.method : ""].filter(Boolean).join(" · ")}</p>
                     </div>
                     <p className="text-sm text-slate-500">{log.parentName}</p>
                     <p className="text-sm text-slate-700"><ReleasedBy log={log} /></p>

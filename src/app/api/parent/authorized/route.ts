@@ -6,7 +6,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { fieldErrorResponse, parseBody } from "@/lib/validate";
 import { studentPhotoData } from "@/lib/student-photo";
 import { removePersonPhoto, uploadPersonPhoto } from "@/lib/person-photo";
-import { normalizePhone } from "@/lib/identity";
+import { isValidPhone, normalizePhone } from "@/lib/identity";
 
 const personFields = z.object({
   name: z.string().trim().min(1).max(200),
@@ -27,8 +27,15 @@ function vehicleFor(
   raw: string | null | undefined
 ): { value: string | null; error?: undefined } | { error: string; value?: undefined } {
   if (relation !== "Driver") return { value: null };
-  const value = (raw ?? "").trim().toUpperCase().replace(/s+/g, " ");
+  const value = (raw ?? "").trim().toUpperCase().replace(/\s+/g, " ");
   return value ? { value } : { error: "Enter the car number for a driver." };
+}
+
+// A driver's phone number links their passes across the families they serve, so it must be a real number
+function driverPhoneProblem(relation: string | null | undefined, phone: string | null | undefined): string | null {
+  if (relation !== "Driver") return null;
+  const normalized = normalizePhone(phone);
+  return normalized && isValidPhone(normalized) ? null : "Enter the driver's phone number.";
 }
 
 // Parent: fix a pickup person's details. The name is locked once that person
@@ -48,6 +55,8 @@ export async function PATCH(req: NextRequest) {
 
     const vehicle = vehicleFor(relation, parsed.data.vehicleNumber);
     if (vehicle.error) return fieldErrorResponse({ vehicleNumber: vehicle.error });
+    const phoneProblem = driverPhoneProblem(relation, phone);
+    if (phoneProblem) return fieldErrorResponse({ phone: phoneProblem });
 
     const { data: person } = await supabaseAdmin
       .from("authorized_persons")
@@ -108,6 +117,8 @@ export async function POST(req: NextRequest) {
 
     const vehicle = vehicleFor(relation, parsed.data.vehicleNumber);
     if (vehicle.error) return fieldErrorResponse({ vehicleNumber: vehicle.error });
+    const phoneProblem = driverPhoneProblem(relation, phone);
+    if (phoneProblem) return fieldErrorResponse({ phone: phoneProblem });
 
     let photoUrl: string | null = null;
     if (photoData) {

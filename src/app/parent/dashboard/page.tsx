@@ -41,6 +41,8 @@ export default async function ParentDashboard() {
     { label: "Pickups", value: totalPickups ?? 0, icon: CheckCircle2, href: null, color: "bg-green-50 text-green-600" },
   ];
   const ready = childCount > 0 && personCount > 0;
+  const usual = (authorizedPeople ?? []).find((p: any) => p.is_usual);
+  const standingCount = (authorizedPeople ?? []).filter((p: any) => p.standing_token).length;
 
   return (
     <div className="p-6 max-w-4xl">
@@ -53,6 +55,15 @@ export default async function ParentDashboard() {
       <div className="bg-blue-600 rounded-2xl p-6 mb-6 text-white shadow-lg shadow-blue-600/20">
         <h2 className="font-semibold text-xl mb-1">Someone collecting today?</h2>
         <p className="text-blue-100 mb-5">Make a pickup QR code and send it to them. It works for one child or several.</p>
+        {ready && usual && (
+          <Link
+            href="/parent/generate?quick=1"
+            className="mb-3 inline-flex items-center justify-center gap-2 bg-green-500 text-white px-6 py-3.5 rounded-xl font-bold hover:bg-green-600 transition-colors w-full sm:w-auto sm:mr-3"
+          >
+            <QrCode className="w-5 h-5" />
+            Today: {usual.name.split(" ")[0]} collects {childCount === 1 ? "my child" : "all my children"}
+          </Link>
+        )}
         <Link
           href={ready ? "/parent/generate" : personCount === 0 ? "/parent/authorized" : "/parent/children"}
           className="inline-flex items-center justify-center gap-2 bg-white text-blue-700 px-6 py-3.5 rounded-xl font-bold hover:bg-blue-50 transition-colors w-full sm:w-auto"
@@ -61,6 +72,12 @@ export default async function ParentDashboard() {
           {ready ? "Generate QR Code" : personCount === 0 ? "First, add a pickup person" : "See my children"}
           <ArrowRight className="w-5 h-5" />
         </Link>
+        {ready && !standingCount && (
+          <p className="text-blue-100 text-sm mt-4">
+            Same people collect every day?{" "}
+            <Link href="/parent/authorized" className="underline font-semibold">Set up a standing pass</Link> and you won&apos;t need a new code each day.
+          </p>
+        )}
         {!ready && (
           <p className="text-blue-100 text-sm mt-3">
             {childCount === 0

@@ -94,6 +94,11 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
               <div className="flex items-center justify-center gap-2 mb-6">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                 <span className="text-green-400 text-sm font-medium">Code Valid</span>
+                {pickupCode.kind !== "daily" && (
+                  <span className="text-xs font-semibold text-blue-300 bg-blue-500/15 border border-blue-500/30 rounded-full px-2.5 py-0.5">
+                    {pickupCode.kind === "standing" ? "Standing pass" : "Approved by parent"}
+                  </span>
+                )}
               </div>
 
               <div className="flex flex-col items-center gap-2 mb-6">
