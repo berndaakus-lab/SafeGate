@@ -124,3 +124,26 @@ body {
 @media (prefers-reduced-motion: reduce) {
   [class*="animate-[walk-in"] { animation: none !important; opacity: 1 !important; transform: none !important; }
 }
+
+/* The homepage Sign In button: a blue outline that gently pulses outward, so
+   parents and teachers who use it every day find it at once. */
+@keyframes signin-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.55); }
+  60% { box-shadow: 0 0 0 7px rgba(37, 99, 235, 0); }
+}
+
+.btn-signin-pulse {
+  border: 2px solid #2563eb;
+  color: #1d4ed8;
+  font-weight: 700;
+  animation: signin-pulse 1.8s ease-out infinite;
+}
+
+.btn-signin-pulse:hover {
+  background: #eff6ff;
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-signin-pulse { animation: none; }
+}

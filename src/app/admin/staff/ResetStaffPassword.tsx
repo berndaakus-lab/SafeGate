@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, Copy, KeyRound, Loader2 } from "lucide-react";
+import { copyText } from "@/lib/copy-text";
 
 export default function ResetStaffPassword({ staffId, staffName }: { staffId: string; staffName: string }) {
   const [loading, setLoading] = useState(false);
@@ -30,12 +31,8 @@ export default function ResetStaffPassword({ staffId, staffName }: { staffId: st
 
   async function copy() {
     if (!password) return;
-    try {
-      await navigator.clipboard.writeText(password);
-      setCopied(true);
-    } catch {
-      setError("Couldn't copy. Select the password and copy it by hand.");
-    }
+    if (await copyText(password)) setCopied(true);
+    else setError("Couldn't copy. Select the password and copy it by hand.");
   }
 
   return (
@@ -54,8 +51,8 @@ export default function ResetStaffPassword({ staffId, staffName }: { staffId: st
         </div>
       ) : (
         <button type="button" onClick={reset} disabled={loading}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-blue-700 disabled:opacity-60">
-          {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <KeyRound className="w-3.5 h-3.5" />} Reset password
+          className="inline-flex items-center gap-1.5 text-sm font-bold text-red-600 border-2 border-red-300 rounded-lg px-3 py-1.5 hover:bg-red-50 hover:text-red-700 disabled:opacity-60">
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />} Reset password
         </button>
       )}
       {error && <p role="alert" className="text-xs font-medium text-red-600 mt-2">{error}</p>}

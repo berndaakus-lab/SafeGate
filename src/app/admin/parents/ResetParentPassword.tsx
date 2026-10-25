@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, Copy, KeyRound, Loader2 } from "lucide-react";
+import { copyText } from "@/lib/copy-text";
 
 export default function ResetParentPassword({ parentId, parentName }: { parentId: string; parentName: string }) {
   const [loading, setLoading] = useState(false);
@@ -30,12 +31,8 @@ export default function ResetParentPassword({ parentId, parentName }: { parentId
 
   async function copy() {
     if (!password) return;
-    try {
-      await navigator.clipboard.writeText(password);
-      setCopied(true);
-    } catch {
-      setError("Couldn't copy. Select the password and copy it by hand.");
-    }
+    if (await copyText(password)) setCopied(true);
+    else setError("Couldn't copy. Select the password and copy it by hand.");
   }
 
   return (
@@ -55,7 +52,7 @@ export default function ResetParentPassword({ parentId, parentName }: { parentId
         </div>
       ) : (
         <button type="button" onClick={reset} disabled={loading}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 border border-slate-300 rounded-lg px-3 py-2 hover:bg-slate-50 disabled:opacity-60">
+          className="inline-flex items-center gap-2 text-sm font-bold text-red-600 border-2 border-red-300 rounded-lg px-3 py-2 hover:bg-red-50 hover:text-red-700 disabled:opacity-60">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />} Reset password
         </button>
       )}
