@@ -37,7 +37,7 @@ export async function saveStudentPhoto({
   if (dataUrl) {
     const [, mime, base64] = dataUrl.match(/^data:(image\/[a-z]+);base64,(.+)$/)!;
     // New name per upload so phones and the CDN never show a stale cached photo
-    const path = `${schoolId}/${studentId}-${Date.now()}.${mime === "image/png" ? "png" : mime === "image/webp" ? "webp" : "jpg"}`;
+    const path = `${schoolId}/${studentId}-${crypto.randomUUID()}.${mime === "image/png" ? "png" : mime === "image/webp" ? "webp" : "jpg"}`;
     const { error } = await supabaseAdmin.storage
       .from(BUCKET)
       .upload(path, Buffer.from(base64, "base64"), { contentType: mime, upsert: false });

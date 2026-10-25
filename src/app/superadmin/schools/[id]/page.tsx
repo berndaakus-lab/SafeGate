@@ -22,18 +22,11 @@ export const dynamic = "force-dynamic";
 export default async function ManageSchoolPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  // Fetch student IDs first, Supabase ignores .eq("joined_table.col", val) silently
-  const { data: studentRows } = await supabaseAdmin
-    .from("students")
-    .select("id")
-    .eq("school_id", id);
-  const studentIds = studentRows?.map((s: any) => s.id) ?? [];
-
   const [
     { data: school },
     { data: staff },
     { data: parents },
-    { data: recentLogs },
+    { data: recentRows },
     { count: pickupCount },
     settings,
     { data: payments },
@@ -41,20 +34,13 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
     supabaseAdmin.from("schools").select("*").eq("id", id).single(),
     supabaseAdmin.from("staff").select("id, name, email, login_phone, role").eq("school_id", id).order("role"),
     supabaseAdmin.from("parents").select("id, name, email, login_phone, phone").eq("school_id", id).order("name"),
-    studentIds.length > 0
-      ? supabaseAdmin
-          .from("pickup_logs")
-          .select("*, students(name), authorized_persons(name)")
-          .in("student_id", studentIds)
-          .order("picked_up_at", { ascending: false })
-          .limit(5)
-      : Promise.resolve({ data: [] }),
-    studentIds.length > 0
-      ? supabaseAdmin
-          .from("pickup_logs")
-          .select("*", { count: "exact", head: true })
-          .in("student_id", studentIds)
-      : Promise.resolve({ count: 0 }),
+    supabaseAdmin
+      .from("pickup_log_details")
+      .select("id, picked_up_at, student_name, collected_by, released_by, released_by_role")
+      .eq("school_id", id)
+      .order("picked_up_at", { ascending: false })
+      .limit(5),
+    supabaseAdmin.from("pickup_log_details").select("*", { count: "exact", head: true }).eq("school_id", id),
     getSettings(),
     supabaseAdmin
       .from("payments")
@@ -64,7 +50,15 @@ export default async function ManageSchoolPage({ params }: { params: Promise<{ i
       .limit(8),
   ]);
 
-  const studentCount = studentIds.length;
+  const { count: studentCount } = await supabaseAdmin.from("students").select("id", { count: "exact", head: true }).eq("school_id", id);
+  const recentLogs = (recentRows ?? []).map((l: any) => ({
+    id: l.id,
+    picked_up_at: l.picked_up_at,
+    students: { name: l.student_name },
+    authorized_persons: { name: l.collected_by },
+    confirmed_by_name: l.released_by,
+    confirmed_by_role: l.released_by_role,
+  }));
 
   if (!school) return notFound();
 

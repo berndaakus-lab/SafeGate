@@ -67,7 +67,8 @@ export async function POST(req: NextRequest) {
     if (photoData) {
       const base64 = photoData.replace(/^data:image\/\w+;base64,/, "");
       const buffer = Buffer.from(base64, "base64");
-      const filename = `${schoolId}/${Date.now()}.jpg`;
+      // A random name so a photo's address can't be guessed from the school id and a time
+      const filename = `${schoolId}/${crypto.randomUUID()}.jpg`;
 
       const { error: uploadError } = await supabaseAdmin.storage
         .from("student-photos")

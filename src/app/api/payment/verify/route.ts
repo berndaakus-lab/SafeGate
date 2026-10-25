@@ -7,7 +7,7 @@ import { settlePayment } from "@/lib/payments";
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
   const schoolId = (session?.user as any)?.schoolId;
-  if (!schoolId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!schoolId || (session?.user as any)?.role !== "admin") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const reference = req.nextUrl.searchParams.get("reference");
   if (!reference) return NextResponse.json({ error: "Missing reference" }, { status: 400 });
