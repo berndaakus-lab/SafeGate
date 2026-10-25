@@ -31,6 +31,12 @@ export default async function GuardScanPage() {
             Point the camera at the parent&apos;s QR code to verify and confirm pickup.
           </p>
           <QRScanner />
+          <Link
+            href="/guard/lookup"
+            className="mt-4 block text-center text-sm font-semibold text-blue-300 hover:text-white bg-slate-800/50 rounded-2xl px-5 py-4"
+          >
+            No pass or code? Find the child by name
+          </Link>
         </div>
       </main>
     </div>

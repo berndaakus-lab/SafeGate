@@ -11,6 +11,7 @@ export type LogRow = {
   parentName: string;
   releasedBy: string | null;
   releasedByRole: string | null;
+  method: string;
 };
 
 export type LogQuery = { q: string; from: string; to: string; page: number; pageSize: number };

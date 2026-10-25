@@ -1,7 +1,7 @@
 import type { LogRow } from "@/lib/pickup-logs-shared";
 import { formatDate, formatTime } from "@/lib/utils";
 
-const HEAD = ["Date", "Time", "Student", "Class", "Picked up by", "Relationship", "Car number", "Parent", "Released by", "Staff role"];
+const HEAD = ["Date", "Time", "Student", "Class", "Picked up by", "Relationship", "Car number", "Parent", "Released by", "Staff role", "Method"];
 
 function cells(r: LogRow): string[] {
   return [
@@ -15,6 +15,7 @@ function cells(r: LogRow): string[] {
     r.parentName,
     r.releasedBy ?? "Not recorded",
     r.releasedByRole ?? "",
+    r.method,
   ];
 }
 

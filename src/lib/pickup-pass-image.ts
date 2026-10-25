@@ -15,6 +15,8 @@ type PassInfo = {
   childNames: string;
   collectedBy: string;
   validUntil: string;
+  /** A lasting pass says so, and is not a one-time code */
+  standing?: boolean;
 };
 
 function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, maxLines: number): string[] {
@@ -62,7 +64,7 @@ export async function buildPickupPassImage(info: PassInfo): Promise<File> {
   ctx.fillText("VerifyGate", W / 2, 70);
   ctx.font = font(500, 22);
   ctx.fillStyle = "#dbeafe";
-  ctx.fillText("School pickup pass", W / 2, 106);
+  ctx.fillText(info.standing ? "Standing pickup pass" : "School pickup pass", W / 2, 106);
 
   let y = 190;
   ctx.fillStyle = "#64748b";
@@ -86,8 +88,9 @@ export async function buildPickupPassImage(info: PassInfo): Promise<File> {
 
   let cy = qrY + qrSize + 70;
   ctx.fillStyle = "#0f172a";
-  ctx.font = font(700, 60, "ui-monospace, 'SF Mono', Menlo, Consolas, monospace");
-  ctx.fillText(info.code.split("").join(" "), W / 2, cy);
+  ctx.font = font(700, info.standing ? 46 : 60, "ui-monospace, 'SF Mono', Menlo, Consolas, monospace");
+  // The long standing code is shown in groups of four so it still fits and is easy to read out
+  ctx.fillText(info.standing ? info.code.replace(/(.{4})/g, "$1 ").trim() : info.code.split("").join(" "), W / 2, cy);
 
   cy += 50;
   ctx.fillStyle = "#15803d";
@@ -96,7 +99,7 @@ export async function buildPickupPassImage(info: PassInfo): Promise<File> {
 
   ctx.fillStyle = "#94a3b8";
   ctx.font = font(500, 19);
-  ctx.fillText("Show this at the school gate. It can only be used once.", W / 2, H - 36);
+  ctx.fillText(info.standing ? "Show this at the school gate. The parent can cancel it at any time." : "Show this at the school gate. It can only be used once.", W / 2, H - 36);
 
   const blob = await new Promise<Blob>((resolve, reject) =>
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Could not create the image."))), "image/png")

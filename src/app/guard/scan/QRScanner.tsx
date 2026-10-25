@@ -24,11 +24,13 @@ export default function QRScanner() {
         { fps: 10, qrbox: { width: 250, height: 250 } },
         (decodedText: string) => {
           scanner.stop().catch(() => {});
-          const match = decodedText.match(/\/guard\/verify\/([^/?#]+)/);
-          const code = match ? match[1] : decodedText.trim();
+          // A standing pass QR carries a lasting pass link; a daily one carries a verify link
+          const pass = decodedText.match(/\/guard\/pass\/([^/?#]+)/);
+          const verify = decodedText.match(/\/guard\/verify\/([^/?#]+)/);
+          const code = (pass ?? verify)?.[1] ?? decodedText.trim();
           setFoundCode(code);
           // Hard navigate, avoids race between scanner teardown and Next.js router
-          window.location.href = `/guard/verify/${code}`;
+          window.location.href = pass ? `/guard/pass/${encodeURIComponent(code)}` : `/guard/verify/${encodeURIComponent(code)}`;
         },
         () => {}
       );
@@ -113,14 +115,15 @@ export default function QRScanner() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            const code = (e.currentTarget.elements.namedItem("code") as HTMLInputElement).value;
-            if (code.trim()) router.push(`/guard/verify/${code.trim().toUpperCase()}`);
+            const code = (e.currentTarget.elements.namedItem("code") as HTMLInputElement).value.replace(/\s+/g, "").toUpperCase();
+            // A daily code is 6 characters; a standing pass code is the longer one on the pass
+            if (code) router.push(code.length > 6 ? `/guard/pass/${encodeURIComponent(code)}` : `/guard/verify/${encodeURIComponent(code)}`);
           }}
           className="flex gap-2"
         >
           <input
             name="code"
-            placeholder="e.g. K7MX3P"
+            placeholder="e.g. K7MX3P (or the pass code)"
             autoCapitalize="characters"
             className="flex-1 px-4 py-3 rounded-xl bg-slate-700 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono tracking-widest uppercase"
           />

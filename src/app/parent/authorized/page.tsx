@@ -3,6 +3,8 @@ import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import AddPersonForm from "./AddPersonForm";
 import EditPersonButton from "./EditPersonButton";
+import PersonPassControls from "./PersonPassControls";
+import { passQrDataUrl } from "@/lib/pickup-pass";
 import Link from "next/link";
 import Image from "next/image";
 import { Phone, Heart, UserPlus, UserCheck, QrCode, Car } from "lucide-react";
@@ -26,6 +28,18 @@ export default async function AuthorizedPage() {
     .eq("parent_id", parentId)
     .not("used_at", "is", null);
   const usedPersonIds = new Set((usedCodes ?? []).map((c: any) => c.authorized_person_id));
+
+  // Standing passes: the children each pass covers, and a QR for every active pass
+  const { data: kids } = await supabaseAdmin.from("students").select("id, name").eq("parent_id", parentId).is("archived_at", null).order("name");
+  const children = kids ?? [];
+  const personIds = list.map((p: any) => p.id);
+  const { data: links } = personIds.length
+    ? await supabaseAdmin.from("standing_pass_children").select("person_id, student_id").in("person_id", personIds)
+    : { data: [] as any[] };
+  const coveredBy = new Map<string, string[]>();
+  for (const l of links ?? []) coveredBy.set(l.person_id, [...(coveredBy.get(l.person_id) ?? []), l.student_id]);
+  const qrFor = new Map<string, string>();
+  await Promise.all(list.filter((p: any) => p.standing_token).map(async (p: any) => qrFor.set(p.id, await passQrDataUrl(p.standing_token))));
 
   return (
     <div className="p-6 max-w-2xl">
@@ -52,7 +66,7 @@ export default async function AuthorizedPage() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-4">
             <div className="divide-y divide-slate-100">
               {list.map((person: any) => (
-                <div key={person.id} className="flex items-center gap-4 px-5 sm:px-6 py-4">
+                <div key={person.id} className="flex items-start gap-4 px-5 sm:px-6 py-4">
                   <div className="relative w-12 h-12 bg-purple-100 rounded-full overflow-hidden flex items-center justify-center font-bold text-purple-700 shrink-0">
                     {person.photo_url ? (
                       <Image src={person.photo_url} alt={person.name} width={48} height={48} className="w-full h-full object-cover" />
@@ -77,6 +91,23 @@ export default async function AuthorizedPage() {
                         </span>
                       )}
                     </div>
+                    {children.length > 0 && (
+                      <PersonPassControls
+                        person={{
+                          id: person.id,
+                          name: person.name,
+                          relation: person.relation,
+                          hasPhoto: !!person.photo_url,
+                          isUsual: !!person.is_usual,
+                          token: person.standing_token ?? null,
+                          until: person.standing_until ?? null,
+                          schoolDays: !!person.standing_school_days,
+                          coveredIds: coveredBy.get(person.id) ?? [],
+                        }}
+                        children={children}
+                        qrUrl={qrFor.get(person.id) ?? null}
+                      />
+                    )}
                   </div>
                   <EditPersonButton person={person} nameLocked={usedPersonIds.has(person.id)} />
                 </div>

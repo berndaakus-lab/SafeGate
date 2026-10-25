@@ -41,6 +41,7 @@ export default function AddPersonForm({ parentId }: { parentId: string }) {
     if (!res.ok) {
       const d = await res.json().catch(() => ({}));
       if (d.fields?.vehicleNumber) setVehicleError(d.fields.vehicleNumber);
+      else if (d.fields?.phone) setError(d.fields.phone);
       else setError(d.error || "Failed to add person. Please try again.");
       return;
     }
@@ -93,7 +94,7 @@ export default function AddPersonForm({ parentId }: { parentId: string }) {
             autoCapitalize="characters" maxLength={20} placeholder="e.g. GR 1234-24"
             className={`${inputBase} ${vehicleError ? "border-red-400 ring-1 ring-red-300" : ""}`} />
           {vehicleError && <p role="alert" className="text-xs font-medium text-red-600 mt-1.5">{vehicleError}</p>}
-          <p className="text-xs text-slate-500 mt-1.5">The guard sees this so they can match the car at the gate.</p>
+          <p className="text-xs text-slate-500 mt-1.5">The guard sees this so they can match the car at the gate. A driver&apos;s phone number is also needed: if they serve several families, one scan covers them all.</p>
         </div>
       )}
 
