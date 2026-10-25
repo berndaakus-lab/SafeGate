@@ -147,6 +147,7 @@ export default function PersonPassControls({ person, children, qrUrl }: { person
     }
   }
 
+  const [needPhoto, setNeedPhoto] = useState(false);
   const groups = person.token ? person.token.replace(/(.{4})/g, "$1 ").trim() : "";
 
   return (
@@ -166,7 +167,12 @@ export default function PersonPassControls({ person, children, qrUrl }: { person
             <Ticket className="w-3 h-3" /> Set up standing pass
           </button>
         ) : (
-          <span className="text-xs text-slate-500">Add a photo to set up a standing pass</span>
+          <>
+            <button type="button" onClick={() => setNeedPhoto(true)} className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 border border-blue-200 rounded-full px-2.5 py-1 hover:bg-blue-50">
+              <Ticket className="w-3 h-3" /> Set up standing pass
+            </button>
+            {needPhoto && <span role="alert" className="w-full text-xs font-medium text-amber-700">Add a photo of {person.name} first (tap Edit above). The guard needs it to check who is collecting.</span>}
+          </>
         )}
         <button type="button" onClick={() => setUsual(!person.isUsual)} disabled={busy} aria-pressed={person.isUsual}
           className={`inline-flex items-center gap-1 text-xs font-semibold rounded-full px-2.5 py-1 border ${person.isUsual ? "bg-amber-50 border-amber-300 text-amber-800" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}>
