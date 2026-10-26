@@ -15,7 +15,7 @@ type Person = {
   relation: string | null;
   hasPhoto: boolean;
   isUsual: boolean;
-  token: string | null; // null = no standing pass
+  token: string | null; // null = no regular pickup pass
   until: string | null;
   schoolDays: boolean;
   coveredIds: string[];
@@ -74,7 +74,7 @@ export default function PersonPassControls({ person, children, qrUrl }: { person
   }
 
   async function cancelPass() {
-    if (!window.confirm(`Cancel ${person.name}'s standing pass? The pass stops working straight away, and any copy that was shared becomes useless.`)) return;
+    if (!window.confirm(`Cancel ${person.name}'s regular pickup pass? The pass stops working straight away, and any copy that was shared becomes useless.`)) return;
     setBusy(true);
     const res = await fetch("/api/parent/standing-pass", {
       method: "DELETE",
@@ -118,9 +118,9 @@ export default function PersonPassControls({ person, children, qrUrl }: { person
     setNote("");
     try {
       const file = await buildImage();
-      const text = `VerifyGate standing pass for ${person.name}. Show the QR code at the school gate.`;
-      if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: "VerifyGate standing pass", text });
-      else if (navigator.share) await navigator.share({ title: "VerifyGate standing pass", text });
+      const text = `VerifyGate regular pickup pass for ${person.name}. Show the QR code at the school gate.`;
+      if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: "VerifyGate regular pickup pass", text });
+      else if (navigator.share) await navigator.share({ title: "VerifyGate regular pickup pass", text });
       else {
         download(file);
         setNote("Saved. Attach the picture to your message.");
@@ -156,7 +156,7 @@ export default function PersonPassControls({ person, children, qrUrl }: { person
         {active ? (
           <>
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-800 bg-green-100 px-2.5 py-1 rounded-full">
-              <Ticket className="w-3 h-3" /> Standing pass {describe(person.until, person.schoolDays)}
+              <Ticket className="w-3 h-3" /> Regular pickup pass {describe(person.until, person.schoolDays)}
             </span>
             <button type="button" onClick={() => setMode("view")} className="text-xs font-semibold text-blue-700 hover:underline">View pass</button>
             <button type="button" onClick={openSetup} className="text-xs font-semibold text-slate-600 hover:underline">Change</button>
@@ -164,12 +164,12 @@ export default function PersonPassControls({ person, children, qrUrl }: { person
           </>
         ) : person.hasPhoto ? (
           <button type="button" onClick={openSetup} className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 border border-blue-200 rounded-full px-2.5 py-1 hover:bg-blue-50">
-            <Ticket className="w-3 h-3" /> Set up standing pass
+            <Ticket className="w-3 h-3" /> Set up regular pickup pass
           </button>
         ) : (
           <>
             <button type="button" onClick={() => setNeedPhoto(true)} className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 border border-blue-200 rounded-full px-2.5 py-1 hover:bg-blue-50">
-              <Ticket className="w-3 h-3" /> Set up standing pass
+              <Ticket className="w-3 h-3" /> Set up regular pickup pass
             </button>
             {needPhoto && <span role="alert" className="w-full text-xs font-medium text-amber-700">Add a photo of {person.name} first (tap Edit above). The guard needs it to check who is collecting.</span>}
           </>
@@ -184,7 +184,7 @@ export default function PersonPassControls({ person, children, qrUrl }: { person
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-slate-900 text-lg">{mode === "setup" ? `Standing pass for ${person.name}` : `${person.name}'s pass`}</h2>
+              <h2 className="font-bold text-slate-900 text-lg">{mode === "setup" ? `Regular pickup pass for ${person.name}` : `${person.name}'s pass`}</h2>
               <button type="button" onClick={() => setMode("closed")} className="text-slate-400 hover:text-slate-600" aria-label="Close"><X className="w-5 h-5" /></button>
             </div>
 
@@ -230,7 +230,7 @@ export default function PersonPassControls({ person, children, qrUrl }: { person
                 <p className="text-sm text-slate-600 mb-3">Valid {describe(person.until, person.schoolDays)}. Send this to {person.name}. They show it at the gate every time.</p>
                 {shownQr ? (
                   <div className="bg-slate-50 rounded-2xl p-3 inline-block mb-3">
-                    <Image src={shownQr} alt="Standing pass QR code" width={220} height={220} className="rounded-xl" />
+                    <Image src={shownQr} alt="Regular pickup pass QR code" width={220} height={220} className="rounded-xl" />
                   </div>
                 ) : (
                   <p className="text-sm text-slate-500 mb-3">Refresh the page to see the QR code.</p>

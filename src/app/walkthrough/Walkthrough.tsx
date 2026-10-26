@@ -38,7 +38,7 @@ function parentScenes(school: string): Scene[] {
       seconds: 9,
       kicker: "Step 2",
       title: "You make a pickup code.",
-      points: ["Choose your child and who is collecting today.", "A QR code appears on your phone, in about 30 seconds.", "Same person every day? Set up a standing pass once, and skip the daily code."],
+      points: ["Choose your child and who is collecting today.", "A QR code appears on your phone, in about 30 seconds.", "Same person every day? Set up a regular pickup pass once, and skip the daily code."],
       visual: <PhoneCode />,
     },
     {
@@ -108,7 +108,7 @@ function staffScenes(school: string): Scene[] {
       seconds: 9,
       kicker: "Step 1",
       title: "Open the scanner.",
-      points: ["Scan the parent's QR code: a daily code or a standing pass.", "One driver for several families? One scan shows every family's children together.", "Camera not working? Type the code instead.", "No pass at all? Search the child's name and the parent gets a message to approve."],
+      points: ["Scan the parent's QR code: a daily code or a regular pickup pass.", "One driver for several families? One scan shows every family's children together.", "Camera not working? Type the code instead.", "No pass at all? Search the child's name and the parent gets a message to approve."],
       visual: <PhoneScanner />,
     },
     {

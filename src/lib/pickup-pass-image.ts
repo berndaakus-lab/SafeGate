@@ -64,7 +64,7 @@ export async function buildPickupPassImage(info: PassInfo): Promise<File> {
   ctx.fillText("VerifyGate", W / 2, 70);
   ctx.font = font(500, 22);
   ctx.fillStyle = "#dbeafe";
-  ctx.fillText(info.standing ? "Standing pickup pass" : "School pickup pass", W / 2, 106);
+  ctx.fillText(info.standing ? "Regular pickup pass" : "School pickup pass", W / 2, 106);
 
   let y = 190;
   ctx.fillStyle = "#64748b";
