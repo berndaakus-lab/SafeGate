@@ -58,10 +58,6 @@ export default async function StandingPassPage({ params }: { params: Promise<{ t
   const validity = standingPassValidity(person);
   if (!validity.ok) return <Problem title="Pass not valid today" text={PASS_PROBLEM[validity.reason]} />;
 
-  if (!person.photo_url) {
-    return <Problem icon="shield" title="No photo on this pass" text="The parent must add a photo of the person collecting before this pass can be used." />;
-  }
-
   const school = await supabaseAdmin.from("schools").select("is_active").eq("id", guardSchoolId).maybeSingle();
   if (school.data?.is_active === false) redirect("/offline");
 
@@ -73,11 +69,11 @@ export default async function StandingPassPage({ params }: { params: Promise<{ t
 
   // A driver hired by several families: the same phone number on other families'
   // passes at this school brings them all up together. Anything that isn't a
-  // working pass (cancelled, expired, no photo, no children) is simply left out.
+  // working pass (cancelled, expired, no children) is simply left out.
   const others = await sharedPassPeople({ id: person.id, phone: person.phone }, guardSchoolId);
   const codes = [result.code];
   for (const other of others) {
-    if (!other.photo_url || !standingPassValidity(other as any).ok) continue;
+    if (!standingPassValidity(other as any).ok) continue;
     const otherChildren = await coveredChildren(other.id, other.parent_id);
     if (!otherChildren.length) continue;
     const otherCode = await ensureStandingCode({ id: other.id, parent_id: other.parent_id }, otherChildren);
