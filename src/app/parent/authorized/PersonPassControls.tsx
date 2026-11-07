@@ -147,7 +147,6 @@ export default function PersonPassControls({ person, children, qrUrl }: { person
     }
   }
 
-  const [needPhoto, setNeedPhoto] = useState(false);
   const groups = person.token ? person.token.replace(/(.{4})/g, "$1 ").trim() : "";
 
   return (
@@ -162,18 +161,12 @@ export default function PersonPassControls({ person, children, qrUrl }: { person
             <button type="button" onClick={openSetup} className="text-xs font-semibold text-slate-600 hover:underline">Change</button>
             <button type="button" onClick={cancelPass} disabled={busy} className="text-xs font-semibold text-red-600 hover:underline disabled:opacity-60">Cancel pass</button>
           </>
-        ) : person.hasPhoto ? (
+        ) : (
           <button type="button" onClick={openSetup} className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 border border-blue-200 rounded-full px-2.5 py-1 hover:bg-blue-50">
             <Ticket className="w-3 h-3" /> Set up regular pickup pass
           </button>
-        ) : (
-          <>
-            <button type="button" onClick={() => setNeedPhoto(true)} className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 border border-blue-200 rounded-full px-2.5 py-1 hover:bg-blue-50">
-              <Ticket className="w-3 h-3" /> Set up regular pickup pass
-            </button>
-            {needPhoto && <span role="alert" className="w-full text-xs font-medium text-amber-700">Add a photo of {person.name} first (tap Edit above). The guard needs it to check who is collecting.</span>}
-          </>
         )}
+        {!active && !person.hasPhoto && <span className="w-full text-xs text-slate-500">Tip: add a photo (tap Edit) so the guard can recognise them.</span>}
         <button type="button" onClick={() => setUsual(!person.isUsual)} disabled={busy} aria-pressed={person.isUsual}
           className={`inline-flex items-center gap-1 text-xs font-semibold rounded-full px-2.5 py-1 border ${person.isUsual ? "bg-amber-50 border-amber-300 text-amber-800" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}>
           <Star className={`w-3 h-3 ${person.isUsual ? "fill-amber-400 text-amber-500" : ""}`} /> {person.isUsual ? "Usual collector" : "Make usual collector"}
