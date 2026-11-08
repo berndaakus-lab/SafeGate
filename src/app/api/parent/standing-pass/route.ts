@@ -50,6 +50,10 @@ export async function POST(req: NextRequest) {
       supabaseAdmin.from("students").select("id").in("id", studentIds).eq("parent_id", pid).is("archived_at", null),
     ]);
     if (!person) return NextResponse.json({ error: "Person not found on your account." }, { status: 404 });
+    // The guard has to match this person's face to the photo, so a pass without one is refused
+    if (!person.photo_url) {
+      return NextResponse.json({ error: `Add a photo of ${person.name} first. The guard needs it to check who is collecting.` }, { status: 400 });
+    }
     // A driver's phone number is what lets one scan cover every family they serve
     if (person.relation === "Driver" && !person.phone) {
       return NextResponse.json({ error: `Add ${person.name}'s phone number first. It lets one scan cover every family the driver serves.` }, { status: 400 });
