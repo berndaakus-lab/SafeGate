@@ -5,7 +5,7 @@
 --
 -- This only corrects the spellings the app recognises. Children already imported
 -- with a "Basic N" class were put in the wrong class and need the one-off repair
--- described in the chat/PR notes (it depends on the school and the import time).
+-- described in the chat/PR notes (it depends on the school and the import time).....
 --
 -- Safe to run more than once.
 
