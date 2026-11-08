@@ -4,7 +4,7 @@
 -- The old names stay recognised as spellings, so spreadsheets and typed values
 -- using any of them still land on the same class.
 --
--- Children keep their class (the link is by id); only the displayed text changes.
+-- Children keep their class (the link is by id); only the displayed text changes...
 -- Classes a school added itself (sort_order 1000+) are not touched.
 --
 -- Run this AFTER 013. Safe to run more than once.
