@@ -37,7 +37,19 @@ export async function loadPickupCode(filter: { code: string } | { id: string }) 
         .is("archived_at", null)
     : { data: [] as any[] };
 
-  const logs = asArray(pc.pickup_logs as Log | Log[] | null);
+  // A child is released once a day, whichever code was used: a pickup logged
+  // today on any other code (daily code, regular pass, parent approval) counts too
+  const startOfToday = new Date();
+  startOfToday.setUTCHours(0, 0, 0, 0);
+  const { data: todayLogs } = ids.length
+    ? await supabaseAdmin
+        .from("pickup_logs")
+        .select("student_id, picked_up_at, confirmed_by_name")
+        .in("student_id", ids)
+        .gte("picked_up_at", startOfToday.toISOString())
+        .order("picked_up_at", { ascending: true })
+    : { data: [] as Log[] };
+  const logs: Log[] = [...asArray(pc.pickup_logs as Log | Log[] | null), ...((todayLogs ?? []) as Log[])];
   const children: PickupChild[] = ids
     .map((id) => students?.find((s: any) => s.id === id))
     .filter(Boolean)
