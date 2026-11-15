@@ -6,6 +6,12 @@ import { createHash, timingSafeEqual } from "crypto";
 import { escapeLike, isEmailIdentifier, normalizeEmail, normalizePhone } from "@/lib/identity";
 import { IDLE_TIMEOUT_MINUTES } from "@/lib/session-policy";
 import { passwordFingerprint } from "@/lib/pwf";
+import { clientIp, isRateLimited, LOGIN_MAX_PER_ACCOUNT, LOGIN_WINDOW_MS, RATE_LIMITED } from "@/lib/rate-limit";
+
+// One account, however its email/phone is typed ("0244 123 456" = "0244123456")
+function accountKey(identifier: string): string {
+  return isEmailIdentifier(identifier) ? (normalizeEmail(identifier) ?? "") : (normalizePhone(identifier) ?? "");
+}
 
 // How often a signed-in person's account is checked against the database
 const RECHECK_MS = 60_000;
@@ -68,10 +74,17 @@ export const authOptions: NextAuthOptions = {
         identifier: { label: "Email or phone", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         const identifier = credentials?.identifier?.trim();
         const password = credentials?.password;
         if (!identifier || !password) return null;
+
+        // Tight cap per account per IP (the loose per-IP cap is in proxy.ts).
+        // The thrown message reaches the login page as ?error=RateLimited.
+        const key = `login:${clientIp(req?.headers)}:${accountKey(identifier)}`;
+        if (await isRateLimited(key, LOGIN_WINDOW_MS, LOGIN_MAX_PER_ACCOUNT)) {
+          throw new Error(RATE_LIMITED);
+        }
 
         // 1. Check superadmin first
         if (

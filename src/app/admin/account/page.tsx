@@ -40,7 +40,7 @@ export default async function AdminAccountPage() {
         <p className="text-sm text-slate-400 mb-5">
           Update your password. Share the new one only with yourself.
         </p>
-        <ChangePasswordForm />
+        <ChangePasswordForm username={session?.user?.email || (session?.user as any)?.loginPhone || ""} />
       </div>
     </div>
   );

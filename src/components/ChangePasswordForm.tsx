@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Loader2, KeyRound, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 
-export default function ChangePasswordForm() {
+/** username: the email or phone they sign in with, so a password manager updates the right saved login */
+export default function ChangePasswordForm({ username = "" }: { username?: string }) {
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -47,12 +48,14 @@ export default function ChangePasswordForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <input type="text" name="username" autoComplete="username" value={username} readOnly hidden aria-hidden tabIndex={-1} />
       {/* Current password */}
       <div>
         <label className="block text-sm font-semibold text-slate-800 mb-1.5">Current password</label>
         <div className="relative">
           <input
             type={showCurrent ? "text" : "password"}
+            autoComplete="current-password"
             value={current}
             onChange={(e) => setCurrent(e.target.value)}
             required
@@ -72,6 +75,7 @@ export default function ChangePasswordForm() {
         <div className="relative">
           <input
             type={showNext ? "text" : "password"}
+            autoComplete="new-password"
             value={next}
             onChange={(e) => setNext(e.target.value)}
             required
@@ -102,6 +106,7 @@ export default function ChangePasswordForm() {
         <label className="block text-sm font-semibold text-slate-800 mb-1.5">Confirm new password</label>
         <input
           type="password"
+          autoComplete="new-password"
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
           required

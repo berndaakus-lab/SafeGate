@@ -36,7 +36,7 @@ export default async function ParentAccountPage() {
       </Section>
 
       <Section icon={KeyRound} title="Change password" hint="Use at least 8 characters, and one you haven't used before.">
-        <ChangePasswordForm />
+        <ChangePasswordForm username={loginId ?? ""} />
       </Section>
     </div>
   );

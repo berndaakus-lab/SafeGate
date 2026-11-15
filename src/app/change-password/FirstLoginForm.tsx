@@ -11,7 +11,18 @@ const inputClass =
 // The school may only have had the child's name, so it saved the parent as "Parent of <child>"
 const STAND_IN = /^parent of /i;
 
-export default function FirstLoginForm({ home, askName, initialName }: { home: string; askName: boolean; initialName: string }) {
+export default function FirstLoginForm({
+  home,
+  askName,
+  initialName,
+  username,
+}: {
+  home: string;
+  askName: boolean;
+  initialName: string;
+  /** The email or phone they sign in with, so a password manager updates the right saved login */
+  username: string;
+}) {
   const { update } = useSession();
   const [name, setName] = useState(initialName);
   const standIn = STAND_IN.test(initialName);
@@ -47,6 +58,10 @@ export default function FirstLoginForm({ home, askName, initialName }: { home: s
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Without a username field Safari/iCloud Keychain can't tell which saved
+          login this new password belongs to, keeps the old temporary one and
+          autofills it next time, so the parent "can't sign in any more". */}
+      <input type="text" name="username" autoComplete="username" value={username} readOnly hidden aria-hidden tabIndex={-1} />
       {askName && (
         <div>
           <label htmlFor="fl-name" className="block text-sm font-semibold text-slate-800 mb-1.5">Your full name</label>
@@ -69,6 +84,9 @@ export default function FirstLoginForm({ home, askName, initialName }: { home: s
         <PasswordInput id="fl-confirm" value={confirm} onChange={(e) => setConfirm(e.target.value)} required
           autoComplete="new-password" placeholder="Re-enter new password" className={inputClass} />
       </div>
+      <p className="text-xs text-slate-500">
+        After this, the temporary password from the school stops working. Sign in with your new password from now on.
+      </p>
       {error && <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl border border-red-100">{error}</div>}
       <button type="submit" disabled={loading}
         className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60">

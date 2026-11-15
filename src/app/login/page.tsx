@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore, Suspense } from "react";
+import { useRef, useState, useSyncExternalStore, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -84,25 +84,44 @@ function RedirectNotice() {
 
 function LoginForm() {
   const router = useRouter();
-  const [identifier, setIdentifier] = useState("");
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
+  // False in the server HTML and until React has attached the submit handler.
+  // A tap before that (slow mobile data, a fresh Safari window) would do a
+  // plain browser form submit that reloads this page with empty fields, so
+  // the button stays disabled until the page is ready.
+  const ready = useSyncExternalStore(() => () => {}, () => true, () => false);
+  // The fields are uncontrolled and read only at submit: React state would
+  // wipe anything typed or autofilled before the page finished loading, and
+  // Safari/iOS Keychain autofill does not always fire a change event.
+  const identifierRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    const id = (identifierRef.current?.value ?? "").trim();
+    const pw = passwordRef.current?.value ?? "";
+    if (!id || !pw) {
+      setError("Enter your email or phone number and your password.");
+      return;
+    }
     setLoading(true);
 
     try {
       const result = await signIn("credentials", {
-        identifier,
-        password,
+        identifier: id,
+        password: pw,
         redirect: false,
       });
 
+      if (result?.error === "RateLimited" || result?.status === 429) {
+        setError("Too many sign-in attempts. Please wait 5 minutes and try again.");
+        setLoading(false);
+        return;
+      }
       if (result?.error) {
         setError("Invalid email/phone number or password.");
         setLoading(false);
@@ -174,20 +193,20 @@ function LoginForm() {
         <div className="relative z-10 overflow-hidden rounded-3xl border border-white/60 bg-white/80 supports-[backdrop-filter]:bg-white/30 backdrop-blur-2xl backdrop-saturate-150 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),inset_0_-1px_0_rgba(255,255,255,0.3),0_24px_60px_-20px_rgba(37,99,235,0.35)] p-6 sm:p-8">
           {/* Light catching the top edge of the glass */}
           <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/50 to-transparent" />
+          {/* While the submit button is disabled the browser won't submit on Enter either */}
           <form onSubmit={handleSubmit} className="relative space-y-4" autoComplete="on">
             <div>
               <label htmlFor="identifier" className="block text-sm font-semibold text-slate-800 mb-1.5">
                 Email or phone number
               </label>
               <input
+                ref={identifierRef}
                 id="identifier"
                 type="text"
                 autoComplete="username"
                 autoCapitalize="none"
                 autoCorrect="off"
                 spellCheck={false}
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
                 required
                 autoFocus
                 placeholder="you@example.com or 024 412 3456"
@@ -201,11 +220,10 @@ function LoginForm() {
               </label>
               <div className="relative">
                 <input
+                  ref={passwordRef}
                   id="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="Enter your password"
                   className="w-full px-4 py-3.5 sm:py-3 rounded-xl border border-white/70 bg-white/55 backdrop-blur-sm shadow-[inset_0_1px_2px_rgba(15,23,42,0.06)] text-slate-900 placeholder-slate-500 focus:outline-none focus:bg-white/80 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12 text-base"
@@ -229,11 +247,11 @@ function LoginForm() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !ready}
               className="w-full bg-gradient-to-b from-blue-500 to-blue-700 text-white py-3.5 sm:py-3 rounded-xl font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_10px_24px_-8px_rgba(37,99,235,0.7)] hover:from-blue-500 hover:to-blue-800 active:from-blue-600 active:to-blue-800 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
             >
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              {redirecting ? "Opening your dashboard..." : loading ? "Signing in..." : "Sign In"}
+              {(loading || !ready) && <Loader2 className="w-4 h-4 animate-spin" />}
+              {redirecting ? "Opening your dashboard..." : loading ? "Signing in..." : !ready ? "Loading..." : "Sign In"}
             </button>
           </form>
         </div>

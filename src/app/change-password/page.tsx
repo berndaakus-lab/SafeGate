@@ -40,7 +40,8 @@ export default async function ChangePasswordPage() {
           Choose a new one that only you know before you continue.
         </p>
         <SessionProvider session={session}>
-          <FirstLoginForm home={home} askName={user.role === "parent"} initialName={user.name ?? ""} />
+          <FirstLoginForm home={home} askName={user.role === "parent"} initialName={user.name ?? ""}
+            username={user.email || user.loginPhone || ""} />
         </SessionProvider>
       </div>
     </main>
