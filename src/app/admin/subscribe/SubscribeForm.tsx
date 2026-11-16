@@ -18,6 +18,30 @@ export default function SubscribeForm({ periods }: { periods: Period[] }) {
   const [message, setMessage] = useState("");
   const [ref, setRef] = useState("");
   const [paidUntil, setPaidUntil] = useState<string | null>(null);
+  // Set when the network texts a code that must be entered (Paystack "send_otp")
+  const [needsOtp, setNeedsOtp] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpBusy, setOtpBusy] = useState(false);
+  const [otpError, setOtpError] = useState("");
+
+  async function submitOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setOtpBusy(true);
+    setOtpError("");
+    const res = await fetch("/api/payment/submit-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reference: ref, otp }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setOtpBusy(false);
+    if (!res.ok) {
+      setOtpError(data.error || "That code didn't work. Try again.");
+      return;
+    }
+    setNeedsOtp(false);
+    setMessage(data.message || "Code accepted. Approve the prompt on your phone if one appears.");
+  }
 
   const selected = periods.find((p) => p.months === months) ?? periods[0];
 
@@ -41,6 +65,9 @@ export default function SubscribeForm({ periods }: { periods: Period[] }) {
     }
 
     setRef(data.reference);
+    setNeedsOtp(!!data.requiresOtp);
+    setOtp("");
+    setOtpError("");
     setMessage(data.message || "Check your phone and approve the payment prompt.");
     setPhase("pending");
   }
@@ -54,7 +81,7 @@ export default function SubscribeForm({ periods }: { periods: Period[] }) {
       setPaidUntil(data.paidUntil ?? null);
       setPhase("paid");
     } else if (data.status === "failed") {
-      setMessage("Payment was declined or failed. Please try again.");
+      setMessage(data.reason ? `Payment failed: ${data.reason}. Please try again.` : "Payment was declined or failed. Please try again.");
       setPhase("failed");
     } else {
       setMessage("Still waiting for payment confirmation. Approve the prompt on your phone, then check again.");
@@ -74,6 +101,37 @@ export default function SubscribeForm({ periods }: { periods: Period[] }) {
           Go to Dashboard
         </Link>
       </div>
+    );
+  }
+
+  if (phase === "pending" && needsOtp) {
+    return (
+      <form onSubmit={submitOtp} className="text-center py-6">
+        <AlertCircle className="w-14 h-14 text-amber-500 mx-auto mb-4" />
+        <h3 className="font-bold text-slate-900 text-lg mb-2">Enter the code from the SMS</h3>
+        <p className="text-slate-500 text-sm mb-4">{message}</p>
+        <input
+          value={otp}
+          onChange={(e) => setOtp(e.target.value.replace(/\s/g, ""))}
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          required
+          placeholder="Code"
+          className="w-40 mx-auto block text-center tracking-widest px-4 py-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        {otpError && <p className="text-sm text-red-600 mt-3">{otpError}</p>}
+        <button
+          type="submit"
+          disabled={otpBusy || !otp}
+          className="mt-4 flex items-center gap-2 mx-auto bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60"
+        >
+          {otpBusy && <Loader2 className="w-4 h-4 animate-spin" />}
+          {otpBusy ? "Sending..." : "Submit code"}
+        </button>
+        <button type="button" onClick={() => setPhase("idle")} className="mt-3 text-sm text-slate-400 hover:text-slate-600">
+          Use a different number
+        </button>
+      </form>
     );
   }
 

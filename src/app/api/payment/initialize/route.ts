@@ -14,15 +14,22 @@ const schema = z.object({
   months: z.number().int().refine((m) => (BILLING_PERIODS as readonly number[]).includes(m), "Choose 1, 3, 6 or 12 months."),
 });
 
+// Paystack's provider codes: mtn, vod (Telecel), atl (AirtelTigo / AT Money)
 function detectNetwork(phone: string) {
   const prefix = phone.slice(0, 3);
   const mtn = ["024", "054", "055", "059", "025", "053"];
-  const vodafone = ["020", "050"];
-  const airteltigo = ["027", "057", "026", "056", "023", "028"];
+  const telecel = ["020", "050"];
+  const airteltigo = ["027", "057", "026", "056"];
   if (mtn.includes(prefix)) return "mtn";
-  if (vodafone.includes(prefix)) return "vod";
-  if (airteltigo.includes(prefix)) return "tgo";
+  if (telecel.includes(prefix)) return "vod";
+  if (airteltigo.includes(prefix)) return "atl";
   return "mtn";
+}
+
+/** Paystack's top-level message is always "Charge attempted"; the real reason is in data */
+function paystackReason(body: any): string {
+  const reason = body?.data?.message || body?.data?.gateway_response || body?.message || "";
+  return reason === "Charge attempted" ? "" : String(reason);
 }
 
 export async function POST(req: NextRequest) {
@@ -96,17 +103,35 @@ export async function POST(req: NextRequest) {
       }),
     });
 
-    const data = await paystackRes.json();
-    if (!data.status) throw new Error(data.message || "Paystack charge failed");
+    const data = await paystackRes.json().catch(() => null);
+    const chargeStatus: string | undefined = data?.data?.status;
 
+    // Refused straight away (wrong network, MoMo not enabled, invalid number...)
+    if (!data?.status || chargeStatus === "failed") {
+      const reason = paystackReason(data);
+      console.error("[payment/initialize] charge refused", { reference, chargeStatus, reason, provider: detectNetwork(cleanPhone) });
+      await supabaseAdmin.from("payments").update({ status: "failed", failure_reason: `init: ${reason || chargeStatus || "refused"}` }).eq("reference", reference);
+      return NextResponse.json(
+        { error: reason ? `Payment could not start: ${reason}` : "Payment could not start. Check the MoMo number and network, then try again." },
+        { status: 400 }
+      );
+    }
+
+    if (chargeStatus === "success") return NextResponse.json({ ok: true, reference, message: "Payment received." });
+
+    // Some networks (often Telecel) text a code that must be typed in here
+    const requiresOtp = chargeStatus === "send_otp";
     return NextResponse.json({
       ok: true,
       reference,
-      message: data.data?.display_text || "Payment prompt sent to your phone.",
+      requiresOtp,
+      message:
+        data.data?.display_text ||
+        (requiresOtp ? "Enter the code sent to your phone." : "Check your phone and approve the MoMo prompt within 3 minutes."),
     });
   } catch (err: any) {
     await supabaseAdmin.from("payments").update({ status: "failed", failure_reason: `init: ${err.message}` }).eq("reference", reference);
     console.error("[payment/initialize]", err.message);
-    return NextResponse.json({ error: err.message || "Payment initiation failed" }, { status: 500 });
+    return NextResponse.json({ error: "Could not reach the payment service. Please try again." }, { status: 502 });
   }
 }
