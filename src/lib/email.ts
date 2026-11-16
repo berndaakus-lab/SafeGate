@@ -41,6 +41,43 @@ async function sendEmail({
   }
 }
 
+function escapeHtml(s: string) {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+}
+
+/** Tells the VerifyGate team a new lead came in. */
+export async function sendNewLeadAlertEmail({
+  schoolName,
+  contactName,
+  phone,
+  email,
+  leadsUrl,
+}: {
+  schoolName: string;
+  contactName: string;
+  phone: string | null;
+  email: string;
+  leadsUrl: string;
+}) {
+  const s = escapeHtml(schoolName);
+  const c = escapeHtml(contactName);
+  await sendEmail({
+    to: FROM.email,
+    toName: FROM.name,
+    subject: `New lead: ${schoolName}`,
+    html: `
+      <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; color: #1e293b;">
+        <h2 style="color: #1d4ed8;">New lead</h2>
+        <p><strong>School:</strong> ${s}<br>
+        <strong>Contact:</strong> ${c}<br>
+        <strong>Phone:</strong> ${escapeHtml(phone || "not given")}<br>
+        <strong>Email:</strong> ${escapeHtml(email)}</p>
+        <p><a href="${escapeHtml(leadsUrl)}">Open leads</a></p>
+      </div>
+    `,
+  });
+}
+
 export async function sendDemoConfirmationEmail({
   to,
   contactName,
