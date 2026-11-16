@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
+import { notifyNewLead } from "@/lib/lead-alerts";
 import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase";
 import { sendDemoConfirmationEmail } from "@/lib/email";
@@ -31,6 +32,13 @@ export async function POST(req: NextRequest) {
     console.error("[demo-requests]", error.message);
     return NextResponse.json({ error: "Failed to save request" }, { status: 500 });
   }
+
+  // Tell the team in the background; the visitor never waits on this
+  after(() =>
+    notifyNewLead({ schoolName: school_name, contactName: contact_name, phone: phone || null, email }).catch((err) =>
+      console.error("[demo-requests] lead alert failed:", err?.message)
+    )
+  );
 
   try {
     await sendDemoConfirmationEmail({ to: email, contactName: contact_name, schoolName: school_name });
