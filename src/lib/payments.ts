@@ -42,7 +42,8 @@ export async function settlePayment(reference: string): Promise<SettleResult> {
 
   if (!status || !res.ok) return "pending";
   if (FAILED_STATUSES.includes(status)) {
-    await markFailed(reference, `paystack:${status}`);
+    const why = tx?.gateway_response || tx?.message;
+    await markFailed(reference, `paystack:${status}${why ? `: ${why}` : ""}`);
     return "failed";
   }
   if (status !== "success") return "pending";

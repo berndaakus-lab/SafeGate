@@ -27,7 +27,13 @@ export async function GET(req: NextRequest) {
       const { data: school } = await supabaseAdmin.from("schools").select("paid_until").eq("id", schoolId).single();
       return NextResponse.json({ status: "paid", paidUntil: school?.paid_until ?? null });
     }
-    return NextResponse.json({ status: result === "failed" ? "failed" : "pending" });
+    if (result === "failed") {
+      // e.g. "paystack:failed: Insufficient funds" -> "Insufficient funds"
+      const { data: failed } = await supabaseAdmin.from("payments").select("failure_reason").eq("reference", reference).maybeSingle();
+      const reason = (failed?.failure_reason ?? "").replace(/^paystack:\w+:?\s*|^init:\s*/i, "").trim();
+      return NextResponse.json({ status: "failed", reason: reason && !/^mismatch/i.test(reason) ? reason : null });
+    }
+    return NextResponse.json({ status: "pending" });
   } catch (err: any) {
     console.error("[payment/verify]", err.message);
     return NextResponse.json({ error: "Verification failed" }, { status: 500 });
