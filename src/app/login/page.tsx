@@ -19,7 +19,10 @@ const ROLE_HOME: Record<string, string> = {
 
 // Solid white with a clear border, dark text and a left icon: easy to read on any phone
 const FIELD =
-  "w-full pl-11 py-3.5 rounded-xl border-[1.5px] border-slate-300 bg-white text-slate-900 text-base font-medium placeholder:text-slate-400 placeholder:font-normal shadow-sm hover:border-slate-400 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/15 transition-colors";
+  "w-full pl-11 py-3.5 rounded-xl border-[1.5px] border-slate-300 bg-white text-slate-900 text-base font-medium placeholder:text-slate-500 placeholder:font-normal shadow-sm hover:border-slate-400 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/15 transition-colors";
+
+// Field labels: big, bold and near-black so they read at a glance
+const LABEL = "block text-[17px] leading-snug font-bold text-slate-950 mb-2";
 
 const ROLE_LABEL: Record<string, string> = {
   superadmin: "a platform admin",
@@ -198,7 +201,7 @@ function LoginForm() {
           {/* While the submit button is disabled the browser won't submit on Enter either */}
           <form onSubmit={handleSubmit} className="relative space-y-5" autoComplete="on">
             <div>
-              <label htmlFor="identifier" className="block text-sm font-semibold text-slate-900 mb-2">
+              <label htmlFor="identifier" className={LABEL}>
                 Email or phone number
               </label>
               <div className="relative">
@@ -220,7 +223,7 @@ function LoginForm() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-slate-900 mb-2">
+              <label htmlFor="password" className={LABEL}>
                 Password
               </label>
               <div className="relative">
