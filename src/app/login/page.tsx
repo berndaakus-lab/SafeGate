@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Clock, Eye, EyeOff, Info, Loader2 } from "lucide-react";
+import { AlertCircle, Clock, Eye, EyeOff, Info, Loader2, LockKeyhole, ScanLine, UserRound } from "lucide-react";
 import { IDLE_TIMEOUT_MINUTES } from "@/lib/session-policy";
 import { clearActivity, wasSignedOutForIdle } from "@/lib/sign-out";
 
@@ -16,6 +16,10 @@ const ROLE_HOME: Record<string, string> = {
   guard: "/guard/scan",
   teacher: "/guard/scan",
 };
+
+// Solid white with a clear border, dark text and a left icon: easy to read on any phone
+const FIELD =
+  "w-full pl-11 py-3.5 rounded-xl border-[1.5px] border-slate-300 bg-white text-slate-900 text-base font-medium placeholder:text-slate-400 placeholder:font-normal shadow-sm hover:border-slate-400 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/15 transition-colors";
 
 const ROLE_LABEL: Record<string, string> = {
   superadmin: "a platform admin",
@@ -176,29 +180,29 @@ function LoginForm() {
 
       <div className="relative w-full max-w-sm animate-hero-rise">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2.5 mb-4">
-            <Image src="/icon-192.png" alt="VerifyGate" width={40} height={40} className="rounded-xl shadow-sm" />
+        <div className="text-center mb-7">
+          <Link href="/" className="inline-flex items-center gap-2.5 mb-5">
+            <Image src="/icon-192.png" alt="VerifyGate" width={44} height={44} className="rounded-xl shadow-md shadow-blue-600/20" />
             <span className="font-serif text-3xl text-slate-900">VerifyGate</span>
           </Link>
-          <p className="text-slate-600 text-sm">Sign in to your account</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Welcome back</h1>
+          <p className="text-slate-600 text-[15px] mt-1">Sign in to your account</p>
         </div>
 
         <RedirectNotice />
 
-        {/* Glass card: two bright shapes sit behind it so the frosted blur is visible */}
-        <div className="relative">
-          <div aria-hidden className="pointer-events-none absolute -top-7 -left-8 w-28 h-28 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 opacity-80" />
-          <div aria-hidden className="pointer-events-none absolute -bottom-9 -right-7 w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500 to-violet-400 opacity-80" />
-        <div className="relative z-10 overflow-hidden rounded-3xl border border-white/60 bg-white/80 supports-[backdrop-filter]:bg-white/30 backdrop-blur-2xl backdrop-saturate-150 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),inset_0_-1px_0_rgba(255,255,255,0.3),0_24px_60px_-20px_rgba(37,99,235,0.35)] p-6 sm:p-8">
-          {/* Light catching the top edge of the glass */}
-          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/50 to-transparent" />
+        {/* Solid card: the fields must be easy to read on any phone, in bright sun too */}
+        <div className="relative overflow-hidden rounded-3xl border border-white bg-white/95 backdrop-blur-xl shadow-[0_1px_2px_rgba(15,23,42,0.06),0_24px_60px_-18px_rgba(37,99,235,0.35)] p-6 sm:p-8">
+          {/* Thin brand line along the top edge */}
+          <div aria-hidden className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-cyan-400 to-indigo-500" />
           {/* While the submit button is disabled the browser won't submit on Enter either */}
-          <form onSubmit={handleSubmit} className="relative space-y-4" autoComplete="on">
+          <form onSubmit={handleSubmit} className="relative space-y-5" autoComplete="on">
             <div>
-              <label htmlFor="identifier" className="block text-sm font-semibold text-slate-800 mb-1.5">
+              <label htmlFor="identifier" className="block text-sm font-semibold text-slate-900 mb-2">
                 Email or phone number
               </label>
+              <div className="relative">
+              <UserRound aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
                 ref={identifierRef}
                 id="identifier"
@@ -209,16 +213,18 @@ function LoginForm() {
                 spellCheck={false}
                 required
                 autoFocus
-                placeholder="you@example.com or 024 412 3456"
-                className="w-full px-4 py-3.5 sm:py-3 rounded-xl border border-white/70 bg-white/55 backdrop-blur-sm shadow-[inset_0_1px_2px_rgba(15,23,42,0.06)] text-slate-900 placeholder-slate-500 focus:outline-none focus:bg-white/80 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base"
+                placeholder="e.g. 024 412 3456"
+                className={`${FIELD} pr-4`}
               />
+              </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-slate-800 mb-1.5">
+              <label htmlFor="password" className="block text-sm font-semibold text-slate-900 mb-2">
                 Password
               </label>
               <div className="relative">
+                <LockKeyhole aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
                   ref={passwordRef}
                   id="password"
@@ -226,43 +232,44 @@ function LoginForm() {
                   autoComplete="current-password"
                   required
                   placeholder="Enter your password"
-                  className="w-full px-4 py-3.5 sm:py-3 rounded-xl border border-white/70 bg-white/55 backdrop-blur-sm shadow-[inset_0_1px_2px_rgba(15,23,42,0.06)] text-slate-900 placeholder-slate-500 focus:outline-none focus:bg-white/80 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12 text-base"
+                  className={`${FIELD} pr-12`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1.5 -m-1.5"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
 
             {error && (
-              <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl border border-red-100">
-                {error}
+              <div role="alert" className="flex gap-2.5 bg-red-50 text-red-700 text-sm font-medium px-4 py-3 rounded-xl border border-red-200">
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 
             <button
               type="submit"
               disabled={loading || !ready}
-              className="w-full bg-gradient-to-b from-blue-500 to-blue-700 text-white py-3.5 sm:py-3 rounded-xl font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_10px_24px_-8px_rgba(37,99,235,0.7)] hover:from-blue-500 hover:to-blue-800 active:from-blue-600 active:to-blue-800 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-b from-blue-500 to-blue-700 text-white text-base py-4 rounded-xl font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_12px_24px_-10px_rgba(37,99,235,0.8)] hover:from-blue-600 hover:to-blue-800 active:scale-[0.99] transition-all disabled:opacity-60 flex items-center justify-center gap-2"
             >
-              {(loading || !ready) && <Loader2 className="w-4 h-4 animate-spin" />}
+              {(loading || !ready) && <Loader2 className="w-5 h-5 animate-spin" />}
               {redirecting ? "Opening your dashboard..." : loading ? "Signing in..." : !ready ? "Loading..." : "Sign In"}
             </button>
           </form>
         </div>
-        </div>
 
-        <p className="text-center text-slate-600 text-sm mt-6">
-          Security guard?{" "}
-          <Link href="/guard/scan" className="text-blue-600 hover:underline font-medium">
-            Open scanner
-          </Link>
-        </p>
+        <Link
+          href="/guard/scan"
+          className="mt-6 mx-auto flex w-fit items-center gap-2 rounded-full bg-white/70 border border-white px-4 py-2 text-sm text-slate-700 shadow-sm hover:bg-white transition-colors"
+        >
+          <ScanLine className="w-4 h-4 text-blue-600" />
+          Security guard? <span className="font-semibold text-blue-700">Open scanner</span>
+        </Link>
       </div>
     </div>
   );
