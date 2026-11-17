@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import Link from "next/link";
+import Image from "next/image";
 import { Users, UserCheck, Clock, ArrowRight, CheckCircle2, Ticket } from "lucide-react";
 import { standingPassValidity } from "@/lib/pickup-pass";
 import { formatDate, formatTime } from "@/lib/utils";
@@ -47,6 +48,16 @@ export default async function ParentDashboard() {
   const passHolders = (authorizedPeople ?? []).filter((p: any) => p.standing_token && standingPassValidity(p).ok);
   const hasAnyPass = (authorizedPeople ?? []).some((p: any) => p.standing_token);
 
+  // Tell passes apart: two people can share a first name, so show whose children each covers
+  const { data: passLinks } = passHolders.length
+    ? await supabaseAdmin.from("standing_pass_children").select("person_id, student_id").in("person_id", passHolders.map((p: any) => p.id))
+    : { data: [] as any[] };
+  const childName = new Map((children ?? []).map((c: any) => [c.id, (c.name as string).split(" ")[0]]));
+  const coversNames = (personId: string) =>
+    (passLinks ?? []).filter((l: any) => l.person_id === personId).map((l: any) => childName.get(l.student_id)).filter(Boolean) as string[];
+  const passLasts = (p: any) =>
+    `${p.standing_until ? `Until ${new Date(`${p.standing_until}T00:00:00Z`).toLocaleDateString("en-GH", { day: "numeric", month: "short", timeZone: "UTC" })}` : "Until you cancel"}${p.standing_school_days ? ", school days" : ""}`;
+
   return (
     <div className="p-6 max-w-4xl">
       <PageHeader
@@ -75,18 +86,40 @@ export default async function ParentDashboard() {
               These people show their regular pass at the gate every day. You don&apos;t need to make them a code.
             </p>
             <div className="space-y-2 mb-5">
-              {passHolders.map((p: any) => (
-                <Link
-                  key={p.id}
-                  href={`/parent/authorized?pass=${p.id}`}
-                  className="flex items-center gap-3 bg-white/10 hover:bg-white/20 rounded-xl px-4 py-3 transition-colors"
-                >
-                  <Ticket className="w-5 h-5 shrink-0" />
-                  <span className="flex-1 min-w-0 font-semibold truncate">{p.name}</span>
-                  <span className="text-sm text-blue-100 shrink-0">View pass</span>
-                  <ArrowRight className="w-4 h-4 shrink-0" />
-                </Link>
-              ))}
+              {passHolders.map((p: any) => {
+                const covers = coversNames(p.id);
+                const who = [p.relation, p.vehicle_number].filter(Boolean).join(" · ");
+                return (
+                  <Link
+                    key={p.id}
+                    href={`/parent/authorized?pass=${p.id}`}
+                    className="flex items-center gap-3 bg-white/10 hover:bg-white/20 rounded-xl px-3 sm:px-4 py-3 transition-colors"
+                  >
+                    {/* Photo first: the quickest way to tell two people with the same name apart */}
+                    <span className="w-12 h-12 rounded-full overflow-hidden bg-white text-blue-700 font-bold text-lg flex items-center justify-center shrink-0 ring-2 ring-white/60">
+                      {p.photo_url ? (
+                        <Image src={p.photo_url} alt={p.name} width={48} height={48} className="w-full h-full object-cover" />
+                      ) : (
+                        p.name[0].toUpperCase()
+                      )}
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block font-bold truncate">
+                        {p.name}
+                        {who && <span className="font-normal text-blue-100"> · {who}</span>}
+                      </span>
+                      <span className="block text-sm text-blue-50 truncate">
+                        {covers.length ? `Collects ${covers.length === 1 ? covers[0] : `${covers.slice(0, -1).join(", ")} and ${covers[covers.length - 1]}`}` : "No children on this pass"}
+                      </span>
+                      <span className="flex items-center gap-1 text-xs text-blue-100 mt-0.5">
+                        <Ticket className="w-3.5 h-3.5" /> {passLasts(p)}
+                      </span>
+                    </span>
+                    <span className="hidden sm:inline text-sm text-blue-100 shrink-0">View pass</span>
+                    <ArrowRight className="w-4 h-4 shrink-0" />
+                  </Link>
+                );
+              })}
             </div>
             <Link
               href="/parent/authorized"
