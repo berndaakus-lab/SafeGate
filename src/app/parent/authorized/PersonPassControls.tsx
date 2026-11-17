@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { CalendarDays, Download, Loader2, Share2, Star, Ticket, X } from "lucide-react";
@@ -32,10 +32,24 @@ function describe(until: string | null, schoolDays: boolean) {
   return `${when}${schoolDays ? ", school days only" : ""}`;
 }
 
-export default function PersonPassControls({ person, children, qrUrl }: { person: Person; children: Child[]; qrUrl: string | null }) {
+export default function PersonPassControls({
+  person,
+  children,
+  qrUrl,
+  autoOpen = null,
+}: {
+  person: Person;
+  children: Child[];
+  qrUrl: string | null;
+  /** Opened from a link (dashboard, daily-code page): show the pass, or start setting one up */
+  autoOpen?: "view" | "setup" | null;
+}) {
   const router = useRouter();
-  const [mode, setMode] = useState<"closed" | "setup" | "view">("closed");
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  // Opened from a link: start on the pass, or on setting one up (a pass needs a photo first)
+  const openView = autoOpen === "view" && !!person.token;
+  const openSetupNow = !!autoOpen && !openView && person.hasPhoto;
+  const [mode, setMode] = useState<"closed" | "setup" | "view">(openView ? "view" : openSetupNow ? "setup" : "closed");
+  const [selected, setSelected] = useState<Set<string>>(() => new Set(person.token ? person.coveredIds : children.map((c) => c.id)));
   const [until, setUntil] = useState(person.until ?? "");
   const [limited, setLimited] = useState(!!person.until);
   const [schoolDays, setSchoolDays] = useState(person.schoolDays);
@@ -147,11 +161,19 @@ export default function PersonPassControls({ person, children, qrUrl }: { person
     }
   }
 
-  const [needPhoto, setNeedPhoto] = useState(false);
+  const [needPhoto, setNeedPhoto] = useState(!!autoOpen && !openView && !person.hasPhoto);
+
+  // The photo message is inline, maybe far down the list: bring it into view
+  const rootRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (needPhoto && autoOpen) rootRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const groups = person.token ? person.token.replace(/(.{4})/g, "$1 ").trim() : "";
 
   return (
-    <div className="w-full">
+    <div ref={rootRef} className="w-full">
       <div className="flex flex-wrap items-center gap-2 mt-2.5">
         {active ? (
           <>
@@ -162,15 +184,17 @@ export default function PersonPassControls({ person, children, qrUrl }: { person
             <button type="button" onClick={openSetup} className="text-xs font-semibold text-slate-600 hover:underline">Change</button>
             <button type="button" onClick={cancelPass} disabled={busy} className="text-xs font-semibold text-red-600 hover:underline disabled:opacity-60">Cancel pass</button>
           </>
-        ) : person.hasPhoto ? (
-          <button type="button" onClick={openSetup} className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 border border-blue-200 rounded-full px-2.5 py-1 hover:bg-blue-50">
-            <Ticket className="w-3 h-3" /> Set up regular pickup pass
-          </button>
         ) : (
           <>
-            <button type="button" onClick={() => setNeedPhoto(true)} className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 border border-blue-200 rounded-full px-2.5 py-1 hover:bg-blue-50">
-              <Ticket className="w-3 h-3" /> Set up regular pickup pass
+            {/* The main thing to do for a regular collector: big and solid, not a small pill */}
+            <button
+              type="button"
+              onClick={person.hasPhoto ? openSetup : () => setNeedPhoto(true)}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 text-white text-sm font-bold rounded-xl px-5 py-3 shadow-md shadow-blue-600/25 hover:bg-blue-700 transition-colors"
+            >
+              <Ticket className="w-5 h-5" /> Set up regular pickup pass
             </button>
+            <span className="w-full text-xs text-slate-500">Collects most days? One pass works every day, with no new code.</span>
             {needPhoto && <span role="alert" className="w-full text-xs font-medium text-amber-700">Add a photo of {person.name} first (tap Edit above). The guard needs it to check who is collecting.</span>}
           </>
         )}

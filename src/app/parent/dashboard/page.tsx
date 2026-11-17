@@ -2,7 +2,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import Link from "next/link";
-import { Users, UserCheck, QrCode, Clock, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Users, UserCheck, Clock, ArrowRight, CheckCircle2, Ticket } from "lucide-react";
+import { standingPassValidity } from "@/lib/pickup-pass";
 import { formatDate, formatTime } from "@/lib/utils";
 import { PageHeader, Section } from "@/components/ui";
 
@@ -42,7 +43,9 @@ export default async function ParentDashboard() {
   ];
   const ready = childCount > 0 && personCount > 0;
   const usual = (authorizedPeople ?? []).find((p: any) => p.is_usual);
-  const standingCount = (authorizedPeople ?? []).filter((p: any) => p.standing_token).length;
+  // People whose regular pass works today: they need no daily code
+  const passHolders = (authorizedPeople ?? []).filter((p: any) => p.standing_token && standingPassValidity(p).ok);
+  const hasAnyPass = (authorizedPeople ?? []).some((p: any) => p.standing_token);
 
   return (
     <div className="p-6 max-w-4xl">
@@ -51,32 +54,66 @@ export default async function ParentDashboard() {
         subtitle="Your children's pickups at a glance."
       />
 
-      {/* Main action first: it's what parents open the app for */}
+      {/* Main action first. The regular pass leads: a daily code is only for someone different today */}
       <div className="bg-blue-600 rounded-2xl p-6 mb-6 text-white shadow-lg shadow-blue-600/20">
-        <h2 className="font-semibold text-xl mb-1">Someone collecting today?</h2>
-        <p className="text-blue-100 mb-5">Make a pickup QR code and send it to them. It works for one child or several.</p>
-        {ready && usual && (
-          <Link
-            href="/parent/generate?quick=1"
-            className="mb-3 inline-flex items-center justify-center gap-2 bg-green-500 text-white px-6 py-3.5 rounded-xl font-bold hover:bg-green-600 transition-colors w-full sm:w-auto sm:mr-3"
-          >
-            <QrCode className="w-5 h-5" />
-            Today: {usual.name.split(" ")[0]} collects {childCount === 1 ? "my child" : "all my children"}
-          </Link>
-        )}
-        <Link
-          href={ready ? "/parent/generate" : personCount === 0 ? "/parent/authorized" : "/parent/children"}
-          className="inline-flex items-center justify-center gap-2 bg-white text-blue-700 px-6 py-3.5 rounded-xl font-bold hover:bg-blue-50 transition-colors w-full sm:w-auto"
-        >
-          <QrCode className="w-5 h-5" />
-          {ready ? "Generate QR Code" : personCount === 0 ? "First, add a pickup person" : "See my children"}
-          <ArrowRight className="w-5 h-5" />
-        </Link>
-        {ready && !standingCount && (
-          <p className="text-blue-100 text-sm mt-4">
-            Same people collect every day?{" "}
-            <Link href="/parent/authorized" className="underline font-semibold">Set up a regular pickup pass</Link> and you won&apos;t need a new code each day.
-          </p>
+        {!ready ? (
+          <>
+            <h2 className="font-semibold text-xl mb-1">Get ready for pickups</h2>
+            <p className="text-blue-100 mb-5">Add the people who collect your children, then give them a pickup pass.</p>
+            <Link
+              href={personCount === 0 ? "/parent/authorized" : "/parent/children"}
+              className="inline-flex items-center justify-center gap-2 bg-white text-blue-700 px-6 py-3.5 rounded-xl font-bold hover:bg-blue-50 transition-colors w-full sm:w-auto"
+            >
+              {personCount === 0 ? "First, add a pickup person" : "See my children"}
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </>
+        ) : passHolders.length > 0 ? (
+          <>
+            <h2 className="font-semibold text-xl mb-1">Regular pickups are covered</h2>
+            <p className="text-blue-100 mb-4">
+              These people show their regular pass at the gate every day. You don&apos;t need to make them a code.
+            </p>
+            <div className="space-y-2 mb-5">
+              {passHolders.map((p: any) => (
+                <Link
+                  key={p.id}
+                  href={`/parent/authorized?pass=${p.id}`}
+                  className="flex items-center gap-3 bg-white/10 hover:bg-white/20 rounded-xl px-4 py-3 transition-colors"
+                >
+                  <Ticket className="w-5 h-5 shrink-0" />
+                  <span className="flex-1 min-w-0 font-semibold truncate">{p.name}</span>
+                  <span className="text-sm text-blue-100 shrink-0">View pass</span>
+                  <ArrowRight className="w-4 h-4 shrink-0" />
+                </Link>
+              ))}
+            </div>
+            <Link
+              href="/parent/authorized"
+              className="inline-flex items-center justify-center gap-2 bg-white text-blue-700 px-6 py-3.5 rounded-xl font-bold hover:bg-blue-50 transition-colors w-full sm:w-auto"
+            >
+              <Ticket className="w-5 h-5" /> Give someone else a regular pass
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </>
+        ) : (
+          <>
+            <h2 className="font-semibold text-xl mb-1">Same person collects every day?</h2>
+            <p className="text-blue-100 mb-5">
+              Give your driver or relative one regular pickup pass. They show it at the gate every day, and you never make a new code.
+            </p>
+            <Link
+              href={usual ? `/parent/authorized?setup=${usual.id}` : "/parent/authorized"}
+              className="inline-flex items-center justify-center gap-2 bg-white text-blue-700 px-6 py-3.5 rounded-xl font-bold hover:bg-blue-50 transition-colors w-full sm:w-auto"
+            >
+              <Ticket className="w-5 h-5" />
+              {usual ? `Give ${usual.name.split(" ")[0]} a regular pass` : "Set up a regular pickup pass"}
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            {hasAnyPass && (
+              <p className="text-blue-100 text-xs mt-4">A regular pass you made is not valid today (expired, or school days only).</p>
+            )}
+          </>
         )}
         {!ready && (
           <p className="text-blue-100 text-sm mt-3">
