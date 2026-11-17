@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { QrCode, Loader2, Share2, Download, RefreshCw, Check } from "lucide-react";
+import { QrCode, Loader2, Share2, Download, RefreshCw, Check, Ticket } from "lucide-react";
 import Image from "next/image";
 import { buildPickupPassImage } from "@/lib/pickup-pass-image";
 import { Section, btnPrimary } from "@/components/ui";
@@ -20,14 +20,20 @@ export default function GenerateForm({
   authorizedPeople,
   usualPersonId = null,
   quick = false,
+  passCovers = {},
 }: {
   students: Child[];
   authorizedPeople: Person[];
   usualPersonId?: string | null;
   quick?: boolean;
+  /** Person id → children their regular pass covers today (only passes valid today) */
+  passCovers?: Record<string, string[]>;
 }) {
   const initialChildren = () => new Set(children.length === 1 ? [children[0].id] : []);
-  const [childIds, setChildIds] = useState<Set<string>>(initialChildren);
+  // One-tap from the dashboard starts with every child chosen
+  const [childIds, setChildIds] = useState<Set<string>>(() =>
+    quick && usualPersonId ? new Set(children.map((c) => c.id)) : initialChildren(),
+  );
   // The usual collector is chosen for you; change it if someone else is collecting
   const [personId, setPersonId] = useState(usualPersonId ?? "");
   const [loading, setLoading] = useState(false);
@@ -45,7 +51,8 @@ export default function GenerateForm({
     if (!quick || !usualPersonId || children.length === 0 || autoRan.current) return;
     autoRan.current = true;
     const ids = children.map((c) => c.id);
-    setChildIds(new Set(ids));
+    // Their regular pass already covers everyone: no code to make, the form says so
+    if (ids.every((id) => passCovers[usualPersonId]?.includes(id))) return;
     generate({ ids, person: usualPersonId });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -56,6 +63,14 @@ export default function GenerateForm({
   }, [qrData]);
 
   const allSelected = children.length > 0 && childIds.size === children.length;
+
+  // Does the chosen person's regular pass already cover the chosen children?
+  const covered = personId ? passCovers[personId] : undefined;
+  const chosenIds = [...childIds];
+  const passCoversAll = !!covered && chosenIds.length > 0 && chosenIds.every((id) => covered.includes(id));
+  const passCoversSome = !!covered && !passCoversAll && chosenIds.some((id) => covered.includes(id));
+  const chosenPerson = authorizedPeople.find((p) => p.id === personId);
+  const firstName = chosenPerson?.name.split(" ")[0] ?? "";
 
   function toggleChild(id: string) {
     setChildIds((prev) => {
@@ -271,6 +286,25 @@ export default function GenerateForm({
           </fieldset>
         </Section>
 
+        {(passCoversAll || passCoversSome) && !qrData && (
+          <div role="status" className="bg-green-50 border border-green-200 text-green-900 px-4 py-3.5 rounded-xl text-sm">
+            <p className="font-semibold flex items-center gap-1.5">
+              <Ticket className="w-4 h-4" />
+              {passCoversAll
+                ? `${firstName} already has a regular pickup pass. No code needed today.`
+                : `${firstName}'s regular pass already covers ${children.filter((c) => childIds.has(c.id) && covered!.includes(c.id)).map((c) => c.name.split(" ")[0]).join(", ")}.`}
+            </p>
+            <p className="mt-1 text-green-800">
+              {passCoversAll
+                ? `${firstName} shows the same pass at the gate every day. Only make a code if they have lost it.`
+                : "You only need a code for the other children, or add them to the pass."}
+            </p>
+            <a href={`/parent/authorized?pass=${personId}`} className="inline-block mt-2 font-semibold underline underline-offset-2">
+              {passCoversAll ? `View ${firstName}'s pass` : `Change ${firstName}'s pass`}
+            </a>
+          </div>
+        )}
+
         {error && (
           <div role="alert" className="bg-red-50 text-red-700 text-sm font-medium px-4 py-3 rounded-xl border border-red-100">{error}</div>
         )}
@@ -278,14 +312,18 @@ export default function GenerateForm({
         <button
           onClick={() => generate()}
           disabled={childIds.size === 0 || !personId || loading}
-          className={`${btnPrimary} w-full py-4 text-base`}
+          className={passCoversAll
+            ? "w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-slate-300 text-slate-600 font-semibold hover:bg-slate-50 disabled:opacity-50"
+            : `${btnPrimary} w-full py-4 text-base`}
         >
           {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <QrCode className="w-5 h-5" />}
           {loading
             ? "Generating..."
-            : childIds.size > 1
-              ? `Generate QR Code for ${childIds.size} children`
-              : "Generate QR Code"}
+            : passCoversAll
+              ? "Make a one-day code anyway"
+              : childIds.size > 1
+                ? `Make a one-day code for ${childIds.size} children`
+                : "Make a one-day code"}
         </button>
         {hasData && (childIds.size === 0 || !personId) && (
           <p className="text-center text-sm text-slate-500">

@@ -14,8 +14,8 @@ import SchoolLogo from "@/components/SchoolLogo";
 const links: { href: string; label: string; short?: string; icon: LucideIcon }[] = [
   { href: "/parent/dashboard", label: "Dashboard", short: "Home", icon: LayoutDashboard },
   { href: "/parent/children", label: "My Children", short: "Children", icon: Users },
-  { href: "/parent/authorized", label: "Pickup Persons", short: "People", icon: UserCheck },
-  { href: "/parent/generate", label: "Generate QR", short: "Get QR", icon: QrCode },
+  { href: "/parent/authorized", label: "People & Passes", short: "Passes", icon: UserCheck },
+  { href: "/parent/generate", label: "One-day Code", short: "Day code", icon: QrCode },
   { href: "/parent/account", label: "Account", icon: Settings },
 ];
 

@@ -10,7 +10,8 @@ import Image from "next/image";
 import { Phone, Heart, UserPlus, UserCheck, QrCode, Car } from "lucide-react";
 import { Badge, EmptyState, InfoNote, PageHeader, Section, btnPrimary, btnSecondary } from "@/components/ui";
 
-export default async function AuthorizedPage() {
+export default async function AuthorizedPage({ searchParams }: { searchParams: Promise<{ pass?: string; setup?: string }> }) {
+  const { pass: openPassFor, setup: openSetupFor } = await searchParams;
   const session = await getServerSession(authOptions);
   const parentId = (session?.user as any)?.id;
 
@@ -44,8 +45,8 @@ export default async function AuthorizedPage() {
   return (
     <div className="p-6 max-w-2xl">
       <PageHeader
-        title="Pickup Persons"
-        subtitle="People you trust to collect your children. You choose one of them each time you make a pickup QR code."
+        title="Pickup Persons & Passes"
+        subtitle="People you trust to collect your children. Anyone who collects regularly should get a regular pickup pass: it works every day, so you never make them a new code."
         actions={
           <a href="#add-person" className={btnPrimary}>
             <UserPlus className="w-4 h-4" /> Add person
@@ -106,6 +107,11 @@ export default async function AuthorizedPage() {
                         }}
                         children={children}
                         qrUrl={qrFor.get(person.id) ?? null}
+                        autoOpen={
+                          openPassFor === person.id && person.standing_token ? "view"
+                            : (openSetupFor === person.id || openPassFor === person.id) ? "setup"
+                            : null
+                        }
                       />
                     )}
                   </div>
@@ -116,7 +122,7 @@ export default async function AuthorizedPage() {
           </div>
           <div className="mb-6 flex justify-end">
             <Link href="/parent/generate" className={btnSecondary}>
-              <QrCode className="w-4 h-4" /> Generate a pickup QR
+              <QrCode className="w-4 h-4" /> One-day code for someone else
             </Link>
           </div>
         </>
