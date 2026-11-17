@@ -29,7 +29,9 @@ export default function AddStudentForm({ schoolId, levels }: { schoolId: string;
       return;
     }
     if (!res.ok) {
-      setError(data.error || "Could not add the student. Try again.");
+      setError(res.status === 401
+        ? "Your sign-in has ended. Please sign out and sign in again, then try once more."
+        : data.error || "Could not add the student. Try again.");
       return;
     }
     setDone(`${name.trim()} added to your student list.`);

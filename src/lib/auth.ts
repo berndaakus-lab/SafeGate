@@ -160,12 +160,21 @@ export const authOptions: NextAuthOptions = {
       // useSession().update() after a parent changes their name re-reads
       // everything from the database; otherwise check once a minute
       const refresh = trigger === "update";
-      if (!refresh && Date.now() - ((token.checkedAt as number) ?? 0) < RECHECK_MS) return token;
+      // Everyone but the platform admin belongs to a school. A sign-in that has
+      // lost its school is re-read now rather than in a minute: without it every
+      // admin page shows zeros and every save says "Unauthorized".
+      const missingSchool = !token.schoolId;
+      if (!refresh && !missingSchool && Date.now() - ((token.checkedAt as number) ?? 0) < RECHECK_MS) return token;
 
       const state = await loadAccountState(token.role as string, token.sub);
       if (state === "unknown") return token; // a database hiccup must not sign everyone out
       // Account deleted, or its password changed or was reset: this sign-in is no longer valid
       if (state === "gone" || (token.pwf && state.pwf !== token.pwf)) {
+        token.invalid = true;
+        return token;
+      }
+      // An account with no school can't use any school page: treat it as signed out
+      if (!state.schoolId) {
         token.invalid = true;
         return token;
       }

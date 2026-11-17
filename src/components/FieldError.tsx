@@ -12,6 +12,10 @@ export default function FieldError({ message }: { message?: string }) {
 /** Reads an API error body. `fields` maps input names to messages; `message` is
  * only meant for a form-level banner when no individual field is to blame. */
 export async function readApiErrors(res: Response, fallback: string): Promise<{ message: string; fields: FieldErrors }> {
+  // The server no longer sees a valid sign-in (it ended, or was replaced in another tab)
+  if (res.status === 401) {
+    return { message: "Your sign-in has ended. Please sign out and sign in again, then try once more.", fields: {} };
+  }
   const data = await res.json().catch(() => ({}));
   const fields: FieldErrors = data?.fields ?? {};
   return { message: Object.keys(fields).length ? "" : data?.error || fallback, fields };

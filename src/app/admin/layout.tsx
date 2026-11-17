@@ -18,24 +18,24 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect(`/login?reason=role&for=admin&as=${role}`);
   }
 
+  // Every admin page reads this school's data; a sign-in without the school
+  // would show empty pages, so ask for a fresh sign-in instead
+  const schoolId = (session.user as any)?.schoolId;
+  if (!schoolId) redirect("/login?reason=signin&for=admin");
+
   await requirePasswordChanged(session);
   scheduleBackgroundJobs();
 
-  const schoolId = (session.user as any)?.schoolId;
-  let logoUrl: string | null = null;
+  const { data: school } = await supabaseAdmin
+    .from("schools")
+    .select("is_active, logo_url")
+    .eq("id", schoolId)
+    .single();
 
-  if (schoolId) {
-    const { data: school } = await supabaseAdmin
-      .from("schools")
-      .select("is_active, logo_url")
-      .eq("id", schoolId)
-      .single();
-
-    if (school && school.is_active === false) {
-      redirect("/offline");
-    }
-    logoUrl = school?.logo_url ?? null;
+  if (school && school.is_active === false) {
+    redirect("/offline");
   }
+  const logoUrl: string | null = school?.logo_url ?? null;
 
   return (
     <SessionProvider session={session}>

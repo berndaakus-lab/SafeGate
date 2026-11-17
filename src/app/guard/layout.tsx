@@ -18,10 +18,13 @@ export default async function GuardLayout({ children }: { children: React.ReactN
     redirect(`/login?reason=role&for=scanner&as=${role}`);
   }
 
+  // Superadmins have no school; anyone else without one needs a fresh sign-in
+  const schoolId = (session.user as any)?.schoolId;
+  if (!schoolId && role !== "superadmin") redirect("/login?reason=signin&for=scanner");
+
   await requirePasswordChanged(session);
   scheduleBackgroundJobs();
 
-  const schoolId = (session.user as any)?.schoolId;
   let logoUrl: string | null = null;
   if (schoolId) {
     const { data: school } = await supabaseAdmin.from("schools").select("is_active, logo_url").eq("id", schoolId).maybeSingle();
