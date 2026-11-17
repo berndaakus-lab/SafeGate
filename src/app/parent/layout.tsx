@@ -16,13 +16,14 @@ export default async function ParentLayout({ children }: { children: React.React
     redirect(`/login?reason=role&for=parent&as=${(session.user as any)?.role}`);
   }
 
+  // A sign-in without the school would show empty pages: ask for a fresh sign-in
+  const schoolId = (session.user as any)?.schoolId;
+  if (!schoolId) redirect("/login?reason=signin&for=parent");
+
   await requirePasswordChanged(session);
   scheduleBackgroundJobs();
 
-  const schoolId = (session.user as any)?.schoolId;
-  const { data: school } = schoolId
-    ? await supabaseAdmin.from("schools").select("logo_url, is_active").eq("id", schoolId).maybeSingle()
-    : { data: null };
+  const { data: school } = await supabaseAdmin.from("schools").select("logo_url, is_active").eq("id", schoolId).maybeSingle();
   if (school?.is_active === false) redirect("/offline");
 
   return (
