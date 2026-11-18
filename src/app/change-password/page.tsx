@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { loginAccount } from "@/lib/login-account";
 import FirstLoginForm from "./FirstLoginForm";
 import SessionProvider from "@/components/SessionProvider";
 
@@ -23,8 +24,8 @@ export default async function ChangePasswordPage() {
   const home = ROLE_HOME[user.role];
   if (!home) redirect("/login");
 
-  const table = user.role === "parent" ? "parents" : "staff";
-  const { data } = await supabaseAdmin.from(table).select("must_change_password").eq("id", user.id).maybeSingle();
+  const { table, id } = loginAccount(user);
+  const { data } = await supabaseAdmin.from(table).select("must_change_password").eq("id", id).maybeSingle();
   if (!data?.must_change_password) redirect(home);
 
   return (
@@ -40,7 +41,7 @@ export default async function ChangePasswordPage() {
           Choose a new one that only you know before you continue.
         </p>
         <SessionProvider session={session}>
-          <FirstLoginForm home={home} askName={user.role === "parent"} initialName={user.name ?? ""}
+          <FirstLoginForm home={home} askName={table === "parents"} initialName={user.name ?? ""}
             username={user.email || user.loginPhone || ""} />
         </SessionProvider>
       </div>

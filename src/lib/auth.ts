@@ -21,10 +21,32 @@ const RECHECK_MS = 60_000;
 let dummyHash: Promise<string> | null = null;
 const getDummyHash = () => (dummyHash ??= bcrypt.hash("no-such-account", 12));
 
-type AccountState = { pwf: string; role: string; schoolId: string | null; name: string } | "gone" | "unknown";
+type AccountState =
+  | { pwf: string; role: string; schoolId: string | null; name: string; linkedParentId: string | null }
+  | "gone"
+  | "unknown";
 
-async function loadAccountState(role: string, id: string): Promise<AccountState> {
-  const table = role === "parent" ? "parents" : "staff";
+/**
+ * The parent profile linked to a staff account (a teacher who is also a parent),
+ * if any. Only one at the same school counts. A failed lookup (for example before
+ * the staff_id column exists) counts as no link, never as a sign-out.
+ */
+export async function linkedParentFor(staffId: string, schoolId: string | null): Promise<string | null> {
+  if (!schoolId) return null;
+  const { data, error } = await supabaseAdmin
+    .from("parents")
+    .select("id")
+    .eq("staff_id", staffId)
+    .eq("school_id", schoolId)
+    .maybeSingle();
+  if (error || !data) return null;
+  return data.id as string;
+}
+
+// `loginRole` is the role of the account that signed in, not the side the
+// person is on now: a teacher looking at their children still signed in as staff
+async function loadAccountState(loginRole: string, id: string): Promise<AccountState> {
+  const table = loginRole === "parent" ? "parents" : "staff";
   const { data, error } = await supabaseAdmin.from(table).select("name, password, school_id, role").eq("id", id).maybeSingle();
   if (error) return "unknown";
   if (!data) return "gone";
@@ -33,6 +55,7 @@ async function loadAccountState(role: string, id: string): Promise<AccountState>
     role: table === "parents" ? "parent" : data.role,
     schoolId: data.school_id,
     name: data.name,
+    linkedParentId: table === "staff" ? await linkedParentFor(id, data.school_id) : null,
   };
 }
 
@@ -117,6 +140,7 @@ export const authOptions: NextAuthOptions = {
             schoolName: staff.schools?.name,
             loginPhone: staff.login_phone ?? null,
             pwf: passwordFingerprint(staff.password),
+            linkedParentId: await linkedParentFor(staff.id, staff.school_id),
           };
         }
 
@@ -142,9 +166,12 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, trigger }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
+        // A staff member who is also a parent always starts on the staff side
         token.role = (user as any).role;
+        token.loginRole = (user as any).role;
+        token.parentId = (user as any).linkedParentId ?? null;
         token.schoolId = (user as any).schoolId;
         token.schoolName = (user as any).schoolName;
         token.loginPhone = (user as any).loginPhone;
@@ -157,16 +184,20 @@ export const authOptions: NextAuthOptions = {
       // The platform admin has no database account to check
       if (!token.sub || token.role === "superadmin" || token.invalid) return token;
 
-      // useSession().update() after a parent changes their name re-reads
-      // everything from the database; otherwise check once a minute
+      // useSession().update() after a parent changes their name, or to switch
+      // between the staff and parent side, re-reads everything from the
+      // database; otherwise check once a minute
       const refresh = trigger === "update";
+      const switchTo = refresh ? (session as any)?.switchTo : undefined;
       // Everyone but the platform admin belongs to a school. A sign-in that has
       // lost its school is re-read now rather than in a minute: without it every
       // admin page shows zeros and every save says "Unauthorized".
       const missingSchool = !token.schoolId;
       if (!refresh && !missingSchool && Date.now() - ((token.checkedAt as number) ?? 0) < RECHECK_MS) return token;
 
-      const state = await loadAccountState(token.role as string, token.sub);
+      // Sign-ins from before the switch existed carry no loginRole: theirs is their role
+      const loginRole = (token.loginRole as string | undefined) ?? (token.role as string);
+      const state = await loadAccountState(loginRole, token.sub);
       if (state === "unknown") return token; // a database hiccup must not sign everyone out
       // Account deleted, or its password changed or was reset: this sign-in is no longer valid
       if (state === "gone" || (token.pwf && state.pwf !== token.pwf)) {
@@ -180,7 +211,11 @@ export const authOptions: NextAuthOptions = {
       }
 
       token.pwf = state.pwf; // cookies from before this check existed carry none; adopt the current one
-      token.role = state.role;
+      token.loginRole = state.role;
+      token.parentId = state.linkedParentId;
+      // The parent side is only open while the link exists; unlinking puts them back on the staff side
+      const wantParent = switchTo ? switchTo === "parent" : token.role === "parent";
+      token.role = state.role !== "parent" && wantParent && state.linkedParentId ? "parent" : state.role;
       token.schoolId = state.schoolId;
       if (refresh && state.role === "parent") token.name = state.name;
       token.checkedAt = Date.now();
@@ -190,7 +225,15 @@ export const authOptions: NextAuthOptions = {
       // An empty session reads as "not signed in" everywhere, including getServerSession
       if (token.invalid) return {} as typeof session;
       if (session.user) {
-        (session.user as any).id = token.sub;
+        const loginRole = (token.loginRole as string | undefined) ?? (token.role as string);
+        const onParentSide = token.role === "parent" && loginRole !== "parent";
+        // On the parent side every parent page works with the linked parent profile
+        (session.user as any).id = onParentSide ? token.parentId : token.sub;
+        // The account that signed in: passwords are checked and changed on this one
+        (session.user as any).loginId = token.sub;
+        (session.user as any).loginTable = loginRole === "parent" ? "parents" : "staff";
+        // The other side this person can switch to, if they are staff and a parent
+        (session.user as any).switchTo = token.parentId && loginRole !== "parent" ? (onParentSide ? loginRole : "parent") : null;
         (session.user as any).role = token.role;
         (session.user as any).schoolId = token.schoolId;
         (session.user as any).schoolName = token.schoolName;

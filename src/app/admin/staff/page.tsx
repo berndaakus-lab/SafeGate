@@ -3,6 +3,8 @@ import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import AddStaffForm from "./AddStaffForm";
 import ResetStaffPassword from "./ResetStaffPassword";
+import EditStaffModal from "./EditStaffModal";
+import AlsoParentControl from "./AlsoParentControl";
 import Link from "next/link";
 import { ScanLine, ShieldCheck, Upload, UserPlus, UserCheck } from "lucide-react";
 import { Badge, EmptyState, InfoNote, PageHeader, Section, btnPrimary, btnSecondary } from "@/components/ui";
@@ -26,11 +28,31 @@ export default async function StaffPage() {
   const list = staffList ?? [];
   const count = (role: string) => list.filter((s: any) => s.role === role).length;
 
+  // Staff who are also parents. Before the database update that adds staff_id
+  // this query fails, and the "Also a parent" controls simply don't show.
+  const { data: parentRows, error: linkError } = await supabaseAdmin
+    .from("parents")
+    .select("id, name, email, login_phone, staff_id, students(name, archived_at)")
+    .eq("school_id", schoolId)
+    .order("name");
+  const linkingAvailable = !linkError;
+  const parents = (parentRows ?? []).map((p: any) => ({
+    id: p.id as string,
+    name: p.name as string,
+    login: [p.login_phone, p.email].filter(Boolean).join(" · "),
+    staffId: (p.staff_id ?? null) as string | null,
+    childNames: (p.students ?? []).filter((s: any) => !s.archived_at).map((s: any) => s.name as string),
+  }));
+  const linkedTo = new Map(parents.filter((p) => p.staffId).map((p) => [p.staffId!, p]));
+  const candidates = parents
+    .filter((p) => !p.staffId)
+    .map((p) => ({ id: p.id, name: p.name, login: p.login, childCount: p.childNames.length }));
+
   return (
     <div className="p-6 max-w-2xl">
       <PageHeader
         title="Staff Accounts"
-        subtitle="Guards and on-duty teachers can scan pickup QR codes. Admins manage the school."
+        subtitle="Guards and on-duty teachers can scan pickup QR codes. Admins manage the school. A staff member who is also a parent keeps one sign-in: use Also a parent?"
         actions={
           <>
             <a href="#add-staff" className={btnPrimary}>
@@ -80,7 +102,15 @@ export default async function StaffPage() {
                       {staff.role === "admin" ? <ShieldCheck className="w-3 h-3" /> : <ScanLine className="w-3 h-3" />}
                       {role.label}
                     </Badge>
+                    {staff.role !== "admin" && <EditStaffModal staff={staff} />}
                   </div>
+                  {linkingAvailable && (
+                    <AlsoParentControl
+                      staff={{ id: staff.id, name: staff.name, loginPhone: staff.login_phone ?? null }}
+                      linked={linkedTo.has(staff.id) ? { id: linkedTo.get(staff.id)!.id, name: linkedTo.get(staff.id)!.name, childNames: linkedTo.get(staff.id)!.childNames } : null}
+                      candidates={candidates}
+                    />
+                  )}
                   {staff.role !== "admin" && <ResetStaffPassword staffId={staff.id} staffName={staff.name} />}
                 </div>
               );

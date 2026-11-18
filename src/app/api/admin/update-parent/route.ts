@@ -26,12 +26,19 @@ export async function PATCH(req: NextRequest) {
     if (parsed.error) return parsed.error;
     const { parentId, name, email, loginPhone, phone } = parsed.data;
 
-    const conflict = await findLoginConflict({ email, loginPhone, excludeParentId: parentId, schoolId });
-    if (conflict) return fieldErrorResponse(conflict, 409);
+    // A parent linked to a staff account signs in with that account only: just
+    // the name and SMS phone change here (fails harmlessly before staff_id exists)
+    const { data: link } = await supabaseAdmin.from("parents").select("staff_id").eq("id", parentId).eq("school_id", schoolId).maybeSingle();
+    const linked = !!(link as any)?.staff_id;
+
+    if (!linked) {
+      const conflict = await findLoginConflict({ email, loginPhone, excludeParentId: parentId, schoolId, forParent: true });
+      if (conflict) return fieldErrorResponse(conflict, 409);
+    }
 
     const { error } = await supabaseAdmin
       .from("parents")
-      .update({ name, email, login_phone: loginPhone, phone })
+      .update(linked ? { name, phone } : { name, email, login_phone: loginPhone, phone })
       .eq("id", parentId)
       .eq("school_id", schoolId);
 

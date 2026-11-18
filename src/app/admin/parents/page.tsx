@@ -20,11 +20,19 @@ export default async function ParentsPage() {
   const session = await getServerSession(authOptions);
   const schoolId = (session?.user as any)?.schoolId;
 
-  const { data: parents } = await supabaseAdmin
+  const parentFields = "id, name, email, login_phone, phone, students(id, name, class_name, class_id, photo_url, archived_at)";
+  // staff_id: a staff member who is also this parent. Before the database update
+  // adds that column, read the list without it.
+  const withLink = await supabaseAdmin
     .from("parents")
-    .select("id, name, email, login_phone, phone, students(id, name, class_name, class_id, photo_url, archived_at)")
+    .select(`${parentFields}, staff_id`)
     .eq("school_id", schoolId)
     .order("name");
+  const parents: any[] | null = withLink.error
+    ? (await supabaseAdmin.from("parents").select(parentFields).eq("school_id", schoolId).order("name")).data
+    : withLink.data;
+  const { data: staffNames } = await supabaseAdmin.from("staff").select("id, name").eq("school_id", schoolId);
+  const staffName = new Map((staffNames ?? []).map((s: any) => [s.id as string, s.name as string]));
 
   const schoolClasses = await getSchoolClasses(schoolId);
   const levels = schoolClasses.map((c) => c.name);
@@ -152,7 +160,9 @@ export default async function ParentsPage() {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-slate-900 text-base">{parent.name}</p>
                     <p className="text-sm text-slate-600 break-words">
-                      {[parent.email, parent.login_phone].filter(Boolean).join(" · ")}
+                      {parent.staff_id
+                        ? `Signs in with the staff account of ${staffName.get(parent.staff_id) ?? "a staff member"}`
+                        : [parent.email, parent.login_phone].filter(Boolean).join(" · ")}
                     </p>
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       <Badge tone={kids.length ? "green" : "amber"}>
@@ -164,11 +174,12 @@ export default async function ParentsPage() {
                         <Badge tone="red"><MessageSquareOff className="w-3 h-3" /> No SMS number</Badge>
                       )}
                       {kids.some((k: any) => !k.photo_url) && <Badge tone="amber">Photo missing</Badge>}
+                      {parent.staff_id && <Badge tone="purple">Also staff</Badge>}
                     </div>
                   </div>
                 </>
               ),
-              action: <EditParentModal parent={parent} />,
+              action: <EditParentModal parent={parent} linkedStaffName={parent.staff_id ? staffName.get(parent.staff_id) ?? "a staff member" : null} />,
               body: (
               <>
 

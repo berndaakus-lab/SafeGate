@@ -12,7 +12,9 @@ const inputClass =
 
 type Parent = { id: string; name: string; email: string | null; login_phone: string | null; phone: string | null };
 
-export default function EditParentModal({ parent }: { parent: Parent }) {
+export default function EditParentModal({ parent, linkedStaffName = null }: { parent: Parent; linkedStaffName?: string | null }) {
+  // Linked to a staff account: that is their only sign-in, so there is no login or password to edit here
+  const linked = !!linkedStaffName;
   const router = useRouter();
   const initial = {
     name: parent.name,
@@ -46,7 +48,7 @@ export default function EditParentModal({ parent }: { parent: Parent }) {
     e.preventDefault();
     setError("");
     setFieldErrors({});
-    if (!form.email.trim() && !form.loginPhone.trim()) {
+    if (!linked && !form.email.trim() && !form.loginPhone.trim()) {
       const msg = "Enter an email or a login phone number.";
       setFieldErrors({ email: msg, loginPhone: msg });
       return;
@@ -94,6 +96,12 @@ export default function EditParentModal({ parent }: { parent: Parent }) {
                   className={withErrorRing(inputClass, !!fieldErrors.name)} />
                 <FieldError message={fieldErrors.name} />
               </div>
+              {linked ? (
+                <p className="text-sm text-indigo-900 bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3">
+                  Signs in with the staff account of <strong>{linkedStaffName}</strong>. Change their sign-in or password on the Staff page.
+                </p>
+              ) : (
+              <>
               <div>
                 <label htmlFor="ep-email" className="block text-sm font-semibold text-slate-800 mb-1.5">Email</label>
                 <input id="ep-email" type="email" autoCapitalize="none" value={form.email}
@@ -108,6 +116,8 @@ export default function EditParentModal({ parent }: { parent: Parent }) {
                   className={withErrorRing(inputClass, !!fieldErrors.loginPhone)} />
                 <FieldError message={fieldErrors.loginPhone} />
               </div>
+              </>
+              )}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label htmlFor="ep-phone" className="block text-sm font-semibold text-slate-800">SMS alert phone</label>
@@ -145,7 +155,7 @@ export default function EditParentModal({ parent }: { parent: Parent }) {
                 </button>
               </div>
             </form>
-            <ResetParentPassword parentId={parent.id} parentName={parent.name} />
+            {!linked && <ResetParentPassword parentId={parent.id} parentName={parent.name} />}
           </div>
         </div>
       )}

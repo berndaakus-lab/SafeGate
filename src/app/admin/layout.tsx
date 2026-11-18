@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import SessionProvider from "@/components/SessionProvider";
 import AdminNav from "@/components/AdminNav";
 import SchoolBanner from "@/components/SchoolBanner";
+import RoleSwitchBar from "@/components/RoleSwitchBar";
 import { scheduleBackgroundJobs } from "@/lib/jobs";
 import { requirePasswordChanged } from "@/lib/force-password";
 
@@ -42,6 +43,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <div className="min-h-screen bg-slate-50">
         <AdminNav schoolLogoUrl={logoUrl} />
         <main className="md:ml-64 pb-nav md:pb-0">
+          <RoleSwitchBar />
           <SchoolBanner name={(session.user as any)?.schoolName} logoUrl={logoUrl} />
           {children}
         </main>
