@@ -162,7 +162,7 @@ export default async function ParentsPage() {
                     <p className="text-sm text-slate-600 break-words">
                       {parent.staff_id
                         ? `Signs in with the staff account of ${staffName.get(parent.staff_id) ?? "a staff member"}`
-                        : [parent.email, parent.login_phone].filter(Boolean).join(" · ")}
+                        : [parent.email, parent.login_phone].filter(Boolean).join(" · ") || "Can't sign in yet. Use Edit to add an email or login phone."}
                     </p>
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       <Badge tone={kids.length ? "green" : "amber"}>
