@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { parseBody } from "@/lib/validate";
+import { loginAccount } from "@/lib/login-account";
 import { passwordFingerprint } from "@/lib/pwf";
 import { keepSignedInAfterPasswordChange } from "@/lib/session-cookie";
 import bcrypt from "bcryptjs";
@@ -29,9 +30,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Please type your own full name instead of \"Parent of ...\"." }, { status: 400 });
     }
 
-    const userId = (session.user as any).id;
-    const role = (session.user as any).role;
-    const table = role === "parent" ? "parents" : "staff";
+    // The password lives on the account they signed in with (for a teacher on
+    // the parent side, that is still their staff account)
+    const { table, id: userId } = loginAccount(session.user);
 
     // Fetch current hashed password
     const { data: user } = await supabaseAdmin
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest) {
     const hashed = await bcrypt.hash(newPassword, 12);
     const { error } = await supabaseAdmin
       .from(table)
-      .update({ password: hashed, must_change_password: false, ...(name && role === "parent" ? { name } : {}) })
+      .update({ password: hashed, must_change_password: false, ...(name && table === "parents" ? { name } : {}) })
       .eq("id", userId);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

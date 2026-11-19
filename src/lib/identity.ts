@@ -80,13 +80,19 @@ function takenMessage(
   row: { name: string | null; school_id: string | null },
   what: "email" | "phone number",
   schoolId?: string,
-  hint?: "add-child"
+  hint?: "add-child",
+  forParent = false
 ): string {
   if (!schoolId || row.school_id !== schoolId || !row.name) return `This ${what} is already used by another account.`;
   if (table === "parents") {
     return hint === "add-child"
       ? `This ${what} already belongs to the parent "${row.name}". Don't add a second parent: open their card on the Parents page and use Add child.`
       : `This ${what} already belongs to the parent "${row.name}".`;
+  }
+  // Adding a parent with a staff member's number: most often a teacher who is
+  // also a parent, so point to the way to give them both
+  if (forParent) {
+    return `This ${what} is already used by the staff member "${row.name}". If ${row.name} is also a parent here, don't make a second account: open the Staff page and use "Also a parent?" on their row.`;
   }
   return `This ${what} is already used by the staff member "${row.name}".`;
 }
@@ -103,6 +109,7 @@ export async function findLoginConflict({
   excludeParentId,
   schoolId,
   hint,
+  forParent = false,
 }: {
   email: string | null;
   loginPhone: string | null;
@@ -112,6 +119,8 @@ export async function findLoginConflict({
   schoolId?: string;
   /** "add-child" suggests adding the child to the existing parent instead of creating a second one */
   hint?: "add-child";
+  /** The login is for a parent: a clash with a staff member suggests "Also a parent?" */
+  forParent?: boolean;
 }): Promise<LoginFieldErrors | null> {
   if (!email && !loginPhone) {
     const text = "Enter an email or a login phone number.";
@@ -130,13 +139,13 @@ export async function findLoginConflict({
       let q = supabaseAdmin.from(table).select("id, name, school_id").ilike("email", escapeLike(email)).limit(1);
       if (exclude) q = q.neq("id", exclude);
       const { data } = await q;
-      if (data?.length) errors.email = takenMessage(table, data[0], "email", schoolId, hint);
+      if (data?.length) errors.email = takenMessage(table, data[0], "email", schoolId, hint, forParent);
     }
     if (loginPhone && !errors.loginPhone) {
       let q = supabaseAdmin.from(table).select("id, name, school_id").eq("login_phone", loginPhone).limit(1);
       if (exclude) q = q.neq("id", exclude);
       const { data } = await q;
-      if (data?.length) errors.loginPhone = takenMessage(table, data[0], "phone number", schoolId, hint);
+      if (data?.length) errors.loginPhone = takenMessage(table, data[0], "phone number", schoolId, hint, forParent);
     }
   }
   return errors.email || errors.loginPhone ? errors : null;
