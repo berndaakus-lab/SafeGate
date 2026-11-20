@@ -2,71 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { Bell, X } from "lucide-react";
-
-function urlBase64ToUint8Array(base64String: string) {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const rawData = window.atob(base64);
-  return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
-}
+import { enablePush, getPushStatus, syncSubscription } from "@/lib/push-client";
 
 export default function PushSubscriber() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [requesting, setRequesting] = useState(false);
 
-  async function syncSubscription() {
-    try {
-      const reg = await navigator.serviceWorker.ready;
-      let sub = await reg.pushManager.getSubscription();
-
-      if (!sub) {
-        const { key } = await fetch("/api/push/vapid-public-key").then((r) => r.json());
-        if (!key) return;
-        sub = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(key),
-        });
-      }
-
-      // Always sync with the server, even if the browser already had a
-      // subscription: a past server-side save could have failed silently
-      // while the browser-level subscription still succeeded. Idempotent
-      // upsert, so re-sending an already-saved subscription is a no-op.
-      await fetch("/api/push/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(sub),
-      });
-    } catch (e) {
-      // Silent, push is optional, SMS is fallback
-      console.warn("[push] subscription failed:", e);
-    }
-  }
-
   useEffect(() => {
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
-    if (typeof Notification === "undefined") return;
-    if (Notification.permission === "denied") return;
+    const status = getPushStatus();
 
-    // iOS only supports web push from an installed (standalone) PWA, never
-    // from a regular Safari tab. Prompting there would show UI that can
-    // never actually result in a delivered notification.
-    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !(window as any).MSStream;
-    const isStandalone =
-      window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone === true;
-    if (isIOS && !isStandalone) return;
-
-    if (Notification.permission === "granted") {
+    if (status === "granted") {
       syncSubscription();
       return;
     }
+    if (status !== "default") return;
 
     // permission === "default": don't auto-request. iOS Safari silently
     // ignores requestPermission() calls that aren't triggered by a direct
-    // user tap (and browsers generally move this direction over time), so
-    // an automatic call here can leave the popup simply never appearing on
-    // a brand-new device. Show a real button instead and request from its
-    // click handler, which works reliably everywhere.
+    // user tap, so show a real button and request from its click handler.
+    // Dismissed prompts stay away for the session; the account page has a
+    // permanent "Turn on" button for anyone who skipped it.
     if (sessionStorage.getItem("push-prompt-dismissed")) return;
     setShowPrompt(true);
   }, []);
@@ -74,8 +29,7 @@ export default function PushSubscriber() {
   async function enable() {
     setRequesting(true);
     try {
-      const perm = await Notification.requestPermission();
-      if (perm === "granted") await syncSubscription();
+      await enablePush();
     } finally {
       setRequesting(false);
       setShowPrompt(false);
